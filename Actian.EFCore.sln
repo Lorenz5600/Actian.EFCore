@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2A720C13-24EC-4606-B594-E61AD72BCA0A}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7F6982F7-FE28-4BC4-A8AD-8DA6B07E023C}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+		test\xunit.runner.json = test\xunit.runner.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore", "src\Actian.EFCore\Actian.EFCore.csproj", "{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8E66E6F9-BC37-4640-B5C7-B635125F8CB1}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		GetVersionSuffix.ps1 = GetVersionSuffix.ps1
+		LICENSE.txt = LICENSE.txt
+		Pack.cmd = Pack.cmd
+		Pack.ps1 = Pack.ps1
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.FunctionalTests", "test\Actian.EFCore.FunctionalTests\Actian.EFCore.FunctionalTests.csproj", "{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.Tests", "test\Actian.EFCore.Tests\Actian.EFCore.Tests.csproj", "{7B7B4BBE-681B-49D8-A7BF-46161311D90F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{B91B27FE-D1D4-4BA1-B6DB-3CF592FAEF17}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{C7427792-C32C-4A36-9310-CE29BB572D49}"
+	ProjectSection(SolutionItems) = preProject
+		tools\Resources.tt = tools\Resources.tt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6} = {2A720C13-24EC-4606-B594-E61AD72BCA0A}
+		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72} = {7F6982F7-FE28-4BC4-A8AD-8DA6B07E023C}
+		{7B7B4BBE-681B-49D8-A7BF-46161311D90F} = {7F6982F7-FE28-4BC4-A8AD-8DA6B07E023C}
+		{B91B27FE-D1D4-4BA1-B6DB-3CF592FAEF17} = {8E66E6F9-BC37-4640-B5C7-B635125F8CB1}
+		{C7427792-C32C-4A36-9310-CE29BB572D49} = {8E66E6F9-BC37-4640-B5C7-B635125F8CB1}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {87582BA1-32E6-40DE-A2A6-F325DDB8D907}
+	EndGlobalSection
+EndGlobal

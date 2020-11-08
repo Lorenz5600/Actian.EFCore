@@ -1,0 +1,70 @@
+﻿using System;
+using System.Linq;
+using Actian.EFCore.Internal;
+using Actian.EFCore.Parsing.Internal;
+using JetBrains.Annotations;
+using Sprache;
+using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
+using static Sprache.Parse;
+
+namespace Actian.EFCore.Scaffolding.Internal
+{
+    public static class ActianNameFilterParser
+    {
+        public static string ParseSchemaName(
+            [NotNull] string schema,
+            bool dbNameLowerCase,
+            bool dbDelimitedLowerCase)
+        {
+            var result = Identifier.End().TryParse(schema);
+            if (!result.WasSuccessful)
+            {
+                throw new InvalidOperationException(ActianStrings.InvalidTableToIncludeInScaffolding(schema)); // TODO: Better message
+            }
+            return NormalizeCase(result.Value, dbNameLowerCase, dbDelimitedLowerCase);
+        }
+
+        public static (string table, string schema, string name) ParseTableName(
+            [NotNull] string table,
+            bool dbNameLowerCase,
+            bool dbDelimitedLowerCase)
+        {
+            var result = TableName.End().TryParse(table);
+            if (!result.WasSuccessful)
+            {
+                throw new InvalidOperationException(ActianStrings.InvalidTableToIncludeInScaffolding(table));
+            }
+            var (schema, name) = result.Value;
+            return (table, NormalizeCase(schema, dbNameLowerCase, dbDelimitedLowerCase), NormalizeCase(name, dbNameLowerCase, dbDelimitedLowerCase));
+        }
+
+        private static string NormalizeCase((string name, bool delimited) value, bool dbNameLowerCase, bool dbDelimitedLowerCase) => value switch
+        {
+            (_, true) => dbNameLowerCase ? value.name?.ToLowerInvariant() : value.name,
+            (_, false) => dbDelimitedLowerCase ? value.name?.ToLowerInvariant() : value.name
+        };
+
+        public static readonly Parser<string> UndelimitedIdentifier =
+            from first in CharExcept("\".")
+            from rest in CharExcept('.').Many().Text()
+            select first + rest;
+
+        public static readonly Parser<(string name, bool delimited)> Identifier = OneOf(
+            DelimitedIdentifier.Select(name => (name, true)),
+            UndelimitedIdentifier.Select(name => (name, false))
+        );
+
+        public static readonly Parser<((string name, bool delimited) schema, (string name, bool delimited) name)> TableNameWithSchema =
+            from schema in Identifier.Before(Period)
+            from name in Identifier
+            select (schema, name);
+
+        public static readonly (string name, bool delimited) NoName = ((string)null, false);
+
+        public static readonly Parser<((string name, bool delimited) schema, (string name, bool delimited) name)> TableNameWithoutSchema =
+            Identifier.Select(name => (NoName, name));
+
+        public static readonly Parser<((string name, bool delimited) schema, (string name, bool delimited) name)> TableName =
+            TableNameWithSchema.Or(TableNameWithoutSchema);
+    }
+}

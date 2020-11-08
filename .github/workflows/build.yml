@@ -1,0 +1,72 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Test:
+    runs-on: [self-hosted, windows, x64]
+
+    strategy:
+      matrix:
+        actian-efcore-environment:
+          - WIN64_INGRES_10_1_0
+          - WIN64_ACTIANX_11_1_0
+
+    env:
+      ACTIAN_EFCORE_ENVIRONMENT: ${{ matrix.actian-efcore-environment }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
+
+      - name: dotnet restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --verbosity normal --no-restore --no-build
+
+  Create-NuGet-Package:
+    needs: Test
+    runs-on: [self-hosted, windows, x64]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.101
+
+      - name: dotnet restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Get version suffix
+        run: powershell .\GetVersionSuffix.ps1
+
+      - name: Delete nupkg folder
+        run: Remove-Item nupkg -Recurse -ErrorAction Ignore
+
+      - name: dotnet pack
+        run: dotnet pack src/Actian.EFCore/Actian.EFCore.csproj --configuration Release --no-build --output nupkg --version-suffix ${{ env.VersionSuffix }}
+
+      # Not ready to push yet
+      # - name: dotnet push
+      #   working-directory: nupkg
+      #   run: dotnet nuget push "*.nupkg" --source Actian
