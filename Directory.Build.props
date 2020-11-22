@@ -5,10 +5,10 @@
 
     <Company>Actian Corporation</Company>
     <Authors>Actian Corporation</Authors>
-    <Copyright>© 2006-2020 Actian Corporation. All Rights Reserved.</Copyright>
+    <Copyright>©2020 Actian Corporation. All Rights Reserved.</Copyright>
     <Product>Actian Entity Framework Core Provider</Product>
     <Description>Actian Entity Framework Core Provider</Description>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
     <VersionPrefix>1.0.0</VersionPrefix>
     <MinClientVersion>4.3</MinClientVersion>
@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="" />
     <!-- <None Include="$(MSBuildThisFileDirectory)[The icon file name]" Pack="true" PackagePath="" /> -->
   </ItemGroup>
 
