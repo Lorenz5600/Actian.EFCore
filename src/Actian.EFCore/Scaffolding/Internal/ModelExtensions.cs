@@ -111,50 +111,6 @@ namespace Actian.EFCore.Scaffolding.Internal
         }
     }
 
-    internal static class DatabaseForeignKeyExtensions
-    {
-        public static DatabaseForeignKey WithTable(this DatabaseForeignKey constraint, DatabaseTable table)
-        {
-            constraint.Table = table;
-            table.ForeignKeys.Add(constraint);
-            return constraint;
-        }
-
-        public static DatabaseForeignKey WithColumns(this DatabaseForeignKey constraint, IEnumerable<string> columnNames)
-        {
-            foreach (var columnName in columnNames)
-            {
-                constraint.Columns.Add(constraint.Table.GetColumn(columnName));
-            }
-            return constraint;
-        }
-
-        public static DatabaseForeignKey WithPrincipalTable(this DatabaseForeignKey constraint, DatabaseTable table)
-        {
-            constraint.PrincipalTable = table;
-            return constraint;
-        }
-
-        public static DatabaseForeignKey WithPrincipalColumns(this DatabaseForeignKey constraint, IEnumerable<string> columnNames)
-        {
-            if (columnNames != null && columnNames.Any())
-            {
-                foreach (var key in columnNames)
-                {
-                    constraint.PrincipalColumns.Add(constraint.PrincipalTable.GetColumn(key));
-                }
-            }
-            else
-            {
-                foreach (var column in constraint.PrincipalTable.PrimaryKey.Columns)
-                {
-                    constraint.PrincipalColumns.Add(column);
-                }
-            }
-            return constraint;
-        }
-    }
-
     internal static class DatabaseIndexExtensions
     {
         public static DatabaseIndex WithTable(this DatabaseIndex index, DatabaseTable table)
@@ -183,7 +139,7 @@ namespace Actian.EFCore.Scaffolding.Internal
             return sequence;
         }
 
-        public static DatabaseSequence WithDefaultMinValue(this DatabaseSequence sequence)
+        private static DatabaseSequence WithDefaultMinValue(this DatabaseSequence sequence)
         {
             switch (sequence.StoreType?.ToLowerInvariant())
             {
@@ -197,7 +153,7 @@ namespace Actian.EFCore.Scaffolding.Internal
             return sequence;
         }
 
-        public static DatabaseSequence WithDefaultMaxValue(this DatabaseSequence sequence)
+        private static DatabaseSequence WithDefaultMaxValue(this DatabaseSequence sequence)
         {
             switch (sequence.StoreType?.ToLowerInvariant())
             {
@@ -209,6 +165,28 @@ namespace Actian.EFCore.Scaffolding.Internal
                     break;
             }
             return sequence;
+        }
+
+        private static DatabaseSequence WithDefaultStartValue(this DatabaseSequence sequence)
+        {
+            switch (sequence.StoreType?.ToLowerInvariant())
+            {
+                case "integer" when sequence.IncrementBy > 0 && sequence.StartValue == 1L:
+                case "bigint" when sequence.IncrementBy > 0 && sequence.StartValue == 1L:
+                case "integer" when sequence.IncrementBy < 0 && sequence.StartValue == -1L:
+                case "bigint" when sequence.IncrementBy < 0 && sequence.StartValue == -1L:
+                    sequence.StartValue = null;
+                    break;
+            }
+            return sequence;
+        }
+
+        public static DatabaseSequence WithDefaultValues(this DatabaseSequence sequence)
+        {
+            return sequence
+                .WithDefaultStartValue()
+                .WithDefaultMinValue()
+                .WithDefaultMaxValue();
         }
     }
 }

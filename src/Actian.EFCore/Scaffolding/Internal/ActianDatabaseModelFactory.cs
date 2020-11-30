@@ -181,7 +181,8 @@ namespace Actian.EFCore.Scaffolding.Internal
                    and t.system_use = 'U'
                    {filter}
                  order by t.table_owner, t.table_name, l.loc_sequence
-            ", reader => new {
+            ", reader => new
+            {
                 Schema = reader.GetTrimmedChar("table_owner"),
                 TableName = reader.GetTrimmedChar("table_name"),
                 LocationName = reader.GetTrimmedChar("location_name")
@@ -235,6 +236,10 @@ namespace Actian.EFCore.Scaffolding.Internal
                     reader.GetValueOrDefault<int>("column_length"),
                     reader.GetValueOrDefault<int>("column_scale")
                 ),
+                DataTypeName = GetDataTypeName(
+                    reader.GetTrimmedChar("column_datatype"),
+                    reader.GetValueOrDefault<int>("column_length")
+                ),
                 DefaultValueSql = reader.GetTrimmedChar("column_defaults") == "Y"
                     ? reader.GetTrimmedChar("column_default_val")?.TrimEnd()
                     : null,
@@ -264,7 +269,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                     Name = column.ColumnName,
                     IsNullable = column.IsNullable,
                     StoreType = column.StoreType,
-                    DefaultValueSql = column.DefaultValueSql,
+                    DefaultValueSql = FilterClrDefaults(column.DataTypeName, column.IsNullable, column.DefaultValueSql),
                     ComputedColumnSql = null,
                     ValueGenerated = column.ValueGenerated
                 });
@@ -288,6 +293,51 @@ namespace Actian.EFCore.Scaffolding.Internal
             GetIndexes(connection, tables, tableFilter);
             GetComments(connection, tables);
             return tables;
+        }
+
+        private static readonly string DefaultDatePrefixRe = @"(?:(?:date|time|timestamp)\s+)";
+        private static readonly string DefaultDateRe = @"0001-01-01";
+        private static readonly string DefaultTimeRe = @"00:00:00(?:\.0+)?";
+        private static readonly string DefaultDateTimeRe = @$"(?:{DefaultDateRe}\s*T\s*{DefaultTimeRe}|{DefaultDateRe}\s+{DefaultTimeRe})";
+
+        private static readonly Regex DefaultTimestampRe = new Regex(
+            @$"^\s*{DefaultDatePrefixRe}?'(?:{DefaultDateRe}|{DefaultTimeRe}|{DefaultDateTimeRe})'\s*$",
+            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
+        );
+
+        private static string FilterClrDefaults(string dataTypeName, bool nullable, string defaultValue)
+        {
+            if (defaultValue == null || defaultValue == "NULL")
+                return null;
+
+            if (nullable)
+                return defaultValue;
+
+            switch (dataTypeName?.ToLowerInvariant())
+            {
+                case "boolean" when defaultValue == "FALSE":
+                case "tinyint" when defaultValue == "0":
+                case "smallint" when defaultValue == "0":
+                case "integer" when defaultValue == "0":
+                case "bigint" when defaultValue == "0":
+                case "float" when defaultValue == "0" || defaultValue == "0.0":
+                case "float4" when defaultValue == "0" || defaultValue == "0.0":
+                case "decimal" when defaultValue == "0" || defaultValue == "0.0":
+                case "money" when defaultValue == "0" || defaultValue == "0.0":
+                case "ansidate" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "ingresdate" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "time" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "time without time zone" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "time with local zone" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "time with time zone" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "timestamp" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "timestamp without time zone" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "timestamp with local zone" when DefaultTimestampRe.IsMatch(defaultValue):
+                case "timestamp with time zone" when DefaultTimestampRe.IsMatch(defaultValue):
+                    return null;
+            }
+
+            return defaultValue;
         }
 
         /// <summary>
@@ -396,15 +446,67 @@ namespace Actian.EFCore.Scaffolding.Internal
                 if (ActianForeignKeyConstraint.TryParse(constraint.Text, out var fk))
                 {
                     _logger.ForeignKeyFound(constraint.Name, DisplayName(constraint.Schema, constraint.Table), DisplayName(fk.ReferencesTableSchema, fk.ReferencesTableName), $"{fk.OnDelete}");
-                    new DatabaseForeignKey
+
+                    var table = tables.GetTable(constraint.Schema, constraint.Table, throwOnNotFound: true);
+                    var principalTable = tables.GetTable(fk.ReferencesTableSchema, fk.ReferencesTableName, throwOnNotFound: false);
+
+                    if (principalTable == null)
+                    {
+                        _logger.ForeignKeyReferencesMissingPrincipalTableWarning(
+                            constraint.Name,
+                            DisplayName(constraint.Schema, constraint.Table),
+                            DisplayName(fk.ReferencesTableSchema, fk.ReferencesTableName)
+                        );
+
+                        continue;
+                    }
+
+                    var foreignKey = new DatabaseForeignKey
                     {
                         Name = constraint.Name,
+                        Table = table,
+                        PrincipalTable = principalTable,
                         OnDelete = fk.OnDelete
+                    };
+
+                    var invalid = false;
+                    foreach (var (columnName, principalColumnName) in fk.Keys.Zip(fk.ReferencesKeys, (k, r) => (k, r)))
+                    {
+                        var column = table.Columns.FirstOrDefault(c => c.Name == columnName)
+                            ?? table.Columns.FirstOrDefault(c => c.Name.Equals(columnName, StringComparison.OrdinalIgnoreCase));
+
+                        var principalColumn = principalTable.Columns.FirstOrDefault(c => c.Name == principalColumnName)
+                            ?? principalTable.Columns.FirstOrDefault(c => c.Name.Equals(principalColumnName, StringComparison.OrdinalIgnoreCase));
+
+                        if (principalColumn == null)
+                        {
+                            invalid = true;
+                            _logger.ForeignKeyPrincipalColumnMissingWarning(
+                                constraint.Name,
+                                DisplayName(constraint.Schema, constraint.Table),
+                                principalColumnName,
+                                DisplayName(fk.ReferencesTableSchema, fk.ReferencesTableName)
+                            );
+                            break;
+                        }
+
+                        foreignKey.Columns.Add(column);
+                        foreignKey.PrincipalColumns.Add(principalColumn);
                     }
-                    .WithTable(tables.GetTable(constraint.Schema, constraint.Table))
-                    .WithColumns(fk.Keys)
-                    .WithPrincipalTable(tables.GetTable(fk.ReferencesTableSchema, fk.ReferencesTableName))
-                    .WithPrincipalColumns(fk.ReferencesKeys);
+
+                    if (invalid)
+                        continue;
+
+                    if (foreignKey.Columns.SequenceEqual(foreignKey.PrincipalColumns))
+                    {
+                        _logger.ReflexiveConstraintIgnored(
+                            constraint.Name,
+                            DisplayName(constraint.Schema, constraint.Table)
+                        );
+                        continue;
+                    }
+
+                    table.ForeignKeys.Add(foreignKey);
                 }
             }
         }
@@ -482,7 +584,8 @@ namespace Actian.EFCore.Scaffolding.Internal
         /// Queries the database for sequences and registers them with the model.
         /// </summary>
         /// <param name="connection">The database connection.</param>
-        /// <param name="tables">The database tables.</param>
+        /// <param name="database"></param>
+        /// <param name="schemaFilter"></param>
         private void GetSequences(
             [NotNull] IngresConnection connection,
             [NotNull] DatabaseModel database,
@@ -512,7 +615,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                 MinValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("min_value")),
                 MaxValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("max_value")),
                 IsCyclic = reader.GetTrimmedChar("cycle_flag") == "Y"
-            }.WithDefaultMinValue().WithDefaultMaxValue().WithDatabase(database)).ToList();
+            }.WithDefaultValues().WithDatabase(database)).ToList();
         }
 
         /// <summary>
@@ -581,6 +684,76 @@ namespace Actian.EFCore.Scaffolding.Internal
             //_ when typeName.Matches(DecimalRe, out var match) => GetStoreType("DECIMAL", ParseInt(match.Groups[1].Value), ParseInt(match.Groups[2].Value)),
             _ => GetStoreType(typeName)
         };
+
+        private static string GetDataTypeName(string typeName, int? length = null)
+        {
+            switch (typeName?.ToUpperInvariant())
+            {
+                case "CHAR":
+                case "VARCHAR":
+                case "NCHAR":
+                case "NVARCHAR":
+                case "BYTE":
+                case "BYTE VARYING":
+                    return typeName.ToLowerInvariant();
+
+                case "TINYINT":
+                case "INTEGER" when (length ?? 4) == 1:
+                    return "tinyint";
+
+                case "SMALLINT":
+                case "INTEGER" when (length ?? 4) == 2:
+                    return "smallint";
+
+                case "INTEGER" when (length ?? 4) == 0:
+                case "INTEGER" when (length ?? 4) == 4:
+                    return "integer";
+
+                case "BIGINT":
+                case "INTEGER" when (length ?? 4) == 8:
+                    return "bigint";
+
+                case "INTEGER":
+                    return $"integer{length}";
+
+                case "FLOAT" when (length ?? 0) == 4:
+                    return "float4";
+
+                case "FLOAT" when (length ?? 0) == 0:
+                case "FLOAT" when (length ?? 0) == 8:
+                    return "float";
+
+                case "FLOAT":
+                    return $"float{length}";
+
+                case "TIME":
+                    return "time";
+                case "TIME WITHOUT TIME ZONE":
+                    return "time without time zone";
+                case "TIME WITH LOCAL TIME ZONE":
+                    return "time with local time zone";
+                case "TIME WITH TIME ZONE":
+                    return "time with time zone";
+
+                case "TIMESTAMP":
+                    return "timestamp";
+                case "TIMESTAMP WITHOUT TIME ZONE":
+                    return "timestamp without time zone";
+                case "TIMESTAMP WITH LOCAL TIME ZONE":
+                    return "timestamp with local time zone";
+                case "TIMESTAMP WITH TIME ZONE":
+                    return "timestamp with time zone";
+
+                case "INTERVAL DAY TO SECOND":
+                    return $"interval day to second";
+
+                case "DECIMAL":
+                    return $"decimal";
+
+                default:
+                    return typeName?.ToLowerInvariant();
+            };
+        }
 
         private static string GetStoreType(string typeName, int? length = null, int? scale = null)
         {

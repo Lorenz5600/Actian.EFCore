@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using Ingres.Client;
 
 namespace Actian.EFCore.TestUtilities
 {
@@ -54,5 +55,16 @@ namespace Actian.EFCore.TestUtilities
                     : throw new Exception($"User id not found for test environment {TestEnvironmentName}");
             }
         }
+
+        private static readonly Lazy<string> _serverVersion = new Lazy<string>(() =>
+        {
+            using var connection = new IngresConnection(ConnectionString);
+            connection.Open();
+            return connection.ServerVersion;
+        });
+        public static string ServerVersion => _serverVersion.Value;
+
+        private static readonly Lazy<ActianServerVersion> _actianServerVersion = new Lazy<ActianServerVersion>(() => ActianServerVersion.Parse(ServerVersion));
+        public static ActianServerVersion ActianServerVersion => _actianServerVersion.Value;
     }
 }

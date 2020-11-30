@@ -11,9 +11,10 @@ on:
 
 jobs:
   Test:
-    runs-on: [self-hosted, windows, x64]
+    runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}']
 
     strategy:
+      fail-fast: false
       matrix:
         actian-efcore-environment:
           - WIN64_INGRES_10_1_0

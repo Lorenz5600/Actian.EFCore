@@ -7,10 +7,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Actian.EFCore.Scaffolding.DatabaseModelFactory;
+using Actian.EFCore.Storage.Internal;
 using Ingres.Client;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 #pragma warning disable IDE0022 // Use block body for methods
 // ReSharper disable SuggestBaseTypeForParameter
@@ -18,6 +22,8 @@ namespace Actian.EFCore.TestUtilities
 {
     public class ActianTestStore : RelationalTestStore
     {
+        private static readonly ActianSqlGenerationHelper SqlGenerationHelper = new ActianSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
+
         public const int CommandTimeout = 300;
 
         public static ActianTestStore GetIIDbDb()
@@ -61,6 +67,13 @@ namespace Actian.EFCore.TestUtilities
             Connection = new IngresConnection(ConnectionString);
 
             Console.WriteLine($"Server version: {GetServerVersion()}");
+        }
+
+        public ITestOutputHelper Output { get; private set; }
+
+        public void SetOutput(ITestOutputHelper output)
+        {
+            Output = output;
         }
 
         public ActianTestStore InitializeActian(
@@ -162,9 +175,13 @@ namespace Actian.EFCore.TestUtilities
 
         public void CleanObjects()
         {
+            Output?.WriteLine(new string('=', 80));
+            Output?.WriteLine("Cleaning database objects");
+            Output?.WriteLine(new string('-', 80));
+
             var statements = new List<string>();
 
-            var tables = Query($@"
+            ForEach($@"
                 select table_owner,
                        table_name
                   from $ingres.iitables
@@ -172,39 +189,34 @@ namespace Actian.EFCore.TestUtilities
                    and system_use = 'U'
             ", reader =>
             {
-                return new
-                {
-                    Schema = reader.GetFieldValue<string>(0),
-                    Name = reader.GetFieldValue<string>(1)
-                };
+                var schema = reader.GetFieldValue<string>(0)?.Trim();
+                var name = reader.GetFieldValue<string>(1)?.Trim();
+
+                statements.Add($"SET SESSION AUTHORIZATION {SqlGenerationHelper.DelimitIdentifier(schema)};");
+                statements.Add($"DROP {SqlGenerationHelper.DelimitIdentifier(name)};");
             });
 
-            foreach (var table in tables)
-            {
-                statements.Add($"SET SESSION AUTHORIZATION {table.Schema};");
-                statements.Add($"DROP {table.Name};");
-            }
 
-            var sequences = Query($@"
+            ForEach($@"
                 select seq_owner,
                        seq_name
                   from $ingres.iisequences
             ", reader =>
             {
-                return new
-                {
-                    Schema = reader.GetFieldValue<string>(0),
-                    Name = reader.GetFieldValue<string>(1)
-                };
+                var schema = reader.GetFieldValue<string>(0)?.Trim();
+                var name = reader.GetFieldValue<string>(1)?.Trim();
+
+                statements.Add($"SET SESSION AUTHORIZATION {SqlGenerationHelper.DelimitIdentifier(schema)};");
+                statements.Add($"DROP SEQUENCE {SqlGenerationHelper.DelimitIdentifier(name)};");
             });
 
-            foreach (var sequence in sequences)
-            {
-                statements.Add($"SET SESSION AUTHORIZATION {sequence.Schema};");
-                statements.Add($"DROP SEQUENCE {sequence.Name};");
-            }
+            statements.Add($"SET SESSION AUTHORIZATION initial_user;");
 
             ExecuteStatementsIgnoreErrors(statements);
+
+            Output?.WriteLine(new string('=', 80));
+            Output?.WriteLine("");
+            Output?.WriteLine("");
         }
 
         public void ExecuteScript(string scriptPath)
@@ -218,7 +230,7 @@ namespace Actian.EFCore.TestUtilities
                             .Split(script).Where(b => !string.IsNullOrEmpty(b)))
                     {
                         command.CommandText = batch;
-                        command.ExecuteNonQuery();
+                        Log(batch, () => command.ExecuteNonQuery());
                     }
 
                     return 0;
@@ -234,13 +246,13 @@ namespace Actian.EFCore.TestUtilities
         public T ExecuteScalar<T>(string sql, params object[] parameters)
             => ExecuteScalar<T>(Connection, sql, parameters);
 
-        private static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
+        private T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
             => Execute(connection, command => command.ExecuteScalar<T>(), sql, false, parameters);
 
         public Task<T> ExecuteScalarAsync<T>(string sql, params object[] parameters)
             => ExecuteScalarAsync<T>(Connection, sql, parameters);
 
-        private static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, IReadOnlyList<object> parameters = null)
+        private Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, IReadOnlyList<object> parameters = null)
             => ExecuteAsync(connection, async command => await command.ExecuteScalarAsync<T>(), sql, false, parameters);
 
         public int ExecuteNonQuery(string sql, params object[] parameters)
@@ -321,26 +333,26 @@ namespace Actian.EFCore.TestUtilities
             return ExecuteNonQuery(SplitSqlStatements(statements), true);
         }
 
-        private static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
-            => Execute(connection, command => command.ExecuteNonQuery(), sql, false, parameters);
+        private int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
+            => Execute(connection, command => Log(sql, () => command.ExecuteNonQuery()), sql, false, parameters);
 
         public Task<int> ExecuteNonQueryAsync(string sql, params object[] parameters)
             => ExecuteNonQueryAsync(Connection, sql, parameters);
 
-        private static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, IReadOnlyList<object> parameters = null)
-            => ExecuteAsync(connection, command => command.ExecuteNonQueryAsync(), sql, false, parameters);
+        private Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, IReadOnlyList<object> parameters = null)
+            => ExecuteAsync(connection, command => LogAsync(sql, () => command.ExecuteNonQueryAsync()), sql, false, parameters);
 
         public IEnumerable<T> Query<T>(string sql, params object[] parameters)
             => Query<T>(Connection, sql, parameters);
 
         public IEnumerable<T> Query<T>(string sql, Func<DbDataReader, T> read, params object[] parameters)
-            => Query<T>(Connection, sql, read, parameters);
+            => Query(Connection, sql, read, parameters);
 
-        private static IEnumerable<T> Query<T>(DbConnection connection, string sql, Func<DbDataReader, T> read, object[] parameters = null)
+        private IEnumerable<T> Query<T>(DbConnection connection, string sql, Func<DbDataReader, T> read, object[] parameters = null)
             => Execute(
                 connection, command =>
                 {
-                    using var dataReader = command.ExecuteReader();
+                    using var dataReader = Log(sql, () => command.ExecuteReader());
                     var results = new List<T>();
                     while (dataReader.Read())
                     {
@@ -349,11 +361,11 @@ namespace Actian.EFCore.TestUtilities
                     return results;
                 }, sql, false, parameters);
 
-        private static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
+        private IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
             => Execute(
                 connection, command =>
                 {
-                    using var dataReader = command.ExecuteReader();
+                    using var dataReader = Log(sql, () => command.ExecuteReader());
                     var results = Enumerable.Empty<T>();
                     while (dataReader.Read())
                     {
@@ -368,11 +380,12 @@ namespace Actian.EFCore.TestUtilities
         public Task<IEnumerable<T>> QueryAsync<T>(string sql, Func<DbDataReader, T> read, params object[] parameters)
             => QueryAsync<T>(Connection, sql, read, parameters);
 
-        private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, Func<DbDataReader, T> read, object[] parameters = null)
+        private Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, Func<DbDataReader, T> read, object[] parameters = null)
             => ExecuteAsync(
                 connection, async command =>
                 {
-                    using var dataReader = await command.ExecuteReaderAsync();
+                    using var dataReader = await LogAsync(sql, () => command.ExecuteReaderAsync());
+
                     var results = new List<T>();
                     while (await dataReader.ReadAsync())
                     {
@@ -381,11 +394,11 @@ namespace Actian.EFCore.TestUtilities
                     return results.AsEnumerable();
                 }, sql, false, parameters);
 
-        private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
+        private Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(
                 connection, async command =>
                 {
-                    using var dataReader = await command.ExecuteReaderAsync();
+                    using var dataReader = await LogAsync(sql, () => command.ExecuteReaderAsync());
 
                     var results = Enumerable.Empty<T>();
                     while (await dataReader.ReadAsync())
@@ -396,7 +409,24 @@ namespace Actian.EFCore.TestUtilities
                     return results;
                 }, sql, false, parameters);
 
-        private static T Execute<T>(
+        public int ForEach(string sql, Action<DbDataReader> action, params object[] parameters)
+            => ForEach(Connection, sql, action, parameters);
+
+        private int ForEach(DbConnection connection, string sql, Action<DbDataReader> action, object[] parameters = null)
+            => Execute(
+                connection, command =>
+                {
+                    using var dataReader = Log(sql, () => command.ExecuteReader());
+                    var rows = 0;
+                    while (dataReader.Read())
+                    {
+                        action(dataReader);
+                        rows += 1;
+                    }
+                    return rows;
+                }, sql, false, parameters);
+
+        private T Execute<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql,
             bool useTransaction = false, object[] parameters = null)
             => new TestActianRetryingExecutionStrategy().Execute(
@@ -410,7 +440,7 @@ namespace Actian.EFCore.TestUtilities
                 },
                 state => ExecuteCommand(state.connection, state.execute, state.sql, state.useTransaction, state.parameters));
 
-        private static T ExecuteCommand<T>(
+        private T ExecuteCommand<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction, object[] parameters)
         {
             var wasOpen = connection.State == ConnectionState.Open;
@@ -438,7 +468,7 @@ namespace Actian.EFCore.TestUtilities
             }
         }
 
-        private static Task<T> ExecuteAsync<T>(
+        private Task<T> ExecuteAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
             bool useTransaction = false, IReadOnlyList<object> parameters = null)
             => new TestActianRetryingExecutionStrategy().ExecuteAsync(
@@ -452,7 +482,7 @@ namespace Actian.EFCore.TestUtilities
                 },
                 state => ExecuteCommandAsync(state.connection, state.executeAsync, state.sql, state.useTransaction, state.parameters));
 
-        private static async Task<T> ExecuteCommandAsync<T>(
+        private async Task<T> ExecuteCommandAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction,
             IReadOnlyList<object> parameters)
         {
@@ -469,7 +499,7 @@ namespace Actian.EFCore.TestUtilities
                     T result;
                     using (var command = CreateCommand(connection, sql, parameters))
                     {
-                        result = await executeAsync(command);
+                        result = await LogAsync(sql, () => executeAsync(command));
                     }
 
                     if (transaction != null)
@@ -486,6 +516,44 @@ namespace Actian.EFCore.TestUtilities
                 {
                     await connection.CloseAsync();
                 }
+            }
+        }
+
+        private T Log<T>(string sql, Func<T> action)
+        {
+            try
+            {
+                Output?.WriteLine(sql);
+                Output?.WriteLine("");
+                return action();
+            }
+            catch (Exception ex)
+            {
+                Output?.WriteLine($"ERROR: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                Output?.WriteLine("");
+            }
+        }
+
+        private async Task<T> LogAsync<T>(string sql, Func<Task<T>> action)
+        {
+            try
+            {
+                Output?.WriteLine(sql);
+                Output?.WriteLine("");
+                return await action();
+            }
+            catch (Exception ex)
+            {
+                Output?.WriteLine($"ERROR: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                Output?.WriteLine("");
             }
         }
 
@@ -511,8 +579,8 @@ namespace Actian.EFCore.TestUtilities
         private static readonly HashSet<string> ValidDatabases = new HashSet<string>(new[]
         {
             TestEnvironment.Database,
-            "iidbdb",
-            "EFCore_DatabaseModelFactory"
+            ActianDatabaseModelFixture.DatabaseName,
+            "iidbdb"
         }, StringComparer.InvariantCultureIgnoreCase);
 
         public static string CreateConnectionString(string name)
