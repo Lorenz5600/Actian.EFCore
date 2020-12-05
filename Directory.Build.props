@@ -44,6 +44,9 @@
     <!-- Ignore naming Styles -->
     <NoWarn>$(NoWarn);IDE1006</NoWarn>
 
+    <!-- Ignore missing XML comments -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
   </PropertyGroup>
 
 </Project>

@@ -344,3 +344,4 @@ ASALocalRun/
 /specials/
 /nupkg/
 /test-environments.cmd
+test-results.xml

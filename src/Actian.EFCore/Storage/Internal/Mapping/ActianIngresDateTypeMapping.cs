@@ -12,8 +12,7 @@ namespace Actian.EFCore.Storage.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="ActianIngresDateTypeMapping" /> class.
         /// </summary>
-        /// <param name="storeType"> The name of the database type. </param>
-        /// <param name="dbType"> The <see cref="DbType" /> to be used. </param>
+        /// <param name="clrType">The CLR type</param>
         public ActianIngresDateTypeMapping(
             [NotNull] Type clrType
             )

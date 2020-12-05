@@ -18,10 +18,11 @@ jobs:
       matrix:
         actian-efcore-environment:
           - WIN64_INGRES_10_1_0
-          - WIN64_ACTIANX_11_1_0
+          # - WIN64_ACTIANX_11_1_0
 
     env:
       ACTIAN_EFCORE_ENVIRONMENT: ${{ matrix.actian-efcore-environment }}
+      config: Debug
 
     steps:
       - uses: actions/checkout@v2
@@ -35,15 +36,18 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration ${{ env.config }} --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --verbosity normal --no-restore --no-build
+        run: dotnet test --configuration ${{ env.config }} --verbosity normal --no-restore --no-build --logger "GitHubActions"
 
   Create-NuGet-Package:
     needs: Test
     runs-on: [self-hosted, windows, x64]
 
+    env:
+      config: Release
+
     steps:
       - uses: actions/checkout@v2
 
@@ -56,7 +60,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration ${{ env.config }} --no-restore
 
       - name: Get version suffix
         run: powershell .\GetVersionSuffix.ps1
@@ -65,7 +69,7 @@ jobs:
         run: Remove-Item nupkg -Recurse -ErrorAction Ignore
 
       - name: dotnet pack
-        run: dotnet pack src/Actian.EFCore/Actian.EFCore.csproj --configuration Release --no-build --output nupkg --version-suffix ${{ env.VersionSuffix }}
+        run: dotnet pack src/Actian.EFCore/Actian.EFCore.csproj --configuration ${{ env.config }} --no-build --output nupkg --version-suffix ${{ env.VersionSuffix }}
 
       # Not ready to push yet
       # - name: dotnet push

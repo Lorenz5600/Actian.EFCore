@@ -13,7 +13,8 @@ namespace Actian.EFCore.Storage.Internal
         /// Initializes a new instance of the <see cref="ActianTimestampTypeMapping" /> class.
         /// </summary>
         /// <param name="storeType"> The name of the database type. </param>
-        /// <param name="dbType"> The <see cref="DbType" /> to be used. </param>
+        /// <param name="clrType">The CLR type</param>
+        /// <param name="withTimeZone"></param>
         public ActianTimestampTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
@@ -35,6 +36,7 @@ namespace Actian.EFCore.Storage.Internal
         /// Initializes a new instance of the <see cref="ActianTimestampTypeMapping" /> class.
         /// </summary>
         /// <param name="parameters"> Parameter object for <see cref="RelationalTypeMapping" />. </param>
+        /// <param name="withTimeZone"></param>
         protected ActianTimestampTypeMapping(RelationalTypeMappingParameters parameters, bool withTimeZone)
             : base(parameters)
         {

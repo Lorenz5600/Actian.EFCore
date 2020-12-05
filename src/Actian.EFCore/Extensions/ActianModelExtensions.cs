@@ -61,7 +61,7 @@ namespace Actian.EFCore
 
         /// <summary>
         /// Returns the schema to use for the default hi-lo sequence.
-        /// <see cref="ActianPropertyBuilderExtensions.UseHiLo" />
+        /// <see cref="ActianModelBuilderExtensions.UseHiLo" />
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The schema to use for the default hi-lo sequence. </returns>
