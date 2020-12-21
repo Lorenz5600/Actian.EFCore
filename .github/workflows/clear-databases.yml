@@ -1,0 +1,47 @@
+name: Clear databases
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  Test:
+    runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
+
+    strategy:
+      fail-fast: false
+      matrix:
+        actian-efcore-environment:
+          - WIN64_INGRES_10_1_0
+          - WIN64_ACTIANX_11_1_0
+        compatibility:
+          - Ingres
+          - Ansi
+
+    env:
+      config: Debug
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Actian installation
+        run: powershell .\scripts\SetupActianInstallation.ps1
+
+      - name: Drop database efcore_test
+        run: destroydb -u\"""dbo\""" efcore_test
+        continue-on-error: true
+
+      - name: Drop database efcore_databasemodelfactory
+        run: destroydb -u\"""dbo\""" efcore_databasemodelfactory
+        continue-on-error: true
+
+      - name: Drop database efcore_northwind
+        run: destroydb -u\"""dbo\""" efcore_northwind
+        continue-on-error: true
