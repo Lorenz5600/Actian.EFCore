@@ -9,9 +9,10 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
     public class ActianDatabaseModelFixture : SharedStoreFixtureBase<PoolableDbContext>
     {
         public const string DatabaseName = "EFCore_DatabaseModelFactory";
+        public const string DbmsUser = @"""dbo""";
 
         protected override string StoreName { get; } = DatabaseName;
-        protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory => new ActianTestStoreFactory(DbmsUser);
         public new ActianTestStore TestStore { get; }
         private readonly ActianTestStore IIDbDbStore;
         public ITestOutputHelper Output { get; private set; }
@@ -25,9 +26,8 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             }
             IIDbDbStore = ActianTestStore.GetIIDbDb();
 
-            CreateUser("efcore_test1");
-            CreateUser("efcore_test2");
-            CreateUser("efcore_test.2");
+            CreateUser("db2");
+            CreateUser("db.2");
 
             IIDbDbStore.ExecuteNonQuery(@$"grant access, db_admin on database {StoreName} to public");
         }

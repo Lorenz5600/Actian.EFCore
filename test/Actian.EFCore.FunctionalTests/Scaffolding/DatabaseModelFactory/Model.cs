@@ -26,16 +26,19 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Create_tables() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test2;
-                CREATE TABLE ""Everest"" ( id int );
-                CREATE TABLE ""Denali"" ( id int );
+                SET SESSION AUTHORIZATION ""db2"";
+                CREATE TABLE ""Everest"" ( ""id"" int );
+                CREATE TABLE ""Denali"" ( ""id"" int );
             ")
             .Assert(dbModel => dbModel.Tables
                 .OrderBy(t => t.Name)
                 .Should().BeEquivalentTo(Items(
-                    new { Schema = "efcore_test2", Name = "denali" },
-                    new { Schema = "efcore_test2", Name = "everest" }
-                ))
+                    new { Schema = "db2", Name = "Denali" },
+                    new { Schema = "db2", Name = "Everest" }
+                ), options => options
+                    .UsingDelimitedName(dbModel, "Schema")
+                    .UsingDelimitedName(dbModel, "Name")
+                )
             )
         );
     }

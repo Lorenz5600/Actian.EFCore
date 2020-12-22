@@ -1,64 +1,51 @@
 ﻿using System;
-using System.Data.Common;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
+using Actian.EFCore.Scaffolding.DatabaseModelFactory;
 using Ingres.Client;
 
 namespace Actian.EFCore.TestUtilities
 {
     public static class TestEnvironment
     {
-        public static string TestEnvironmentName
+        public static string EFCoreTestConnectionString
         {
             get
             {
-                var name = Environment.GetEnvironmentVariable("ACTIAN_EFCORE_ENVIRONMENT");
-                if (string.IsNullOrWhiteSpace(name))
-                    return "DEFAULT";
-                return name;
-            }
-        }
-
-        public static string ConnectionString
-        {
-            get
-            {
-                var connectionString = Environment.GetEnvironmentVariable($"ACTIAN_EFCORE_{TestEnvironmentName}");
+                var connectionString = Environment.GetEnvironmentVariable($"EFCORE_TEST_CONNECTION_STRING");
                 if (string.IsNullOrWhiteSpace(connectionString))
-                    throw new Exception($"Connection string not found for test environment {TestEnvironmentName}");
+                    throw new Exception($"Test connection string not found");
                 return connectionString;
             }
         }
 
-        public static string Database
+        private static readonly HashSet<string> ValidDatabases = new HashSet<string>(new[]
         {
-            get
+            ActianDatabaseModelFixture.DatabaseName,
+            ActianNorthwindTestStoreFactory.DatabaseName,
+            "iidbdb"
+        }, StringComparer.InvariantCultureIgnoreCase);
+
+        public static string GetConnectionString(string database, string dbmsUser)
+        {
+            database = database.ToLowerInvariant();
+
+            if (!ValidDatabases.Contains(database))
+                throw new Exception($"Database {database} can not be used for tests");
+
+            return new IngresConnectionStringBuilder(EFCoreTestConnectionString)
             {
-                var builder = new DbConnectionStringBuilder
-                {
-                    ConnectionString = ConnectionString
-                };
-                return builder.TryGetValue("Database", out var database)
-                    ? database as string
-                    : throw new Exception($"Database not found for test environment {TestEnvironmentName}");
-            }
+                Database = database,
+                DbmsUser = dbmsUser
+            }.ConnectionString;
         }
 
-        public static string UserId
-        {
-            get
-            {
-                var builder = new DbConnectionStringBuilder
-                {
-                    ConnectionString = ConnectionString
-                };
-                return builder.TryGetValue("User ID", out var userId)
-                    ? userId as string
-                    : throw new Exception($"User id not found for test environment {TestEnvironmentName}");
-            }
-        }
+        public static string LoginUser => new IngresConnectionStringBuilder(EFCoreTestConnectionString).UserID;
 
         private static readonly Lazy<string> _serverVersion = new Lazy<string>(() =>
         {
-            using var connection = new IngresConnection(ConnectionString);
+            using var connection = new IngresConnection(GetConnectionString("iidbdb", LoginUser));
             connection.Open();
             return connection.ServerVersion;
         });
@@ -66,5 +53,32 @@ namespace Actian.EFCore.TestUtilities
 
         private static readonly Lazy<ActianServerVersion> _actianServerVersion = new Lazy<ActianServerVersion>(() => ActianServerVersion.Parse(ServerVersion));
         public static ActianServerVersion ActianServerVersion => _actianServerVersion.Value;
+
+        public static string ProjectDirectory => GetProjectDirectory();
+        public static string LogDirectory
+        {
+            get
+            {
+                var logDirectory = Path.Combine(ProjectDirectory, ".logs");
+                Directory.CreateDirectory(logDirectory);
+                return logDirectory;
+            }
+        }
+
+        private static string GetProjectDirectory([CallerFilePath] string callerPath = "")
+        {
+            string getProjectDirectory(string dir)
+            {
+                if (File.Exists(Path.Combine(dir, "Actian.EFCore.FunctionalTests.csproj")))
+                    return dir;
+
+                if (dir == Path.GetPathRoot(dir))
+                    throw new Exception("Could not find the project directory");
+
+                return getProjectDirectory(Path.GetDirectoryName(dir));
+            }
+
+            return getProjectDirectory(Path.GetDirectoryName(callerPath));
+        }
     }
 }

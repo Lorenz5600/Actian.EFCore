@@ -16,6 +16,31 @@ namespace Actian.EFCore.Parsing.Internal
             return parser;
         }
 
+        public static Parser<T> XOneOf<T>(Parser<T> parser, params Parser<T>[] otherParsers)
+        {
+            foreach (var otherParser in otherParsers)
+            {
+                parser = parser.XOr(otherParser);
+            }
+            return parser;
+        }
+
+        public static Parser<string> Strings(params string[] strings)
+        {
+            return Strings(strings.AsEnumerable());
+        }
+
+        public static Parser<string> Strings(IEnumerable<string> strings)
+        {
+            var parser = String(strings.First()).Text();
+            foreach (var str in strings.Skip(1))
+            {
+
+                parser = parser.Or(String(str).Text());
+            }
+            return parser;
+        }
+
         public static Parser<T> If<T>(bool choice, Parser<T> parser1, Parser<T> parser2)
         {
             return choice ? parser1 : parser2;
@@ -63,6 +88,9 @@ namespace Actian.EFCore.Parsing.Internal
             Char(',').Between(WSpace);
 
         public static readonly Parser<char> Period =
+            Char('.').Between(WSpace);
+
+        public static readonly Parser<char> SemiColon =
             Char('.').Between(WSpace);
 
         public static readonly Parser<int> UnsignedInteger =

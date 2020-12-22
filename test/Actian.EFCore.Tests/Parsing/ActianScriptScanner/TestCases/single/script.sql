@@ -1,0 +1,1 @@
+﻿select 'Jeg drikker øl' from slam;

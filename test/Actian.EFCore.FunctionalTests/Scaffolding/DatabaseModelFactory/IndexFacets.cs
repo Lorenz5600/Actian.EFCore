@@ -16,23 +16,23 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Create_composite_index() => Test(test => test
             .Arrange(@"
-                CREATE TABLE CompositeIndexTable (
-                    Id1 int NOT NULL,
-                    Id2 int NOT NULL
+                CREATE TABLE ""CompositeIndexTable"" (
+                    ""id1"" int NOT NULL,
+                    ""id2"" int NOT NULL
                 );
 
-                CREATE INDEX IX_COMPOSITE ON CompositeIndexTable ( Id2, Id1 );
+                CREATE INDEX ""IX_COMPOSITE"" ON ""CompositeIndexTable"" ( ""id2"", ""id1"" );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "compositeindextable",
+                    Schema = "dbo",
+                    Name = "CompositeIndexTable",
                     Indexes = Items(
                         new
                         {
-                            Name = "ix_composite",
+                            Name = "IX_COMPOSITE",
                             IsUnique = false,
                             Columns = Items(
                                 new { Name = "id2" },
@@ -42,6 +42,10 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                     )
                 }, options => options
                     .WithStrictOrdering()
+                    .UsingDelimitedName(dbModel, "Schema")
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Indexes[].Name")
+                    .UsingDelimitedName(dbModel, "Indexes[].Columns[].Name")
                 )
             )
         );
@@ -49,23 +53,23 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Set_unique_true_for_unique_index() => Test(test => test
             .Arrange(@"
-                CREATE TABLE UniqueIndexTable (
-                    Id1 int NOT NULL,
-                    Id2 int NOT NULL
+                CREATE TABLE ""UniqueIndexTable"" (
+                    ""id1"" int NOT NULL,
+                    ""id2"" int NOT NULL
                 );
 
-                CREATE UNIQUE INDEX IX_UNIQUE ON UniqueIndexTable ( Id2 );
+                CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""UniqueIndexTable"" ( ""id2"" );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "uniqueindextable",
+                    Schema = "dbo",
+                    Name = "UniqueIndexTable",
                     Indexes = Items(
                         new
                         {
-                            Name = "ix_unique",
+                            Name = "IX_UNIQUE",
                             IsUnique = true,
                             Columns = Items(
                                 new { Name = "id2" }
@@ -74,6 +78,10 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                     )
                 }, options => options
                     .WithStrictOrdering()
+                    .UsingDelimitedName(dbModel, "Schema")
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Indexes[].Name")
+                    .UsingDelimitedName(dbModel, "Indexes[].Columns[].Name")
                 )
             )
         );

@@ -22,5 +22,8 @@
         public const string Journaling = Prefix + "Journaling";
         public const string Duplicates = Prefix + "Duplicates";
         public const string Persistence = Prefix + "Persistence";
+
+        public const string DbNameCase = Prefix + "DbNameCase";
+        public const string DbDelimitedCase = Prefix + "DbDelimitedCase";
     }
 }

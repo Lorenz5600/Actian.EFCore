@@ -32,64 +32,40 @@ The Actian.EFCore solution contains a number of automated tests. These tests can
 dotnet test
 ```
 
-When testing Actian.EFCore test environments are used to enable testing with different Actian database servers.
+When running tests the database server to be used is specified by the environment variable `EFCORE_TEST_CONNECTION_STRING`. This variable should contain an Actian client connection string specifying:
+- The actian server
+- The port
+- The dabase user id
+- The password for the dabase user id
+- Persist Security Info=true
 
-A test environment is identified by a name (eg. `WIN64_INGRES_10_1_0`).
-
-To run the tests with a specific test environment first define the environment variable `ACTIAN_EFCORE_ENVIRONMENT` to equal the test environment name. Eg.:
+Example:
 ```
-set ACTIAN_EFCORE_ENVIRONMENT=WIN64_INGRES_10_1_0
-```
-
-The tests will then run with the connection string defined in the environment variable `ACTIAN_EFCORE_<test environment name>` (eg. `ACTIAN_EFCORE_WIN64_INGRES_10_1_0`). The connection string for a test environment must include:
-```
-Persist Security Info=true
+Server=actian-client-test;Port=II7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true
 ```
 
-The database user specified in the connection string (default: `efcore_test`) should be the owner of the test database and have permission to create new database users. The tests will create the following database users, if the do not already exist:
-- `efcore_test1`
-- `efcore_test2`
-- `efcore_test.2`
+The connection string does _not_ need to specify the database.
 
-The database server for each test environment must have the following databased, owned by the user specified in the connection string (default: `efcore_test`):
-- The database specified in the connection string (default: `efcore_test`)
-- `efcore_databasemodelfactory`
+The database user specified in the connection string should:
+- have permission to create new database users
+- have permission to impersonate other database users
 
-These databases can be created using command like:
+The database user `"dbo"` with permission to create databases should be created before running tests.
 
+A number of databases, owned by the `"dbo"` user, should be created before running tests:
+- efcore_databasemodelfactory
+- efcore_northwind
+
+These databases can be created using PowerShell:
+
+```powershell
+createdb -n -u\"""dbo\""" efcore_databasemodelfactory
+createdb -n -u\"""dbo\""" efcore_northwind
 ```
-createdb -uefcore_test -n efcore_test
-createdb -uefcore_test -n efcore_databasemodelfactory
-```
 
-At the moment the following test environments are defined:
-
-### Default test environment
-
-This test environment is used if the environment variable `ACTIAN_EFCORE_ENVIRONMENT` is not defined - typically when testing in Visual Studio.
-
-- Name: `DEFAULT`
-- Environment variable containing connection string: `ACTIAN_EFCORE_DEFAULT`
-- Platform: Windows 64 bit
-- Database server: ActianX 11.1.0
-
-### Test environment `WIN64_INGRES_10_1_0`
-
-This test environment is used in the continuous integration build script (`.github/workflows/build.yml`).
-
-- Name: `WIN64_INGRES_10_1_0`
-- Environment variable containing connection string: `ACTIAN_EFCORE_WIN64_INGRES_10_1_0`
-- Platform: Windows 64 bit
-- Database server: Ingres 10.1.0
-
-### Test environment `WIN64_ACTIANX_11_1_0`
-
-This test environment is used in the continuous integration build script (`.github/workflows/build.yml`).
-
-- Name: `WIN64_ACTIANX_11_1_0`
-- Environment variable containing connection string: `ACTIAN_EFCORE_WIN64_ACTIANX_11_1_0`
-- Platform: Windows 64 bit
-- Database server: ActianX 11.1.0
+When running the tests the following users will be created:
+- `"db2"`
+- `"db.2"`
 
 ## Continous integration
 
@@ -98,12 +74,31 @@ Actian.EFCore is tested and built using build script `.github/workflows/build.ym
 - Changes are pushed to branch `main`.
 - Changes are pushed to a branch that has a pull request to branch `main`.
 
-The tests are run with the following test environments:
+The tests are run each of the following environments:
 
-- `WIN64_INGRES_10_1_0`
-- `WIN64_ACTIANX_11_1_0`
+### WIN64_INGRES_10_1_0, Ingres
 
-The environment variable containing the connection string for each of these test environments must be specified for the tests to succeed.
+- Windows Server 2019 64 bit
+- Ingres server 10.1.0
+- Compatibility: Ingres
+
+### WIN64_INGRES_10_1_0, Ansi
+
+- Windows Server 2019 64 bit
+- Ingres server 10.1.0
+- Compatibility: ANSI/ISO Entry SQL-92
+
+### WIN64_ACTIANX_11_1_0, Ingres
+
+- Windows Server 2019 64 bit
+- ActianX server 11.1.0
+- Compatibility: Ingres
+
+### WIN64_ACTIANX_11_1_0, Ansi
+
+- Windows Server 2019 64 bit
+- ActianX server 11.1.0
+- Compatibility: ANSI/ISO Entry SQL-92
 
 
 [Customer Downloads]: https://esd.actian.com/

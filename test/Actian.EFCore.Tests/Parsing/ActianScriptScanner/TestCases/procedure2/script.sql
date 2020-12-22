@@ -1,0 +1,43 @@
+﻿
+-- The following adds stored procedures
+
+CREATE PROCEDURE "CustOrdersDetail" (
+    OrderID int
+)
+RESULT ROW result (
+    "ProductName"    nvarchar (40) NOT NULL,
+    "UnitPrice"      money         NOT NULL,
+    "Quantity"       smallint      NOT NULL,
+    "Discount"       int           NOT NULL,
+    "ExtendedPrice"  money             NULL
+)
+AS
+DECLARE
+    ProductName    nvarchar (40) NOT NULL;
+    UnitPrice      money         NOT NULL;
+    Quantity       smallint      NOT NULL;
+    Discount       int           NOT NULL;
+    ExtendedPrice  money             NULL;
+    err            int           NOT NULL;
+BEGIN
+    err = 0;
+    FOR
+        SELECT "ProductName",
+               Od."UnitPrice",
+               "Quantity",
+               int4("Discount" * 100),
+               money("Quantity" * (1 - "Discount") * Od."UnitPrice")
+        INTO :ProductName, :UnitPrice, :Quantity, :Discount, :ExtendedPrice
+        FROM "Products" P, "Order Details" Od
+        WHERE Od."ProductID" = P."ProductID" and Od."OrderID" = :OrderID
+    DO
+        IF iierrornumber > 0 THEN
+            err = 1;
+            endloop;
+        ENDIF;
+        RETURN ROW(:ProductName, :UnitPrice, :Quantity, :Discount, :ExtendedPrice);
+    ENDFOR;
+    RETURN :err;
+END;
+
+\nocontinue\g

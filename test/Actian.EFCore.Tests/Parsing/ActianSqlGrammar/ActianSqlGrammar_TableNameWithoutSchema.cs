@@ -1,9 +1,9 @@
-﻿using Actian.EFCore.Parsing.Internal;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Sprache;
 using Xunit;
+using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 
-namespace Actian.EFCore.Tests.Parsing
+namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_TableNameWithoutSchema
     {
@@ -14,9 +14,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData("\"my \"\"table\"\"\"", "my \"table\"")]
         public void Can_parse(string str, string expectedTable)
         {
-            var actual = ActianSqlGrammar.TableNameWithoutSchema.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(true, actual.Message);
-            actual.Value.Should().BeEquivalentTo(((string)null, expectedTable));
+            TableNameWithoutSchema.End().Parse(str).Should().BeEquivalentTo(((string)null, expectedTable));
         }
 
         [Theory]
@@ -28,8 +26,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData("\"my \"\"schema\"\"\".table")]
         public void Can_not_parse(string str)
         {
-            var actual = ActianSqlGrammar.TableNameWithoutSchema.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(false);
+            TableNameWithoutSchema.End().TryParse(str).WasSuccessful.Should().Be(false);
         }
     }
 }

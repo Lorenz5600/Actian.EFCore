@@ -13,21 +13,21 @@ namespace Actian.EFCore.Scaffolding.Internal
     {
         public static string ParseSchemaName(
             [NotNull] string schema,
-            bool dbNameLowerCase,
-            bool dbDelimitedLowerCase)
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var result = Identifier.End().TryParse(schema);
             if (!result.WasSuccessful)
             {
                 throw new InvalidOperationException(ActianStrings.InvalidTableToIncludeInScaffolding(schema)); // TODO: Better message
             }
-            return NormalizeCase(result.Value, dbNameLowerCase, dbDelimitedLowerCase);
+            return NormalizeCase(result.Value, dbNameCase, dbDelimitedCase);
         }
 
         public static (string table, string schema, string name) ParseTableName(
             [NotNull] string table,
-            bool dbNameLowerCase,
-            bool dbDelimitedLowerCase)
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var result = TableName.End().TryParse(table);
             if (!result.WasSuccessful)
@@ -35,13 +35,13 @@ namespace Actian.EFCore.Scaffolding.Internal
                 throw new InvalidOperationException(ActianStrings.InvalidTableToIncludeInScaffolding(table));
             }
             var (schema, name) = result.Value;
-            return (table, NormalizeCase(schema, dbNameLowerCase, dbDelimitedLowerCase), NormalizeCase(name, dbNameLowerCase, dbDelimitedLowerCase));
+            return (table, NormalizeCase(schema, dbNameCase, dbDelimitedCase), NormalizeCase(name, dbNameCase, dbDelimitedCase));
         }
 
-        private static string NormalizeCase((string name, bool delimited) value, bool dbNameLowerCase, bool dbDelimitedLowerCase) => value switch
+        private static string NormalizeCase((string name, bool delimited) value, ActianCasing dbNameCase, ActianCasing dbDelimitedCase) => value switch
         {
-            (_, true) => dbNameLowerCase ? value.name?.ToLowerInvariant() : value.name,
-            (_, false) => dbDelimitedLowerCase ? value.name?.ToLowerInvariant() : value.name
+            (_, true) => dbDelimitedCase.Normalize(value.name),
+            (_, false) => dbNameCase.Normalize(value.name)
         };
 
         public static readonly Parser<string> UndelimitedIdentifier =

@@ -16,222 +16,250 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Filter_schemas() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test2;
-                CREATE TABLE efcore_test2.""K2"" ( Id int not null, A varchar not null, UNIQUE (A));
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B));
+                SET SESSION AUTHORIZATION ""db2"";
+                CREATE TABLE ""db2"".""K2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A""));
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B""));
             ")
-            .FilterSchemas("efcore_test2")
+            .FilterSchemas("\"db2\"")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test2",
-                    Name = "k2",
+                    Schema = "db2",
+                    Name = "K2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Filter_tables() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""K2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                CREATE TABLE ""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B), FOREIGN KEY (B) REFERENCES ""K2"" (A) );
+                CREATE TABLE ""K2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                CREATE TABLE ""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B""), FOREIGN KEY (""B"") REFERENCES ""K2"" (""A"") );
             ")
             .FilterTables("K2")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "k2",
+                    Schema = "dbo",
+                    Name = "K2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Filter_tables_with_qualified_name() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""K.2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                CREATE TABLE ""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B) );
+                CREATE TABLE ""K.2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                CREATE TABLE ""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B"") );
             ")
-            .FilterTables(@"""k.2""")
+            .FilterTables(@"""K.2""")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "k.2",
+                    Schema = "dbo",
+                    Name = "K.2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Filter_tables_with_schema_qualified_name1() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE efcore_test1.""K2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                SET SESSION AUTHORIZATION efcore_test2;
-                CREATE TABLE efcore_test2.""K2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B) );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""dbo"".""K2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                SET SESSION AUTHORIZATION ""db2"";
+                CREATE TABLE ""db2"".""K2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B"") );
             ")
-            .FilterTables("efcore_test1.k2")
+            .FilterTables(@"""dbo"".""K2""")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "k2",
+                    Schema = "dbo",
+                    Name = "K2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Filter_tables_with_schema_qualified_name2() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""K.2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                SET SESSION AUTHORIZATION ""efcore_test.2"";
-                CREATE TABLE ""efcore_test.2"".""K.2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                CREATE TABLE ""efcore_test.2"".""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B) );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""K.2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                SET SESSION AUTHORIZATION ""db.2"";
+                CREATE TABLE ""db.2"".""K.2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                CREATE TABLE ""db.2"".""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B"") );
             ")
-            .FilterTables(@"""efcore_test.2"".""K.2""")
+            .FilterTables(@"""db.2"".""K.2""")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test.2",
-                    Name = "k.2",
+                    Schema = "db.2",
+                    Name = "K.2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Filter_tables_with_schema_qualified_name3() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""K.2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                SET SESSION AUTHORIZATION efcore_test2;
-                CREATE TABLE ""efcore_test2"".""K.2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B) );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""K.2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"") );
+                SET SESSION AUTHORIZATION ""db2"";
+                CREATE TABLE ""db2"".""K.2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"") );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B"") );
             ")
-            .FilterTables(@"efcore_test1.""K.2""")
+            .FilterTables(@"""dbo"".""K.2""")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "k.2",
+                    Schema = "dbo",
+                    Name = "K.2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Filter_tables_with_schema_qualified_name4() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""K2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                SET SESSION AUTHORIZATION ""efcore_test.2"";
-                CREATE TABLE ""efcore_test.2"".""K2"" ( Id int not null, A varchar not null, UNIQUE (A ) );
-                CREATE TABLE ""efcore_test.2"".""Kilimanjaro"" ( Id int not null, B varchar not null, UNIQUE (B) );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""K2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                SET SESSION AUTHORIZATION ""db.2"";
+                CREATE TABLE ""db.2"".""K2"" ( ""Id"" int not null, ""A"" varchar not null, UNIQUE (""A"" ) );
+                CREATE TABLE ""db.2"".""Kilimanjaro"" ( ""Id"" int not null, ""B"" varchar not null, UNIQUE (""B"") );
             ")
-            .FilterTables(@"""efcore_test.2"".K2")
+            .FilterTables(@"""db.2"".K2")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test.2",
-                    Name = "k2",
+                    Schema = "db.2",
+                    Name = "K2",
                     Columns = Items(
-                        new { Name = "id", StoreType = "integer" },
-                        new { Name = "a", StoreType = "varchar(1)" }
+                        new { Name = "Id", StoreType = "integer" },
+                        new { Name = "A", StoreType = "varchar(1)" }
                     ),
                     UniqueConstraints = Items(
-                        new { Columns = Items(new { Name = "a" }) }
+                        new { Columns = Items(new { Name = "A" }) }
                     ),
                     ForeignKeys = Enumerable.Empty<DatabaseForeignKey>()
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                    .UsingDelimitedName(dbModel, "UniqueConstraints[].Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Complex_filtering_validation() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE SEQUENCE efcore_test1.""Sequence"";
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE SEQUENCE ""dbo"".""Sequence"";
 
-                SET SESSION AUTHORIZATION efcore_test2;
-                CREATE SEQUENCE ""efcore_test2"".""Sequence"";
+                SET SESSION AUTHORIZATION ""db2"";
+                CREATE SEQUENCE ""db2"".""Sequence"";
 
-                SET SESSION AUTHORIZATION ""efcore_test.2"";
-                CREATE TABLE ""efcore_test.2"".""QuotedTableName"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test.2"".""Table.With.Dot"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test.2"".""SimpleTableName"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test.2"".""JustTableName"" ( ""Id"" int not null PRIMARY KEY );
+                SET SESSION AUTHORIZATION ""db.2"";
+                CREATE TABLE ""db.2"".""QuotedTableName"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""db.2"".""Table.With.Dot"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""db.2"".""SimpleTableName"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""db.2"".""JustTableName"" ( ""Id"" int not null PRIMARY KEY );
 
-                SET SESSION AUTHORIZATION efcore_test1;
-                CREATE TABLE ""efcore_test1"".""QuotedTableName"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test1"".""Table.With.Dot"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test1"".""SimpleTableName"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test1"".""JustTableName"" ( ""Id"" int not null PRIMARY KEY );
+                SET SESSION AUTHORIZATION ""dbo"";
+                CREATE TABLE ""dbo"".""QuotedTableName"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""dbo"".""Table.With.Dot"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""dbo"".""SimpleTableName"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""dbo"".""JustTableName"" ( ""Id"" int not null PRIMARY KEY );
 
-                SET SESSION AUTHORIZATION efcore_test2;
-                CREATE TABLE ""efcore_test2"".""QuotedTableName"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test2"".""Table.With.Dot"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test2"".""SimpleTableName"" ( ""Id"" int not null PRIMARY KEY );
-                CREATE TABLE ""efcore_test2"".""JustTableName"" ( ""Id"" int not null PRIMARY KEY );
+                SET SESSION AUTHORIZATION ""db2"";
+                CREATE TABLE ""db2"".""QuotedTableName"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""db2"".""Table.With.Dot"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""db2"".""SimpleTableName"" ( ""Id"" int not null PRIMARY KEY );
+                CREATE TABLE ""db2"".""JustTableName"" ( ""Id"" int not null PRIMARY KEY );
 
-                CREATE TABLE ""efcore_test2"".""PrincipalTable"" (
+                CREATE TABLE ""db2"".""PrincipalTable"" (
                     ""Id"" int not null PRIMARY KEY,
                     ""UC1"" text not null,
                     ""UC2"" int not null,
@@ -240,45 +268,61 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                     CONSTRAINT ""UX"" UNIQUE (""UC1"", ""UC2"")
                 );
 
-                CREATE INDEX ""efcore_test2"".""IX_COMPOSITE"" ON ""efcore_test2"".""PrincipalTable"" ( ""Index2"", ""Index1"" );
+                CREATE INDEX ""db2"".""IX_COMPOSITE"" ON ""db2"".""PrincipalTable"" ( ""Index2"", ""Index1"" );
 
-                CREATE TABLE ""efcore_test2"".""DependentTable"" (
+                CREATE TABLE ""db2"".""DependentTable"" (
                     ""Id"" int not null PRIMARY KEY,
                     ""ForeignKeyId1"" text not null,
                     ""ForeignKeyId2"" int not null,
-                    FOREIGN KEY (""ForeignKeyId1"", ""ForeignKeyId2"") REFERENCES ""efcore_test2"".""PrincipalTable""(""UC1"", ""UC2"") ON DELETE CASCADE
+                    FOREIGN KEY (""ForeignKeyId1"", ""ForeignKeyId2"") REFERENCES ""db2"".""PrincipalTable""(""UC1"", ""UC2"") ON DELETE CASCADE
                 );
             ")
-            .FilterTables(@"""efcore_test.2"".""QuotedTableName""", @"""efcore_test.2"".SimpleTableName", @"efcore_test1.""Table.With.Dot""", @"efcore_test1.""SimpleTableName""", @"""JustTableName""")
-            .FilterSchemas("efcore_test2")
-            .Assert(dbModel =>
-            {
-                var sequence = Assert.Single(dbModel.Sequences);
+            .FilterTables(@"""db.2"".""QuotedTableName""", @"""db.2"".""SimpleTableName""", @"""dbo"".""Table.With.Dot""", @"""dbo"".""SimpleTableName""", @"""JustTableName""")
+            .FilterSchemas(@"""db2""")
+            .Assert(dbModel => {
+                dbModel.Should()
+                    .BeEquivalentTo(new
+                    {
+                        Sequences = Items(
+                            new { Schema = "db2", Name = "Sequence" }
+                        ),
+                        Tables = Items(
+                            new { Schema = "db.2", Name = "QuotedTableName" },
+                            new { Schema = "db.2", Name = "SimpleTableName" },
+                            new { Schema = "db.2", Name = "JustTableName" },
+                            new { Schema = "dbo", Name = "Table.With.Dot" },
+                            new { Schema = "dbo", Name = "SimpleTableName" },
+                            new { Schema = "dbo", Name = "JustTableName" },
+                            new { Schema = "db2", Name = "QuotedTableName" },
+                            new { Schema = "db2", Name = "Table.With.Dot" },
+                            new { Schema = "db2", Name = "SimpleTableName" },
+                            new { Schema = "db2", Name = "JustTableName" },
+                            new { Schema = "db2", Name = "PrincipalTable" },
+                            new { Schema = "db2", Name = "DependentTable" }
+                        )
+                    }, options => options
+                        .UsingDelimitedName(dbModel, "Sequences[].Schema")
+                        .UsingDelimitedName(dbModel, "Sequences[].Name")
+                        .UsingDelimitedName(dbModel, "Tables[].Schema")
+                        .UsingDelimitedName(dbModel, "Tables[].Name")
+                    );
 
-                Assert.Equal("efcore_test2", sequence.Schema);
 
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test.2" && t.Name == "quotedtablename"));
-                Assert.Empty(dbModel.Tables.Where(t => t.Schema == "efcore_test.2" && t.Name == "table.with.dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test.2" && t.Name == "simpletablename"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test.2" && t.Name == "justtablename"));
+                var principalTable = dbModel.Tables
+                    .Where(t => t.Schema == dbModel.NormalizeDelimitedName("db2") && t.Name == dbModel.NormalizeDelimitedName("PrincipalTable"))
+                    .SingleOrDefault();
 
-                Assert.Empty(dbModel.Tables.Where(t => t.Schema == "efcore_test1" && t.Name == "quotedtablename"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test1" && t.Name == "table.with.dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test1" && t.Name == "simpletablename"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test1" && t.Name == "justtablename"));
+                principalTable.Should().NotBeNull();
+                principalTable.PrimaryKey.Should().NotBeNull();
+                principalTable.UniqueConstraints.Should().ContainSingle();
+                principalTable.Indexes.Should().ContainSingle();
 
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test2" && t.Name == "quotedtablename"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test2" && t.Name == "table.with.dot"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test2" && t.Name == "simpletablename"));
-                Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test2" && t.Name == "justtablename"));
+                var dependentTable = dbModel.Tables
+                    .Where(t => t.Schema == dbModel.NormalizeDelimitedName("db2") && t.Name == dbModel.NormalizeDelimitedName("DependentTable"))
+                    .SingleOrDefault();
 
-                var principalTable = Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test2" && t.Name == "principaltable"));
-                Assert.NotNull(principalTable.PrimaryKey);
-                Assert.Single(principalTable.UniqueConstraints);
-                Assert.Single(principalTable.Indexes);
-
-                var dependentTable = Assert.Single(dbModel.Tables.Where(t => t.Schema == "efcore_test2" && t.Name == "dependenttable"));
-                Assert.Single(dependentTable.ForeignKeys);
+                dependentTable.Should().NotBeNull();
+                dependentTable.ForeignKeys.Should().ContainSingle();
             })
         );
     }

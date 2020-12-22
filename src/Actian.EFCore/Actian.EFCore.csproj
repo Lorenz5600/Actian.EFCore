@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" PrivateAssets="none" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" PrivateAssets="none" />
     <PackageReference Include="Actian.Client" />
-    <PackageReference Include="Sprache" Version="2.3.0" />
+    <PackageReference Include="Sprache" />
   </ItemGroup>
 
   <ItemGroup>

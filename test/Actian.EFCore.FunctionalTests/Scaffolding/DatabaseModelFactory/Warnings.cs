@@ -19,11 +19,11 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Warn_missing_schema() => Test(test => test
             .Arrange(@"
-                CREATE TABLE Blank (
-                    Id int
+                CREATE TABLE ""Blank"" (
+                    ""Id"" int
                 );
             ")
-            .FilterSchemas("MySchema")
+            .FilterSchemas(@"""MySchema""")
             .Assert(dbModel =>
             {
                 Assert.Empty(dbModel.Tables);
@@ -32,7 +32,7 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 
                 Assert.Equal(ActianResources.LogMissingSchema(new TestLogger<ActianLoggingDefinitions>()).EventId, Id);
                 Assert.Equal(
-                    ActianResources.LogMissingSchema(new TestLogger<ActianLoggingDefinitions>()).GenerateMessage("myschema"),
+                    ActianResources.LogMissingSchema(new TestLogger<ActianLoggingDefinitions>()).GenerateMessage(dbModel.NormalizeDelimitedName("MySchema")),
                     Message);
             })
         );
@@ -40,8 +40,8 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Warn_missing_table() => Test(test => test
             .Arrange(@"
-                CREATE TABLE Blank (
-                    Id int
+                CREATE TABLE ""Blank"" (
+                    ""Id"" int
                 );
             ")
             .FilterTables("MyTable")
@@ -61,17 +61,17 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Warn_missing_principal_table_for_foreign_key() => Test(test => test
             .Arrange(@"
-                CREATE TABLE PrincipalTable (
-                    Id int NOT NULL PRIMARY KEY
+                CREATE TABLE ""PrincipalTable"" (
+                    ""Id"" int NOT NULL PRIMARY KEY
                 );
 
-                CREATE TABLE DependentTable (
-                    Id           int NOT NULL PRIMARY KEY,
-                    ForeignKeyId int NOT NULL,
-                    CONSTRAINT MYFK FOREIGN KEY (ForeignKeyId) REFERENCES PrincipalTable(Id) ON DELETE CASCADE
+                CREATE TABLE ""DependentTable"" (
+                    ""Id""           int NOT NULL PRIMARY KEY,
+                    ""ForeignKeyId"" int NOT NULL,
+                    CONSTRAINT ""MYFK"" FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE CASCADE
                 );
             ")
-            .FilterTables("DependentTable")
+            .FilterTables(@"""DependentTable""")
             .Assert(dbModel =>
             {
                 var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
@@ -80,17 +80,16 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                     ActianResources.LogPrincipalTableNotInSelectionSet(new TestLogger<ActianLoggingDefinitions>()).EventId, Id);
                 Assert.Equal(
                     ActianResources.LogPrincipalTableNotInSelectionSet(new TestLogger<ActianLoggingDefinitions>())
-                        .GenerateMessage("myfk", "efcore_test1.dependenttable", "efcore_test1.principaltable"), Message);
+                        .GenerateMessage(dbModel.NormalizeDelimitedName("MYFK"), dbModel.NormalizeDelimitedName("dbo.DependentTable"), dbModel.NormalizeDelimitedName("dbo.PrincipalTable")), Message);
             })
         );
-
 
         [ConditionalFact]
         public void Skip_reflexive_foreign_key() => Test(test => test
             .Arrange(@"
-                CREATE TABLE PrincipalTable (
-                    Id int NOT NULL PRIMARY KEY,
-                    CONSTRAINT MYFK FOREIGN KEY (Id) REFERENCES PrincipalTable(Id)
+                CREATE TABLE ""PrincipalTable"" (
+                    ""Id"" int NOT NULL PRIMARY KEY,
+                    CONSTRAINT ""MYFK"" FOREIGN KEY (""Id"") REFERENCES ""PrincipalTable"" (""Id"")
                 );
             ")
             .Assert(dbModel =>
@@ -100,7 +99,7 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                 Assert.Equal(LogLevel.Debug, level);
                 Assert.Equal(
                     ActianResources.LogReflexiveConstraintIgnored(new TestLogger<ActianLoggingDefinitions>())
-                        .GenerateMessage("myfk", "efcore_test1.principaltable"), message);
+                        .GenerateMessage(dbModel.NormalizeDelimitedName("MYFK"), dbModel.NormalizeDelimitedName("dbo.PrincipalTable")), message);
 
                 var table = Assert.Single(dbModel.Tables);
                 Assert.Empty(table.ForeignKeys);

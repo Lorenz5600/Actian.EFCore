@@ -2,29 +2,39 @@ name: Build
 
 on:
   workflow_dispatch:
+
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
 
 jobs:
+
   Test:
-    runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}']
+    runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
 
     strategy:
       fail-fast: false
       matrix:
         actian-efcore-environment:
           - WIN64_INGRES_10_1_0
-          # - WIN64_ACTIANX_11_1_0
+          - WIN64_ACTIANX_11_1_0
+        compatibility:
+          - Ingres
+          - Ansi
 
     env:
-      ACTIAN_EFCORE_ENVIRONMENT: ${{ matrix.actian-efcore-environment }}
       config: Debug
+      enabled: true
 
     steps:
+      - name: Check enabled
+        run: exit 1
+        if: ${{ env.enabled != 'true' }}
+
       - uses: actions/checkout@v2
 
       - name: Setup .NET Core
@@ -63,7 +73,7 @@ jobs:
         run: dotnet build --configuration ${{ env.config }} --no-restore
 
       - name: Get version suffix
-        run: powershell .\GetVersionSuffix.ps1
+        run: powershell .\scripts\GetVersionSuffix.ps1
 
       - name: Delete nupkg folder
         run: Remove-Item nupkg -Recurse -ErrorAction Ignore

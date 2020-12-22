@@ -1,9 +1,10 @@
-﻿using Actian.EFCore.Parsing.Internal;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Sprache;
 using Xunit;
+using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 
-namespace Actian.EFCore.Tests.Parsing
+
+namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_DelimitedIdentifier
     {
@@ -13,9 +14,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData("\"this is a \"\"table\"\"\"", "this is a \"table\"")]
         public void Can_parse(string str, string expected)
         {
-            var actual = ActianSqlGrammar.DelimitedIdentifier.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(true, actual.Message);
-            actual.Value.Should().Be(expected);
+            DelimitedIdentifier.End().Parse(str).Should().Be(expected);
         }
 
         [Theory]
@@ -25,8 +24,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData("a2")]
         public void Can_not_parse(string str)
         {
-            var actual = ActianSqlGrammar.DelimitedIdentifier.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(false);
+            DelimitedIdentifier.End().TryParse(str).WasSuccessful.Should().Be(false);
         }
     }
 }

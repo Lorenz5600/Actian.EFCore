@@ -64,27 +64,29 @@ namespace Actian.EFCore.Scaffolding.Internal
 
             try
             {
-                var (dbNameLowerCase, dbDelimitedLowerCase) = GetDbCasing(connection);
+                var (dbNameCase, dbDelimitedCase) = GetDbCasing(connection);
 
                 var database = new DatabaseModel
                 {
                     DatabaseName = connection.Database,
-                    DefaultSchema = GetDefaultSchema(connection)
-                };
+                    DefaultSchema = GetDefaultSchema(connection, dbNameCase, dbDelimitedCase)
+                }
+                .WithAnnotation(ActianAnnotationNames.DbNameCase, dbNameCase)
+                .WithAnnotation(ActianAnnotationNames.DbDelimitedCase, dbDelimitedCase);
 
                 var schemaList = options.Schemas
-                    .Select(schema => ActianNameFilterParser.ParseSchemaName(schema, dbNameLowerCase, dbDelimitedLowerCase))
+                    .Select(schema => ActianNameFilterParser.ParseSchemaName(schema, dbNameCase, dbDelimitedCase))
                     .ToList();
 
                 var tableList = options.Tables
-                    .Select(table => ActianNameFilterParser.ParseTableName(table, dbNameLowerCase, dbDelimitedLowerCase))
+                    .Select(table => ActianNameFilterParser.ParseTableName(table, dbNameCase, dbDelimitedCase))
                     .ToList();
 
                 var schemaFilter = GenerateSchemaFilter(schemaList);
                 var tableFilter = GenerateTableFilter(tableList, schemaFilter);
 
-                GetTables(connection, database, tableFilter);
-                GetSequences(connection, database, schemaFilter);
+                GetTables(connection, database, tableFilter, dbNameCase, dbDelimitedCase);
+                GetSequences(connection, database, schemaFilter, dbNameCase, dbDelimitedCase);
 
                 var missingSchemas = schemaList
                     .Except(database.Sequences.Select(s => s.Schema).Concat(database.Tables.Select(t => t.Schema)));
@@ -115,12 +117,15 @@ namespace Actian.EFCore.Scaffolding.Internal
             }
         }
 
-        private string GetDefaultSchema([NotNull] IngresConnection connection)
+        private string GetDefaultSchema(
+            [NotNull] IngresConnection connection,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var dbaNames = connection.Select($@"
                 select dba_name
                   from $ingres.iidbconstants
-            ", reader => reader.GetTrimmedChar("dba_name"));
+            ", reader => reader.GetTrimmedChar("dba_name", dbNameCase));
 
             if (dbaNames.Any())
             {
@@ -131,15 +136,15 @@ namespace Actian.EFCore.Scaffolding.Internal
             return null;
         }
 
-        private (bool dbNameLowerCase, bool dbDelimitedLowerCase) GetDbCasing([NotNull] IngresConnection connection)
+        private (ActianCasing dbNameCase, ActianCasing dbDelimitedCase) GetDbCasing([NotNull] IngresConnection connection)
         {
             return connection.Select($@"
                 select dbmsinfo('db_name_case')      as db_name_case,
                        dbmsinfo('db_delimited_case') as db_delimited_case
             ", reader => (
-                dbNameLowerCase: reader.GetTrimmedChar("db_name_case") == "LOWER",
-                dbDelimitedLowerCase: reader.GetTrimmedChar("db_delimited_case") == "LOWER")
-            ).DefaultIfEmpty((true, true)).Single();
+                dbNameCase: reader.GetTrimmedChar(0).ToActianCasing(),
+                dbDelimitedCase: reader.GetTrimmedChar(1).ToActianCasing()
+            )).Single();
         }
 
         /// <summary>
@@ -148,25 +153,29 @@ namespace Actian.EFCore.Scaffolding.Internal
         /// <param name="connection">The database connection.</param>
         /// <param name="database">The database model</param>
         /// <param name="tableFilter">The table filter fragment.</param>
+        /// <param name="dbNameCase">Case sensitivity for regular identifiers</param>
+        /// <param name="dbDelimitedCase">Case sensitivity for delimited identifiers</param>
         /// <returns>
         /// A collection of tables defined in the database.
         /// </returns>
         private IEnumerable<DatabaseTable> GetTables(
             [NotNull] IngresConnection connection,
             [NotNull] DatabaseModel database,
-            [CanBeNull] Func<string, string, string> tableFilter)
+            [CanBeNull] Func<string, string, string> tableFilter,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var iicolumnsColumns = new HashSet<string>(connection.Select($@"
                 select column_name
                   from $ingres.iicolumns
-                 where table_owner = '$ingres'
-                   and table_name  = 'iicolumns'
-            ", reader => reader.GetTrimmedChar("column_name")));
+                 where table_owner = '{dbNameCase.Normalize("$ingres")}'
+                   and table_name  = '{dbNameCase.Normalize("iicolumns")}'
+            ", reader => reader.GetTrimmedChar(0)));
 
             var filter = tableFilter != null ? $"and {tableFilter("t.table_owner", "t.table_name")}" : null;
 
-            var column_always_ident = iicolumnsColumns.Contains("column_always_ident") ? "c.column_always_ident" : "'N'";
-            var column_bydefault_ident = iicolumnsColumns.Contains("column_bydefault_ident") ? "c.column_bydefault_ident" : "'N'";
+            var column_always_ident = iicolumnsColumns.Contains(dbNameCase.Normalize("column_always_ident")) ? "c.column_always_ident" : "'N'";
+            var column_bydefault_ident = iicolumnsColumns.Contains(dbNameCase.Normalize("column_bydefault_ident")) ? "c.column_bydefault_ident" : "'N'";
 
             var tableLocations = connection.Select($@"
                 select t.table_owner,
@@ -183,9 +192,9 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by t.table_owner, t.table_name, l.loc_sequence
             ", reader => new
             {
-                Schema = reader.GetTrimmedChar("table_owner"),
-                TableName = reader.GetTrimmedChar("table_name"),
-                LocationName = reader.GetTrimmedChar("location_name")
+                Schema = reader.GetTrimmedChar("table_owner", dbNameCase),
+                TableName = reader.GetTrimmedChar("table_name", dbNameCase),
+                LocationName = reader.GetTrimmedChar("location_name", dbNameCase)
             }).GroupBy(t => (t.Schema, t.TableName))
               .ToDictionary(t => t.Key, t => t);
 
@@ -219,31 +228,31 @@ namespace Actian.EFCore.Scaffolding.Internal
                    {filter}
             ", reader => new
             {
-                Schema = reader.GetTrimmedChar("table_owner"),
-                TableName = reader.GetTrimmedChar("table_name"),
-                TableType = reader.GetTrimmedChar("table_type"),
-                StorageStructure = reader.GetTrimmedChar("storage_structure"),
-                IsCompressed = reader.GetTrimmedChar("is_compressed"),
-                KeyIsCompressed = reader.GetTrimmedChar("key_is_compressed"),
-                DuplicateRows = reader.GetTrimmedChar("duplicate_rows"),
-                UniqueRule = reader.GetTrimmedChar("unique_rule"),
-                IsJournalled = reader.GetTrimmedChar("is_journalled"),
-                LocationName = reader.GetTrimmedChar("location_name"),
-                ColumnName = reader.GetTrimmedChar("column_name"),
-                IsNullable = reader.GetTrimmedChar("column_nulls") == "Y",
+                Schema = reader.GetTrimmedChar("table_owner", dbNameCase),
+                TableName = reader.GetTrimmedChar("table_name", dbNameCase),
+                TableType = reader.GetTrimmedChar("table_type", dbNameCase),
+                StorageStructure = reader.GetTrimmedChar("storage_structure", dbNameCase),
+                IsCompressed = reader.GetTrimmedChar("is_compressed", dbNameCase),
+                KeyIsCompressed = reader.GetTrimmedChar("key_is_compressed", dbNameCase),
+                DuplicateRows = reader.GetTrimmedChar("duplicate_rows", dbNameCase),
+                UniqueRule = reader.GetTrimmedChar("unique_rule", dbNameCase),
+                IsJournalled = reader.GetTrimmedChar("is_journalled", dbNameCase),
+                LocationName = reader.GetTrimmedChar("location_name", dbNameCase),
+                ColumnName = reader.GetTrimmedChar("column_name", dbNameCase),
+                IsNullable = reader.GetTrimmedChar("column_nulls", dbNameCase) == "Y",
                 StoreType = GetStoreType(
-                    reader.GetTrimmedChar("column_datatype"),
-                    reader.GetValueOrDefault<int>("column_length"),
-                    reader.GetValueOrDefault<int>("column_scale")
+                    reader.GetTrimmedChar("column_datatype", dbNameCase),
+                    reader.GetValueOrDefault<int>("column_length", dbNameCase),
+                    reader.GetValueOrDefault<int>("column_scale", dbNameCase)
                 ),
                 DataTypeName = GetDataTypeName(
-                    reader.GetTrimmedChar("column_datatype"),
-                    reader.GetValueOrDefault<int>("column_length")
+                    reader.GetTrimmedChar("column_datatype", dbNameCase),
+                    reader.GetValueOrDefault<int>("column_length", dbNameCase)
                 ),
-                DefaultValueSql = reader.GetTrimmedChar("column_defaults") == "Y"
-                    ? reader.GetTrimmedChar("column_default_val")?.TrimEnd()
+                DefaultValueSql = reader.GetTrimmedChar("column_defaults", dbNameCase) == "Y"
+                    ? reader.GetTrimmedChar("column_default_val", dbNameCase)?.TrimEnd()
                     : null,
-                ValueGenerated = GetValueGenerated(reader)
+                ValueGenerated = GetValueGenerated(reader, dbNameCase, dbDelimitedCase)
             }).GroupBy(t => (t.Schema, t.TableName)).Select(t =>
             {
                 _logger.TableFound(DisplayName(t.Key.Schema, t.Key.TableName));
@@ -289,9 +298,9 @@ namespace Actian.EFCore.Scaffolding.Internal
                     .WithAnnotation(ActianAnnotationNames.Duplicates, table.DuplicateRows == "D");
             }).ToList();
 
-            GetConstraints(connection, tables, tableFilter);
-            GetIndexes(connection, tables, tableFilter);
-            GetComments(connection, tables);
+            GetConstraints(connection, tables, tableFilter, dbNameCase, dbDelimitedCase);
+            GetIndexes(connection, tables, tableFilter, dbNameCase, dbDelimitedCase);
+            GetComments(connection, tables, dbNameCase, dbDelimitedCase);
             return tables;
         }
 
@@ -346,11 +355,15 @@ namespace Actian.EFCore.Scaffolding.Internal
         /// <param name="connection">The database connection.</param>
         /// <param name="tables">The database tables.</param>
         /// <param name="tableFilter">The table filter fragment.</param>
+        /// <param name="dbNameCase">Case sensitivity for regular identifiers</param>
+        /// <param name="dbDelimitedCase">Case sensitivity for delimited identifiers</param>
         /// <exception cref="InvalidOperationException">Found varying lengths for column and principal column indices.</exception>
         private void GetConstraints(
             [NotNull] IngresConnection connection,
             [NotNull] IEnumerable<DatabaseTable> tables,
-            [CanBeNull] Func<string, string, string> tableFilter)
+            [CanBeNull] Func<string, string, string> tableFilter,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var filter = tableFilter != null ? $"and {tableFilter("t.table_owner", "t.table_name")}" : null;
 
@@ -376,11 +389,11 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by t.table_owner, t.table_name, c.constraint_name
             ", reader => new
             {
-                Schema = reader.GetTrimmedChar("table_owner"),
-                Table = reader.GetTrimmedChar("table_name"),
-                Name = reader.GetTrimmedChar("constraint_name"),
-                ColumnName = reader.GetTrimmedChar("column_name"),
-                Position = reader.GetValueOrDefault<short>("key_position")
+                Schema = reader.GetTrimmedChar("table_owner", dbNameCase),
+                Table = reader.GetTrimmedChar("table_name", dbNameCase),
+                Name = reader.GetTrimmedChar("constraint_name", dbNameCase),
+                ColumnName = reader.GetTrimmedChar("column_name", dbNameCase),
+                Position = reader.GetValueOrDefault<short>("key_position", dbNameCase)
             }).GroupBy(c => (c.Schema, c.Table, c.Name)).ToDictionary(c => c.Key, c => c);
 
             var constraints = connection.Select($@"
@@ -402,12 +415,12 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by t.table_owner, t.table_name, c.constraint_name, c.text_sequence
             ", reader => new
             {
-                Schema = reader.GetTrimmedChar("table_owner"),
-                Table = reader.GetTrimmedChar("table_name"),
-                Name = reader.GetTrimmedChar("constraint_name"),
-                Type = reader.GetTrimmedChar("constraint_type"),
-                TextSequence = reader.GetValueOrDefault<long>("text_sequence"),
-                TextSegment = reader.GetValueOrDefault<string>("text_segment")
+                Schema = reader.GetTrimmedChar("table_owner", dbNameCase),
+                Table = reader.GetTrimmedChar("table_name", dbNameCase),
+                Name = reader.GetTrimmedChar("constraint_name", dbNameCase),
+                Type = reader.GetTrimmedChar("constraint_type", dbNameCase),
+                TextSequence = reader.GetValueOrDefault<long>("text_sequence", dbNameCase),
+                TextSegment = reader.GetValueOrDefault<string>("text_segment", dbNameCase)
             }).GroupBy(c => (c.Schema, c.Table, c.Name)).Select(c => new
             {
                 c.Key.Schema,
@@ -517,10 +530,14 @@ namespace Actian.EFCore.Scaffolding.Internal
         /// <param name="connection">The database connection.</param>
         /// <param name="tables">The database tables.</param>
         /// <param name="tableFilter">The table filter fragment.</param>
+        /// <param name="dbNameCase">Case sensitivity for regular identifiers</param>
+        /// <param name="dbDelimitedCase">Case sensitivity for delimited identifiers</param>
         private void GetIndexes(
             [NotNull] IngresConnection connection,
             [NotNull] IEnumerable<DatabaseTable> tables,
-            [CanBeNull] Func<string, string, string> tableFilter)
+            [CanBeNull] Func<string, string, string> tableFilter,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var filter = tableFilter != null ? $"and {tableFilter("t.table_owner", "t.table_name")}" : null;
 
@@ -552,18 +569,18 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by t.table_owner, t.table_name, i.index_owner, i.index_name, c.key_sequence
             ", reader => new
             {
-                TableSchema = reader.GetTrimmedChar("table_owner"),
-                TableName = reader.GetTrimmedChar("table_name"),
-                IndexSchema = reader.GetTrimmedChar("index_owner"),
-                IndexName = reader.GetTrimmedChar("index_name"),
-                StorageStructure = reader.GetTrimmedChar("storage_structure"),
-                IsCompressed = reader.GetTrimmedChar("is_compressed"),
-                KeyIsCompressed = reader.GetTrimmedChar("key_is_compressed"),
-                UniqueRule = reader.GetTrimmedChar("unique_rule"),
-                UniqueScope = reader.GetTrimmedChar("unique_scope"),
-                Persistent = reader.GetTrimmedChar("persistent"),
-                ColumnName = reader.GetTrimmedChar("column_name"),
-                KeySequence = reader.GetValueOrDefault<short>("key_sequence"),
+                TableSchema = reader.GetTrimmedChar("table_owner", dbNameCase),
+                TableName = reader.GetTrimmedChar("table_name", dbNameCase),
+                IndexSchema = reader.GetTrimmedChar("index_owner", dbNameCase),
+                IndexName = reader.GetTrimmedChar("index_name", dbNameCase),
+                StorageStructure = reader.GetTrimmedChar("storage_structure", dbNameCase),
+                IsCompressed = reader.GetTrimmedChar("is_compressed", dbNameCase),
+                KeyIsCompressed = reader.GetTrimmedChar("key_is_compressed", dbNameCase),
+                UniqueRule = reader.GetTrimmedChar("unique_rule", dbNameCase),
+                UniqueScope = reader.GetTrimmedChar("unique_scope", dbNameCase),
+                Persistent = reader.GetTrimmedChar("persistent", dbNameCase),
+                ColumnName = reader.GetTrimmedChar("column_name", dbNameCase),
+                KeySequence = reader.GetValueOrDefault<short>("key_sequence", dbNameCase),
             }).ToList().GroupBy(i => (i.TableSchema, i.TableName, i.IndexSchema, i.IndexName)).Select(i =>
             {
                 var index = i.First();
@@ -586,10 +603,14 @@ namespace Actian.EFCore.Scaffolding.Internal
         /// <param name="connection">The database connection.</param>
         /// <param name="database"></param>
         /// <param name="schemaFilter"></param>
+        /// <param name="dbNameCase">Case sensitivity for regular identifiers</param>
+        /// <param name="dbDelimitedCase">Case sensitivity for delimited identifiers</param>
         private void GetSequences(
             [NotNull] IngresConnection connection,
             [NotNull] DatabaseModel database,
-            [CanBeNull] Func<string, string> schemaFilter)
+            [CanBeNull] Func<string, string> schemaFilter,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var filter = schemaFilter != null ? $"where {schemaFilter("seq_owner")}" : null;
             connection.Select($@"
@@ -607,14 +628,14 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by seq_owner, seq_name
             ", reader => new DatabaseSequence
             {
-                Name = reader.GetTrimmedChar("seq_name"),
-                Schema = reader.GetTrimmedChar("seq_owner"),
-                StoreType = GetSequenceStoreType(reader.GetTrimmedChar("data_type"), reader.GetValueOrDefault<int?>("seq_precision")),
-                StartValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("start_value")),
-                IncrementBy = Convert.ToInt32(reader.GetValueOrDefault<decimal>("increment_value")),
-                MinValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("min_value")),
-                MaxValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("max_value")),
-                IsCyclic = reader.GetTrimmedChar("cycle_flag") == "Y"
+                Name = reader.GetTrimmedChar("seq_name", dbNameCase),
+                Schema = reader.GetTrimmedChar("seq_owner", dbNameCase),
+                StoreType = GetSequenceStoreType(reader.GetTrimmedChar("data_type", dbNameCase), reader.GetValueOrDefault<int?>("seq_precision", dbNameCase)),
+                StartValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("start_value", dbNameCase)),
+                IncrementBy = Convert.ToInt32(reader.GetValueOrDefault<decimal>("increment_value", dbNameCase)),
+                MinValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("min_value", dbNameCase)),
+                MaxValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("max_value", dbNameCase)),
+                IsCyclic = reader.GetTrimmedChar("cycle_flag", dbNameCase) == "Y"
             }.WithDefaultValues().WithDatabase(database)).ToList();
         }
 
@@ -623,9 +644,13 @@ namespace Actian.EFCore.Scaffolding.Internal
         /// </summary>
         /// <param name="connection">The database connection.</param>
         /// <param name="tables">The database tables.</param>
+        /// <param name="dbNameCase">Case sensitivity for regular identifiers</param>
+        /// <param name="dbDelimitedCase">Case sensitivity for delimited identifiers</param>
         private void GetComments(
             [NotNull] IngresConnection connection,
-            [NotNull] IEnumerable<DatabaseTable> tables)
+            [NotNull] IEnumerable<DatabaseTable> tables,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
             var tableComments = connection.Select($@"
                 select object_name,
@@ -636,9 +661,9 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by object_name, object_owner
             ", reader => new
             {
-                Schema = reader.GetTrimmedChar("object_owner"),
-                Table = reader.GetTrimmedChar("object_name"),
-                Comment = GetComment(reader)
+                Schema = reader.GetTrimmedChar("object_owner", dbNameCase),
+                Table = reader.GetTrimmedChar("object_name", dbNameCase),
+                Comment = GetComment(reader, dbNameCase, dbDelimitedCase)
             }).ToList();
 
             foreach (var comment in tableComments)
@@ -658,10 +683,10 @@ namespace Actian.EFCore.Scaffolding.Internal
                  order by object_name, object_owner
             ", reader => new
             {
-                Schema = reader.GetTrimmedChar("object_owner"),
-                Table = reader.GetTrimmedChar("object_name"),
-                Column = reader.GetTrimmedChar("subobject_name"),
-                Comment = GetComment(reader)
+                Schema = reader.GetTrimmedChar("object_owner", dbNameCase),
+                Table = reader.GetTrimmedChar("object_name", dbNameCase),
+                Column = reader.GetTrimmedChar("subobject_name", dbNameCase),
+                Comment = GetComment(reader, dbNameCase, dbDelimitedCase)
             }).ToList();
 
             foreach (var comment in columnComments)
@@ -852,22 +877,28 @@ namespace Actian.EFCore.Scaffolding.Internal
             };
         }
 
-        private static ValueGenerated? GetValueGenerated(DbDataReader reader)
+        private static ValueGenerated? GetValueGenerated(
+            DbDataReader reader,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
-            var always = reader.GetTrimmedChar("column_always_ident") == "Y";
-            var byDefault = reader.GetTrimmedChar("column_bydefault_ident") == "Y";
+            var always = reader.GetTrimmedChar("column_always_ident", dbNameCase) == "Y";
+            var byDefault = reader.GetTrimmedChar("column_bydefault_ident", dbNameCase) == "Y";
             if (always || byDefault)
                 return ValueGenerated.OnAdd;
             return null;
         }
 
-        private static string GetComment(DbDataReader reader)
+        private static string GetComment(
+            DbDataReader reader,
+            ActianCasing dbNameCase,
+            ActianCasing dbDelimitedCase)
         {
-            var longRemark = reader.GetTrimmedChar("long_remark");
+            var longRemark = reader.GetTrimmedChar("long_remark", dbNameCase);
             if (!string.IsNullOrWhiteSpace(longRemark))
                 return longRemark;
 
-            var shortRemark = reader.GetTrimmedChar("short_remark");
+            var shortRemark = reader.GetTrimmedChar("short_remark", dbNameCase);
             if (!string.IsNullOrWhiteSpace(shortRemark))
                 return shortRemark;
 

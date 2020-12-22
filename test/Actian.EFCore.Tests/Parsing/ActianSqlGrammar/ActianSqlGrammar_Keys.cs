@@ -1,9 +1,9 @@
-﻿using Actian.EFCore.Parsing.Internal;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Sprache;
 using Xunit;
+using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 
-namespace Actian.EFCore.Tests.Parsing
+namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_Keys
     {
@@ -12,9 +12,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData("(\"æøå\", id)", new[] { "æøå", "id" })]
         public void Can_parse(string str, string[] expected)
         {
-            var actual = ActianSqlGrammar.Keys.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(true, actual.Message);
-            actual.Value.Should().BeEquivalentTo(expected);
+            Keys.End().Parse(str).Should().BeEquivalentTo(expected);
         }
 
         [Theory]
@@ -22,8 +20,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData(@"(a\u0022bc, id)")]
         public void Can_not_parse(string str)
         {
-            var actual = ActianSqlGrammar.Keys.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(false);
+            Keys.End().TryParse(str).WasSuccessful.Should().Be(false);
         }
     }
 }

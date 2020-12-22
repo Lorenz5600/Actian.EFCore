@@ -1,10 +1,10 @@
-﻿using Actian.EFCore.Parsing.Internal;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Sprache;
 using Xunit;
+using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 using static Sprache.Parse;
 
-namespace Actian.EFCore.Tests.Parsing
+namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_Comma
     {
@@ -15,9 +15,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData("   ,   ")]
         public void Can_parse(string str)
         {
-            var actual = ActianSqlGrammar.Comma.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(true, actual.Message);
-            actual.Value.Should().Be(',');
+            Comma.End().Parse(str).Should().Be(',');
         }
 
         [Theory]
@@ -28,8 +26,7 @@ namespace Actian.EFCore.Tests.Parsing
         [InlineData(" x  , x  ")]
         public void Can_not_parse(string str)
         {
-            var actual = ActianSqlGrammar.Comma.End().TryParse(str);
-            actual.WasSuccessful.Should().Be(false);
+            Comma.End().TryParse(str).WasSuccessful.Should().Be(false);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Actian.EFCore.Diagnostics.Internal;
+using Actian.EFCore.Metadata.Internal;
 using Actian.EFCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -71,7 +72,7 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             Fixture.TestStore.CleanObjects();
 
             Fixture.TestStore.ExecuteStatements(
-                "SET SESSION AUTHORIZATION efcore_test1;",
+                @"SET SESSION AUTHORIZATION ""dbo"";",
                 test.ArrangeSql
             );
 
@@ -94,7 +95,7 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             finally
             {
                 Fixture.TestStore.ExecuteStatementsIgnoreErrors(
-                    "SET SESSION AUTHORIZATION initial_user;"
+                    @"SET SESSION AUTHORIZATION ""dbo"";"
                 );
             }
         }
@@ -120,6 +121,11 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         protected IEnumerable<T> Items<T>(params T[] items)
         {
             return items;
+        }
+
+        protected string NormalizeName(DatabaseModel dbModel, string name)
+        {
+            return dbModel.GetAnnotation<ActianCasing>(ActianAnnotationNames.DbDelimitedCase).Normalize(name);
         }
     }
 }

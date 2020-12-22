@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Create databases:
+  Create-databases:
     runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
 
     strategy:
@@ -29,8 +29,8 @@ jobs:
       - name: Create DB user dbo
         run: powershell .\scripts\CreateDbUser.ps1 dbo
 
-      - name: Create database efcore_databasemodelfactory
-        run: createdb -n -u\"""dbo\""" efcore_databasemodelfactory
+      - name: Drop test databases
+        run: powershell .\scripts\DropTestDatabases.ps1
 
-      - name: Create database efcore_northwind
-        run: createdb -n -u\"""dbo\""" efcore_northwind
+      - name: Create test databases
+        run: powershell .\scripts\CreateTestDatabases.ps1

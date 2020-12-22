@@ -5,9 +5,10 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Actian.EFCore.Scaffolding.DatabaseModelFactory;
+using Actian.EFCore.Parsing.Script;
 using Actian.EFCore.Storage.Internal;
 using Ingres.Client;
 using Microsoft.EntityFrameworkCore;
@@ -27,49 +28,52 @@ namespace Actian.EFCore.TestUtilities
         public const int CommandTimeout = 300;
 
         public static ActianTestStore GetIIDbDb()
-            => new ActianTestStore("iidbdb");
+            => new ActianTestStore("iidbdb", TestEnvironment.LoginUser);
 
         public static ActianTestStore GetNorthwindStore()
-            => (ActianTestStore)ActianNorthwindTestStoreFactory.Instance
-                .GetOrCreate(ActianNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null);
+            => (ActianTestStore)new ActianNorthwindTestStoreFactory()
+                .GetOrCreate(ActianNorthwindTestStoreFactory.DatabaseName).Initialize(null, (Func<DbContext>)null);
 
-        public static ActianTestStore GetOrCreate(string name)
-            => new ActianTestStore(name);
+        public static ActianTestStore GetOrCreate(string name, string dbmsUser)
+            => new ActianTestStore(name, dbmsUser);
 
-        public static ActianTestStore GetOrCreateInitialized(string name)
-            => new ActianTestStore(name).InitializeActian(null, (Func<DbContext>)null, null);
+        public static ActianTestStore GetOrCreateInitialized(string name, string dbmsUser)
+            => new ActianTestStore(name, dbmsUser).InitializeActian(null, (Func<DbContext>)null, null);
 
-        public static ActianTestStore GetOrCreate(string name, string scriptPath)
-            => new ActianTestStore(name, scriptPath: scriptPath);
+        public static ActianTestStore GetOrCreate(string name, string dbmsUser, string scriptPath)
+            => new ActianTestStore(name, dbmsUser, scriptPath: scriptPath);
 
-        public static ActianTestStore Create(string name)
-            => new ActianTestStore(name, shared: false);
+        public static ActianTestStore Create(string name, string dbmsUser)
+            => new ActianTestStore(name, dbmsUser, shared: false);
 
-        public static ActianTestStore CreateInitialized(string name)
-            => new ActianTestStore(name, shared: false)
+        public static ActianTestStore CreateInitialized(string name, string dbmsUser)
+            => new ActianTestStore(name, dbmsUser, shared: false)
                 .InitializeActian(null, (Func<DbContext>)null, null);
 
         private readonly string _scriptPath;
 
         private ActianTestStore(
             string name,
+            string dbmsUser,
             string scriptPath = null,
             bool shared = true)
             : base(name, shared)
         {
             Console.WriteLine($"Creating ActianTestStore {name}");
+            DbmsUser = dbmsUser;
             if (scriptPath != null)
             {
                 _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(ActianTestStore).GetTypeInfo().Assembly.Location), scriptPath);
             }
 
-            ConnectionString = CreateConnectionString(Name);
+            ConnectionString = TestEnvironment.GetConnectionString(Name, DbmsUser);
             Connection = new IngresConnection(ConnectionString);
 
-            Console.WriteLine($"Server version: {GetServerVersion()}");
+            Console.WriteLine($"Server version: {TestEnvironment.ActianServerVersion}");
         }
 
         public ITestOutputHelper Output { get; private set; }
+        public string DbmsUser { get; }
 
         public void SetOutput(ITestOutputHelper output)
         {
@@ -89,12 +93,14 @@ namespace Actian.EFCore.TestUtilities
             return new IngresConnection(new IngresConnectionStringBuilder(Connection.ConnectionString) { Database = "iidbdb" }.ConnectionString);
         }
 
+        private static readonly HashSet<(Type, string)> _scriptExecuted = new HashSet<(Type, string)>();
         protected override void Initialize(Func<DbContext> createContext, Action<DbContext> seed, Action<DbContext> clean)
         {
             if (CreateDatabase(clean))
             {
                 if (_scriptPath != null)
                 {
+                    _scriptExecuted.Add((GetType(), _scriptPath));
                     ExecuteScript(_scriptPath);
                 }
                 else
@@ -103,6 +109,11 @@ namespace Actian.EFCore.TestUtilities
                     context.Database.EnsureCreatedResiliently();
                     seed?.Invoke(context);
                 }
+            }
+            else if (_scriptPath != null && !_scriptExecuted.Contains((GetType(), _scriptPath)))
+            {
+                _scriptExecuted.Add((GetType(), _scriptPath));
+                ExecuteScript(_scriptPath);
             }
         }
 
@@ -192,8 +203,8 @@ namespace Actian.EFCore.TestUtilities
                 var schema = reader.GetFieldValue<string>(0)?.Trim();
                 var name = reader.GetFieldValue<string>(1)?.Trim();
 
-                statements.Add($"SET SESSION AUTHORIZATION {SqlGenerationHelper.DelimitIdentifier(schema)};");
-                statements.Add($"DROP {SqlGenerationHelper.DelimitIdentifier(name)};");
+                statements.Add($@"SET SESSION AUTHORIZATION ""{schema}"";");
+                statements.Add($@"DROP ""{name}"";");
             });
 
 
@@ -206,8 +217,8 @@ namespace Actian.EFCore.TestUtilities
                 var schema = reader.GetFieldValue<string>(0)?.Trim();
                 var name = reader.GetFieldValue<string>(1)?.Trim();
 
-                statements.Add($"SET SESSION AUTHORIZATION {SqlGenerationHelper.DelimitIdentifier(schema)};");
-                statements.Add($"DROP SEQUENCE {SqlGenerationHelper.DelimitIdentifier(name)};");
+                statements.Add($@"SET SESSION AUTHORIZATION ""{schema}"";");
+                statements.Add($@"DROP SEQUENCE ""{name}"";");
             });
 
             statements.Add($"SET SESSION AUTHORIZATION initial_user;");
@@ -221,27 +232,30 @@ namespace Actian.EFCore.TestUtilities
 
         public void ExecuteScript(string scriptPath)
         {
-            var script = File.ReadAllText(scriptPath);
-            Execute(
-                Connection, command =>
-                {
-                    foreach (var batch in
-                        new Regex(@"^\\g", RegexOptions.IgnoreCase | RegexOptions.Multiline, TimeSpan.FromMilliseconds(1000.0))
-                            .Split(script).Where(b => !string.IsNullOrEmpty(b)))
-                    {
-                        command.CommandText = batch;
-                        Log(batch, () => command.ExecuteNonQuery());
-                    }
-
-                    return 0;
-                }, "");
+            var filename = Path.GetFileNameWithoutExtension(scriptPath);
+            var extension = Path.GetExtension(scriptPath);
+            var logfile = Path.Combine(TestEnvironment.LogDirectory, $"{filename}.log{extension}");
+            using var log = new StreamWriter(logfile, false, Encoding.UTF8) { NewLine = "\n" };
+            using var runner = new TestActianScriptRunner(Connection, log);
+            try
+            {
+                ActianScript.Execute(scriptPath, runner);
+                log.WriteLine("-- SCRIPT SUCCEEDED");
+                log.WriteLine();
+            }
+            catch
+            {
+                log.WriteLine("-- SCRIPT FAILED");
+                log.WriteLine();
+                throw;
+            }
         }
 
         public override void OpenConnection()
-            => new TestActianRetryingExecutionStrategy().Execute(Connection, connection => connection.Open());
+            => new TestActianRetryingExecutionStrategy(Name, DbmsUser).Execute(Connection, connection => connection.Open());
 
         public override Task OpenConnectionAsync()
-            => new TestActianRetryingExecutionStrategy().ExecuteAsync(Connection, connection => connection.OpenAsync());
+            => new TestActianRetryingExecutionStrategy(Name, DbmsUser).ExecuteAsync(Connection, connection => connection.OpenAsync());
 
         public T ExecuteScalar<T>(string sql, params object[] parameters)
             => ExecuteScalar<T>(Connection, sql, parameters);
@@ -429,7 +443,7 @@ namespace Actian.EFCore.TestUtilities
         private T Execute<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql,
             bool useTransaction = false, object[] parameters = null)
-            => new TestActianRetryingExecutionStrategy().Execute(
+            => new TestActianRetryingExecutionStrategy(Name, DbmsUser).Execute(
                 new
                 {
                     connection,
@@ -471,7 +485,7 @@ namespace Actian.EFCore.TestUtilities
         private Task<T> ExecuteAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
             bool useTransaction = false, IReadOnlyList<object> parameters = null)
-            => new TestActianRetryingExecutionStrategy().ExecuteAsync(
+            => new TestActianRetryingExecutionStrategy(Name, DbmsUser).ExecuteAsync(
                 new
                 {
                     connection,
@@ -574,24 +588,6 @@ namespace Actian.EFCore.TestUtilities
             }
 
             return command;
-        }
-
-        private static readonly HashSet<string> ValidDatabases = new HashSet<string>(new[]
-        {
-            TestEnvironment.Database,
-            ActianDatabaseModelFixture.DatabaseName,
-            "iidbdb"
-        }, StringComparer.InvariantCultureIgnoreCase);
-
-        public static string CreateConnectionString(string name)
-        {
-            if (!ValidDatabases.Contains(name))
-                throw new Exception($"Database {name} can not be used for tests");
-
-            return new IngresConnectionStringBuilder(TestEnvironment.ConnectionString)
-            {
-                Database = name.ToLowerInvariant()
-            }.ConnectionString;
         }
     }
 }

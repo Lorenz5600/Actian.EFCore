@@ -19,5 +19,50 @@ namespace Actian.EFCore
         {
             return input.Matches(new Regex(pattern, options), out match);
         }
+
+        public static bool IsMatch(this string input, Regex re)
+        {
+            return re.IsMatch(input);
+        }
+
+        public static bool IsMatch(this string input, string pattern)
+        {
+            return input.IsMatch(new Regex(pattern));
+        }
+
+        public static bool IsMatch(this string input, string pattern, RegexOptions options)
+        {
+            return input.IsMatch(new Regex(pattern, options));
+        }
+
+        public static string ReplaceRegex(this string input, Regex re, string replacement)
+        {
+            return re.Replace(input, replacement);
+        }
+
+        public static string ReplaceRegex(this string input, Regex re, MatchEvaluator evaluator)
+        {
+            return re.Replace(input, evaluator);
+        }
+
+        public static string ReplaceRegex(this string input, string pattern, string replacement)
+        {
+            return Regex.Replace(input, pattern, replacement);
+        }
+
+        public static string ReplaceRegex(this string input, string pattern, string replacement, RegexOptions options)
+        {
+            return Regex.Replace(input, pattern, replacement, options);
+        }
+
+        public static string ReplaceRegex(this string input, string pattern, MatchEvaluator evaluator)
+        {
+            return Regex.Replace(input, pattern, evaluator);
+        }
+
+        public static string ReplaceRegex(this string input, string pattern, MatchEvaluator evaluator, RegexOptions options)
+        {
+            return Regex.Replace(input, pattern, evaluator, options);
+        }
     }
 }

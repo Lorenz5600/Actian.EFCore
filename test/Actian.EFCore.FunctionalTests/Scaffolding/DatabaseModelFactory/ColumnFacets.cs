@@ -19,298 +19,331 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void Decimal_types_have_precision_scale() => Test(test => test
             .Arrange(@"
-                CREATE TABLE NumericColumns (
-                    decimalColumn                 decimal        NOT NULL,
-                    decimal105Column              decimal(10, 5) NOT NULL,
-                    decimalDefaultColumn          decimal(18, 2) NOT NULL,
-                    numericColumn                 numeric        NOT NULL,
-                    numeric152Column              numeric(15, 2) NOT NULL,
-                    numericDefaultColumn          numeric(18, 2) NOT NULL,
-                    numericDefaultPrecisionColumn numeric(38, 5) NOT NULL
+                CREATE TABLE ""NumericColumns"" (
+                    ""decimalColumn""                 decimal        NOT NULL,
+                    ""decimal105Column""              decimal(10, 5) NOT NULL,
+                    ""decimalDefaultColumn""          decimal(18, 2) NOT NULL,
+                    ""numericColumn""                 numeric        NOT NULL,
+                    ""numeric152Column""              numeric(15, 2) NOT NULL,
+                    ""numericDefaultColumn""          numeric(18, 2) NOT NULL,
+                    ""numericDefaultPrecisionColumn"" numeric(38, 5) NOT NULL
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "numericcolumns",
+                    Schema = "dbo",
+                    Name = "NumericColumns",
                     Columns = Items(
-                        new { Name = "decimalcolumn", StoreType = "decimal" },
-                        new { Name = "decimal105column", StoreType = "decimal(10,5)" },
-                        new { Name = "decimaldefaultcolumn", StoreType = "decimal(18,2)" },
-                        new { Name = "numericcolumn", StoreType = "decimal" },
-                        new { Name = "numeric152column", StoreType = "decimal(15,2)" },
-                        new { Name = "numericdefaultcolumn", StoreType = "decimal(18,2)" },
-                        new { Name = "numericdefaultprecisioncolumn", StoreType = "decimal(38,5)" }
+                        new { Name = "decimalColumn", StoreType = "decimal" },
+                        new { Name = "decimal105Column", StoreType = "decimal(10,5)" },
+                        new { Name = "decimalDefaultColumn", StoreType = "decimal(18,2)" },
+                        new { Name = "numericColumn", StoreType = "decimal" },
+                        new { Name = "numeric152Column", StoreType = "decimal(15,2)" },
+                        new { Name = "numericDefaultColumn", StoreType = "decimal(18,2)" },
+                        new { Name = "numericDefaultPrecisionColumn", StoreType = "decimal(38,5)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Specific_max_length_are_added_to_store_type() => Test(test => test
             .Arrange(@"
-                CREATE TABLE LengthColumns (
-                    char10Column                       char(10)                   NULL,
-                    varchar66Column                    varchar(66)                NULL,
-                    nchar99Column                      nchar(99)                  NULL,
-                    nvarchar100Column                  nvarchar(100)              NULL,
-                    binary111Column                    binary(111)                NULL,
-                    varbinary123Column                 varbinary(123)             NULL,
-                    binaryVarying133Column             binary varying(133)        NULL
+                CREATE TABLE ""LengthColumns"" (
+                    ""char10Column""                       char(10)                   NULL,
+                    ""varchar66Column""                    varchar(66)                NULL,
+                    ""nchar99Column""                      nchar(99)                  NULL,
+                    ""nvarchar100Column""                  nvarchar(100)              NULL,
+                    ""binary111Column""                    binary(111)                NULL,
+                    ""varbinary123Column""                 varbinary(123)             NULL,
+                    ""binaryVarying133Column""             binary varying(133)        NULL
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "lengthcolumns",
+                    Schema = "dbo",
+                    Name = "LengthColumns",
                     Columns = Items(
-                        new { Name = "char10column", StoreType = "char(10)" },
-                        new { Name = "varchar66column", StoreType = "varchar(66)" },
-                        new { Name = "nchar99column", StoreType = "nchar(99)" },
-                        new { Name = "nvarchar100column", StoreType = "nvarchar(100)" },
-                        new { Name = "binary111column", StoreType = "byte(111)" },
-                        new { Name = "varbinary123column", StoreType = "byte varying(123)" },
-                        new { Name = "binaryvarying133column", StoreType = "byte varying(133)" }
+                        new { Name = "char10Column", StoreType = "char(10)" },
+                        new { Name = "varchar66Column", StoreType = "varchar(66)" },
+                        new { Name = "nchar99Column", StoreType = "nchar(99)" },
+                        new { Name = "nvarchar100Column", StoreType = "nvarchar(100)" },
+                        new { Name = "binary111Column", StoreType = "byte(111)" },
+                        new { Name = "varbinary123Column", StoreType = "byte varying(123)" },
+                        new { Name = "binaryVarying133Column", StoreType = "byte varying(133)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Default_max_length_are_added_to_binary_varbinary() => Test(test => test
             .Arrange(@"
-                CREATE TABLE DefaultRequiredLengthBinaryColumns (
-                    binaryColumn binary(8000),
-                    binaryVaryingColumn binary varying(8000),
-                    varbinaryColumn varbinary(8000)
+                CREATE TABLE ""DefaultRequiredLengthBinaryColumns"" (
+                    ""binaryColumn"" binary(8000),
+                    ""binaryVaryingColumn"" binary varying(8000),
+                    ""varbinaryColumn"" varbinary(8000)
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultrequiredlengthbinarycolumns",
+                    Schema = "dbo",
+                    Name = "DefaultRequiredLengthBinaryColumns",
                     Columns = Items(
-                        new { Name = "binarycolumn", StoreType = "byte(8000)" },
-                        new { Name = "binaryvaryingcolumn", StoreType = "byte varying(8000)" },
-                        new { Name = "varbinarycolumn", StoreType = "byte varying(8000)" }
+                        new { Name = "binaryColumn", StoreType = "byte(8000)" },
+                        new { Name = "binaryVaryingColumn", StoreType = "byte varying(8000)" },
+                        new { Name = "varbinaryColumn", StoreType = "byte varying(8000)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Default_max_length_are_added_to_char() => Test(test => test
             .Arrange(@"
-                CREATE TABLE DefaultRequiredLengthCharColumns (
-                    charColumn char(8000)
+                CREATE TABLE ""DefaultRequiredLengthCharColumns"" (
+                    ""charColumn"" char(8000)
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultrequiredlengthcharcolumns",
+                    Schema = "dbo",
+                    Name = "DefaultRequiredLengthCharColumns",
                     Columns = Items(
-                        new { Name = "charcolumn", StoreType = "char(8000)" }
+                        new { Name = "charColumn", StoreType = "char(8000)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Default_max_length_are_added_to_varchar() => Test(test => test
             .Arrange(@"
-                CREATE TABLE DefaultRequiredLengthVarcharColumns (
-                    varcharColumn varchar(8000)
+                CREATE TABLE ""DefaultRequiredLengthVarcharColumns"" (
+                    ""varcharColumn"" varchar(8000)
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultrequiredlengthvarcharcolumns",
+                    Schema = "dbo",
+                    Name = "DefaultRequiredLengthVarcharColumns",
                     Columns = Items(
-                        new { Name = "varcharcolumn", StoreType = "varchar(8000)" }
+                        new { Name = "varcharColumn", StoreType = "varchar(8000)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Default_max_length_are_added_to_nchar() => Test(test => test
             .Arrange(@"
-                CREATE TABLE DefaultRequiredLengthNcharColumns (
-                    ncharColumn nchar(8000)
+                CREATE TABLE ""DefaultRequiredLengthNcharColumns"" (
+                    ""ncharColumn"" nchar(8000)
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultrequiredlengthncharcolumns",
+                    Schema = "dbo",
+                    Name = "DefaultRequiredLengthNcharColumns",
                     Columns = Items(
-                        new { Name = "ncharcolumn", StoreType = "nchar(8000)" }
+                        new { Name = "ncharColumn", StoreType = "nchar(8000)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Default_max_length_are_added_to_nvarchar() => Test(test => test
             .Arrange(@"
-                CREATE TABLE DefaultRequiredLengthNvarcharColumns (
-                    nvarcharColumn nvarchar(4000)
+                CREATE TABLE ""DefaultRequiredLengthNvarcharColumns"" (
+                    ""nvarcharColumn"" nvarchar(4000)
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultrequiredlengthnvarcharcolumns",
+                    Schema = "dbo",
+                    Name = "DefaultRequiredLengthNvarcharColumns",
                     Columns = Items(
-                        new { Name = "nvarcharcolumn", StoreType = "nvarchar(4000)" }
+                        new { Name = "nvarcharColumn", StoreType = "nvarchar(4000)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Datetime_types_have_precision_if_non_null_scale() => Test(test => test
            .Arrange(@"
-                CREATE TABLE DatetimeColumns (
-                    time1Column        time(1)                     NULL,
-                    timetz2Column      time(2) with time zone      NULL,
-                    timestamp3Column   timestamp(3)                NULL,
-                    timestamptz4Column timestamp(4) with time zone NULL,
-                    interval5Column    interval day to second(5)   NULL
+                CREATE TABLE ""DatetimeColumns"" (
+                    ""time1Column""        time(1)                     NULL,
+                    ""timetz2Column""      time(2) with time zone      NULL,
+                    ""timestamp3Column""   timestamp(3)                NULL,
+                    ""timestamptz4Column"" timestamp(4) with time zone NULL,
+                    ""interval5Column""    interval day to second(5)   NULL
                 )
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "datetimecolumns",
+                    Schema = "dbo",
+                    Name = "DatetimeColumns",
                     Columns = Items(
-                        new { Name = "time1column", StoreType = "time(1) without time zone" },
-                        new { Name = "timetz2column", StoreType = "time(2) with time zone" },
-                        new { Name = "timestamp3column", StoreType = "timestamp(3) without time zone" },
-                        new { Name = "timestamptz4column", StoreType = "timestamp(4) with time zone" },
-                        new { Name = "interval5column", StoreType = "interval day to second(5)" }
+                        new { Name = "time1Column", StoreType = "time(1) without time zone" },
+                        new { Name = "timetz2Column", StoreType = "time(2) with time zone" },
+                        new { Name = "timestamp3Column", StoreType = "timestamp(3) without time zone" },
+                        new { Name = "timestamptz4Column", StoreType = "timestamp(4) with time zone" },
+                        new { Name = "interval5Column", StoreType = "interval day to second(5)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
              )
         );
 
         [ConditionalFact]
         public void Types_with_required_length_uses_length_of_one() => Test(test => test
            .Arrange(@"
-                CREATE TABLE OneLengthColumns (
-                    binaryColumn                   binary                NULL,
-                    binaryVaryingColumn            binary varying        NULL,
-                    charColumn                     char                  NULL,
-                    ncharColumn                    nchar                 NULL,
-                    nvarcharColumn                 nvarchar              NULL,
-                    varbinaryColumn                varbinary             NULL,
-                    varcharColumn                  varchar               NULL
+                CREATE TABLE ""OneLengthColumns"" (
+                    ""binaryColumn""                   binary                NULL,
+                    ""binaryVaryingColumn""            binary varying        NULL,
+                    ""charColumn""                     char                  NULL,
+                    ""ncharColumn""                    nchar                 NULL,
+                    ""nvarcharColumn""                 nvarchar              NULL,
+                    ""varbinaryColumn""                varbinary             NULL,
+                    ""varcharColumn""                  varchar               NULL
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "onelengthcolumns",
+                    Schema = "dbo",
+                    Name = "OneLengthColumns",
                     Columns = Items(
-                        new { Name = "binarycolumn", StoreType = "byte(1)" },
-                        new { Name = "binaryvaryingcolumn", StoreType = "byte varying(1)" },
-                        new { Name = "charcolumn", StoreType = "char(1)" },
-                        new { Name = "ncharcolumn", StoreType = "nchar(1)" },
-                        new { Name = "nvarcharcolumn", StoreType = "nvarchar(1)" },
-                        new { Name = "varbinarycolumn", StoreType = "byte varying(1)" },
-                        new { Name = "varcharcolumn", StoreType = "varchar(1)" }
+                        new { Name = "binaryColumn", StoreType = "byte(1)" },
+                        new { Name = "binaryVaryingColumn", StoreType = "byte varying(1)" },
+                        new { Name = "charColumn", StoreType = "char(1)" },
+                        new { Name = "ncharColumn", StoreType = "nchar(1)" },
+                        new { Name = "nvarcharColumn", StoreType = "nvarchar(1)" },
+                        new { Name = "varbinaryColumn", StoreType = "byte varying(1)" },
+                        new { Name = "varcharColumn", StoreType = "varchar(1)" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
              )
         );
 
         [ConditionalFact]
         public void Store_types_without_any_facets() => Test(test => test
             .Arrange(@"
-                CREATE TABLE NoFacetTypes (
-                    booleanColumn boolean,
-                    floatColumn float4,
-                    doubleColumn float,
-                    decimalColumn decimal,
-                    moneyColumn money,
-                    -- guidColumn uuid,
-                    byteColumn integer1,
-                    shortColumn integer2,
-                    intColumn integer4,
-                    longColumn integer8,
-                    timeColumn time,
-                    timetzColumn time with time zone,
-                    timestampColumn timestamp,
-                    timestamptzColumn timestamp with time zone,
-                    intervalDsColumn interval day to second,
-                    intervalYmColumn interval year to month
+                CREATE TABLE ""NoFacetTypes"" (
+                    ""booleanColumn"" boolean,
+                    ""floatColumn"" float4,
+                    ""doubleColumn"" float,
+                    ""decimalColumn"" decimal,
+                    ""moneyColumn"" money,
+                    -- ""guidColumn"" uuid,
+                    ""byteColumn"" integer1,
+                    ""shortColumn"" integer2,
+                    ""intColumn"" integer4,
+                    ""longColumn"" integer8,
+                    ""timeColumn"" time,
+                    ""timetzColumn"" time with time zone,
+                    ""timestampColumn"" timestamp,
+                    ""timestamptzColumn"" timestamp with time zone,
+                    ""intervalDsColumn"" interval day to second,
+                    ""intervalYmColumn"" interval year to month
                 )
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "nofacettypes",
+                    Schema = "dbo",
+                    Name = "NoFacetTypes",
                     Columns = Items(
-                        new { Name = "booleancolumn", StoreType = "boolean" },
-                        new { Name = "floatcolumn", StoreType = "float4" },
-                        new { Name = "doublecolumn", StoreType = "float" },
-                        new { Name = "decimalcolumn", StoreType = "decimal" },
-                        new { Name = "moneycolumn", StoreType = "money" },
-                        //new { Name = "guidcolumn", StoreType = "byte(16)" }, // TODO: Fix in ADO.NET provider?
-                        new { Name = "bytecolumn", StoreType = "tinyint" },
-                        new { Name = "shortcolumn", StoreType = "smallint" },
-                        new { Name = "intcolumn", StoreType = "integer" },
-                        new { Name = "longcolumn", StoreType = "bigint" },
-                        new { Name = "timecolumn", StoreType = "time without time zone" },
-                        new { Name = "timetzcolumn", StoreType = "time with time zone" },
-                        new { Name = "timestampcolumn", StoreType = "timestamp without time zone" },
-                        new { Name = "timestamptzcolumn", StoreType = "timestamp with time zone" },
-                        new { Name = "intervaldscolumn", StoreType = "interval day to second" },
-                        new { Name = "intervalymcolumn", StoreType = "interval year to month" }
+                        new { Name = "booleanColumn", StoreType = "boolean" },
+                        new { Name = "floatColumn", StoreType = "float4" },
+                        new { Name = "doubleColumn", StoreType = "float" },
+                        new { Name = "decimalColumn", StoreType = "decimal" },
+                        new { Name = "moneyColumn", StoreType = "money" },
+                        //new { Name = "guidColumn", StoreType = "byte(16)" }, // TODO: Fix in ADO.NET provider?
+                        new { Name = "byteColumn", StoreType = "tinyint" },
+                        new { Name = "shortColumn", StoreType = "smallint" },
+                        new { Name = "intColumn", StoreType = "integer" },
+                        new { Name = "longColumn", StoreType = "bigint" },
+                        new { Name = "timeColumn", StoreType = "time without time zone" },
+                        new { Name = "timetzColumn", StoreType = "time with time zone" },
+                        new { Name = "timestampColumn", StoreType = "timestamp without time zone" },
+                        new { Name = "timestamptzColumn", StoreType = "timestamp with time zone" },
+                        new { Name = "intervalDsColumn", StoreType = "interval day to second" },
+                        new { Name = "intervalYmColumn", StoreType = "interval year to month" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Default_values_are_stored() => Test(test => test
             .Arrange(@"
-                CREATE TABLE DefaultValues (
-                    FixedDefaultValue timestamp NOT NULL DEFAULT timestamp '1999-01-08'
+                CREATE TABLE ""DefaultValues"" (
+                    ""FixedDefaultValue"" timestamp NOT NULL DEFAULT timestamp '1999-01-08'
                 )
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultvalues",
+                    Schema = "dbo",
+                    Name = "DefaultValues",
                     Columns = Items(
-                        new { Name = "fixeddefaultvalue", DefaultValueSql = "timestamp '1999-01-08'" }
+                        new { Name = "FixedDefaultValue", DefaultValueSql = "timestamp '1999-01-08'" }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
@@ -338,21 +371,24 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [InlineData("time", "NOT NULL", "time '00:00:00'")]
         //[InlineData("uuid", "NOT NULL", "'00000000-0000-0000-0000-000000000000'")]
         public void Default_value_matching_clr_default_is_not_stored(string storeType, string nullClause, string defaultValue) => Test(test => test
-            .Arrange(@$"
-                CREATE TABLE DefaultValues (
-                    IgnoredDefault  {storeType}  {nullClause}  DEFAULT {defaultValue}
+            .Arrange($@"
+                CREATE TABLE ""DefaultValues"" (
+                    ""IgnoredDefault""  {storeType}  {nullClause}  DEFAULT {defaultValue}
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "defaultvalues",
+                    Schema = "dbo",
+                    Name = "DefaultValues",
                     Columns = Items(
-                        new { Name = "ignoreddefault", DefaultValueSql = null as string }
+                        new { Name = "IgnoredDefault", DefaultValueSql = null as string }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
@@ -360,42 +396,48 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         [ConditionalFact]
         public void ValueGenerated_is_set_for_identity_and_computed_column() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ValueGeneratedProperties (
-                    Id  int  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1)
+                CREATE TABLE ""ValueGeneratedProperties"" (
+                    ""Id""  int  NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1)
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "valuegeneratedproperties",
+                    Schema = "dbo",
+                    Name = "ValueGeneratedProperties",
                     Columns = Items(
-                        new { Name = "id", ValueGenerated = ValueGenerated.OnAdd }
+                        new { Name = "Id", ValueGenerated = ValueGenerated.OnAdd }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
 
         [ConditionalFact]
         public void Column_nullability_is_set() => Test(test => test
             .Arrange(@"
-                CREATE TABLE NullableColumns (
-                    NullableInt int NULL,
-                    NonNullString nvarchar(100) NOT NULL
+                CREATE TABLE ""NullableColumns"" (
+                    ""NullableInt"" int NULL,
+                    ""NonNullString"" nvarchar(100) NOT NULL
                 );
             ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
-                    Schema = "efcore_test1",
-                    Name = "nullablecolumns",
+                    Schema = "dbo",
+                    Name = "NullableColumns",
                     Columns = Items(
-                        new { Name = "nullableint", IsNullable = true },
-                        new { Name = "nonnullstring", IsNullable = false }
+                        new { Name = "NullableInt", IsNullable = true },
+                        new { Name = "NonNullString", IsNullable = false }
                     )
-                })
+                }, options => options
+                    .UsingDelimitedName(dbModel, "Name")
+                    .UsingDelimitedName(dbModel, "Columns[].Name")
+                )
             )
         );
     }

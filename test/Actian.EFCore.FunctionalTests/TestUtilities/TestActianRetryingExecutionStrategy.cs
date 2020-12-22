@@ -15,17 +15,17 @@ namespace Actian.EFCore.TestUtilities
             // TODO: determine _additionalErrorNumbers
         };
 
-        private static DbContext CreateDbContext()
+        private static DbContext CreateDbContext(string database, string dbmsUser)
         {
             return new DbContext(
                 new DbContextOptionsBuilder()
                     .EnableServiceProviderCaching(false)
-                    .UseActian(TestEnvironment.ConnectionString).Options
+                    .UseActian(TestEnvironment.GetConnectionString(database, dbmsUser)).Options
             );
         }
 
-        public TestActianRetryingExecutionStrategy()
-            : this(CreateDbContext())
+        public TestActianRetryingExecutionStrategy(string database, string dbmsUser)
+            : this(CreateDbContext(database, dbmsUser))
         {
         }
 
