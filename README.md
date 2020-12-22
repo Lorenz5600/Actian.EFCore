@@ -74,7 +74,7 @@ Actian.EFCore is tested and built using build script `.github/workflows/build.ym
 - Changes are pushed to branch `main`.
 - Changes are pushed to a branch that has a pull request to branch `main`.
 
-The tests are run each of the following environments:
+The tests are run in each of the following environments:
 
 ### WIN64_INGRES_10_1_0, Ingres
 
