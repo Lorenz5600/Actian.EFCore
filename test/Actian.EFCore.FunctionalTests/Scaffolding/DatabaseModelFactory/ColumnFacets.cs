@@ -392,7 +392,6 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             )
         );
 
-        [MinimumServerVersion(11, 0)]
         [ConditionalFact]
         public void ValueGenerated_is_set_for_identity_and_computed_column() => Test(test => test
             .Arrange(@"
