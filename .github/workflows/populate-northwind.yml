@@ -1,0 +1,40 @@
+name: Create databases
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Create-databases:
+    runs-on: [self-hosted, windows, x64, '${{ matrix.dev-or-ci }}', '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dev-or-ci:
+          - Dev
+          - CI
+        actian-efcore-environment:
+          - WIN64_INGRES_10_1_0
+          - WIN64_ACTIANX_11_1_0
+        compatibility:
+          - Ingres
+          - Ansi
+
+    env:
+      config: Debug
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Actian installation
+        run: powershell .\scripts\SetupActianInstallation.ps1
+
+      - name: Create Northwind.ascii.sql
+        run: dotnet run
+        shell: cmd
+        working-directory: utils/CreateNorthwindScript
+
+      - name: Populate efc_northwind
+        run: sql -S efc_northwind < Northwind.ascii.sql
+        shell: cmd
+        working-directory: test/Actian.EFCore.FunctionalTests/Northwind
