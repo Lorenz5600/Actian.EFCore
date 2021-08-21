@@ -1,4 +1,4 @@
-name: Create databases
+name: Populate northwind
 
 on:
   workflow_dispatch:
