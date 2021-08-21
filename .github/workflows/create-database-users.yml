@@ -1,0 +1,54 @@
+name: Create database users
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Create-database-users:
+    runs-on: [self-hosted, windows, x64, '${{ matrix.dev-or-ci }}', '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dev-or-ci:
+          - Dev
+          - CI
+        actian-efcore-environment:
+          - WIN64_INGRES_10_1_0
+          - WIN64_ACTIANX_11_1_0
+        compatibility:
+          - Ingres
+          - Ansi
+
+    env:
+      config: Debug
+
+    steps:
+      - name: Clean build directory
+        run: |
+          rd /s /q . 2>nul
+          exit /b 0
+        shell: cmd
+
+      - uses: actions/checkout@v2
+
+      - name: Setup Actian installation
+        run: powershell .\scripts\SetupActianInstallation.ps1
+
+      - name: Environment
+        run: |
+          Get-ChildItem env:
+
+      # Create database users
+
+      - name: Create DB user efcore_test
+        run: powershell .\scripts\CreateEFCoreTestUser.ps1
+
+      - name: Create DB user dbo
+        run: powershell .\scripts\CreateDbUser.ps1 dbo
+
+      - name: Create DB user db2
+        run: powershell .\scripts\CreateDbUser.ps1 db2
+
+      - name: Create DB user db.2
+        run: powershell .\scripts\CreateDbUser.ps1 db.2
