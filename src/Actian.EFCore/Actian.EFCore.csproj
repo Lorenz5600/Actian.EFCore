@@ -26,7 +26,7 @@
 
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="" />
+    <None Include="$(MSBuildThisFileDirectory)\..\..\LICENSE" Pack="true" PackagePath="" />
     <!-- <None Include="$(MSBuildThisFileDirectory)[The icon file name]" Pack="true" PackagePath="" /> -->
   </ItemGroup>
 
