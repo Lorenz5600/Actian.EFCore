@@ -5,15 +5,16 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
-    public class Model : ActianDatabaseModelFactoryTestBase
+    public partial class ActianDatabaseModelFactoryTest
     {
-        public Model(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public class Model : ActianDatabaseModelFactoryTestBase
         {
-        }
+            public Model(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+                : base(fixture, output)
+            {
+            }
 
-        [ConditionalFact]
-        public void Get_default_schema() => Test(test => test
+            public void Get_default_schema() => Test(test => test
             .Assert(dbModel =>
             {
                 var defaultSchema = Fixture.TestStore
@@ -23,13 +24,12 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             })
         );
 
-        [ConditionalFact]
-        public void Create_tables() => Test(test => test
+            public void Create_tables() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION ""db2"";
-                CREATE TABLE ""Everest"" ( ""id"" int );
-                CREATE TABLE ""Denali"" ( ""id"" int );
-            ")
+                    SET SESSION AUTHORIZATION ""db2"";
+                    CREATE TABLE ""Everest"" ( ""id"" int );
+                    CREATE TABLE ""Denali"" ( ""id"" int );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .OrderBy(t => t.Name)
                 .Should().BeEquivalentTo(Items(
@@ -41,5 +41,6 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                 )
             )
         );
+        }
     }
 }

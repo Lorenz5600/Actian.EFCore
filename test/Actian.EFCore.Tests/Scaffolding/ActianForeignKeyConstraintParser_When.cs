@@ -1,12 +1,19 @@
 ﻿using Actian.EFCore.Scaffolding.Internal;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests.Scaffolding
 {
     public class ActianForeignKeyConstraintParser_When
     {
+        public ActianForeignKeyConstraintParser_When(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("update", ActianForeignKeyConstraintParser.RuleWhen.Update)]
         [InlineData("UPDATE", ActianForeignKeyConstraintParser.RuleWhen.Update)]

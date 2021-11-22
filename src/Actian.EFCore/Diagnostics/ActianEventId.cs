@@ -5,7 +5,7 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
 {
     /// <summary>
     /// <para>
-    ///     Event IDs for SQL Server events that correspond to messages logged to an <see cref="ILogger" />
+    ///     Event IDs for Actian events that correspond to messages logged to an <see cref="ILogger" />
     ///     and events sent to a <see cref="DiagnosticSource" />.
     /// </para>
     /// <para>
@@ -75,7 +75,7 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
 
         /// <summary>
         /// <para>
-        ///     A byte property is set up to use a SQL Server identity column.
+        ///     A byte property is set up to use an Actian identity column.
         /// </para>
         /// <para>
         ///     This event is in the <see cref="DbLoggerCategory.Model.Validation" /> category.

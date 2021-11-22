@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         dev-or-ci:
-          - Dev
+          # - Dev
           - CI
         actian-efcore-environment:
           - WIN64_INGRES_10_1_0
@@ -46,4 +46,5 @@ jobs:
       # Create missing databases
 
       - name: Create missing databases
-        run: powershell .\scripts\CreateMissingTestDatabases.ps1
+        run: dotnet run -- create-missing-test-databases
+        working-directory: utils/Actian.EFCore.Build

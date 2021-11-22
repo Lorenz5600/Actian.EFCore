@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
+using Actian.EFCore.Utilities;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Update;
 

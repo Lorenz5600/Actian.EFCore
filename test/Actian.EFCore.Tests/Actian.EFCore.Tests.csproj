@@ -1,12 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.6.3" />
-    <PackageReference Include="FluentAssertions" Version="5.10.3" />
-  </ItemGroup>
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Actian.EFCore\Actian.EFCore.csproj" />
+    <ProjectReference Include="..\Actian.EFCore.Test.Common\Actian.EFCore.Test.Common.csproj" />
+    <ProjectReference Include="..\..\utils\Actian.TestLoggers\Actian.TestLoggers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

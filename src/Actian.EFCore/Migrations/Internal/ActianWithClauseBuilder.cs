@@ -26,7 +26,7 @@ namespace Actian.EFCore.Migrations.Internal
             return this;
         }
 
-        private ActianWithClauseBuilder With(Func<string> getOption, bool? condition)
+        private ActianWithClauseBuilder With(bool? condition, Func<string> getOption)
             => condition == true ? With(getOption()) : this;
 
         public MigrationCommandListBuilder Build()
@@ -51,15 +51,15 @@ namespace Actian.EFCore.Migrations.Internal
         }
 
         public ActianWithClauseBuilder Locations(IEnumerable<string> locations)
-            => With(() => $"LOCATION = ({string.Join(", ", locations)})", locations?.Any());
+            => With(locations?.Any(), () => $"LOCATION = ({string.Join(", ", locations)})");
 
         public ActianWithClauseBuilder Journaling(bool? journalingEnabled)
-            => With(() => journalingEnabled.Value ? "JOURNALING" : "NOJOURNALING", journalingEnabled != null);
+            => With(journalingEnabled != null, () => journalingEnabled.Value ? "JOURNALING" : "NOJOURNALING");
 
         public ActianWithClauseBuilder Duplicates(bool? duplicates)
-            => With(() => duplicates.Value ? "DUPLICATES" : "NODUPLICATES", duplicates != null);
+            => With(duplicates != null, () => duplicates.Value ? "DUPLICATES" : "NODUPLICATES");
 
         public ActianWithClauseBuilder Persistence(bool? persistence)
-            => With(() => persistence.Value ? "PERSISTENCE" : "NOPERSISTENCE", persistence != null);
+            => With(persistence != null, () => persistence.Value ? "PERSISTENCE" : "NOPERSISTENCE");
     }
 }

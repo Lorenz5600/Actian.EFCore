@@ -5,11 +5,14 @@ on:
 
 jobs:
   Clear-databases:
-    runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
+    runs-on: [self-hosted, windows, x64, '${{ matrix.dev-or-ci }}', '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
 
     strategy:
       fail-fast: false
       matrix:
+        dev-or-ci:
+          # - Dev
+          - CI
         actian-efcore-environment:
           - WIN64_INGRES_10_1_0
           - WIN64_ACTIANX_11_1_0
@@ -21,13 +24,21 @@ jobs:
       config: Debug
 
     steps:
+      - name: Clean build directory
+        run: |
+          rd /s /q . 2>nul
+          exit /b 0
+        shell: cmd
+
       - uses: actions/checkout@v2
 
       - name: Setup Actian installation
         run: powershell .\scripts\SetupActianInstallation.ps1
 
-      - name: Create DB user dbo
-        run: powershell .\scripts\CreateDbUser.ps1 dbo
+      - name: Environment
+        run: |
+          Get-ChildItem env:
 
       - name: Drop test databases
-        run: powershell .\scripts\DropTestDatabases.ps1
+        run: dotnet run -- drop-test-databases
+        working-directory: utils/Actian.EFCore.Build

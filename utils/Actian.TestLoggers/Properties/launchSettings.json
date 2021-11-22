@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Actian.TestLoggers": {
+      "commandName": "Project",
+      "commandLineArgs": "--format md-files --depth test --title \"Test Run for development\" --output TestResults/development test/*/TestResults/**/dev.json",
+      "workingDirectory": "C:\\Data\\Actian\\Actian.EFCore\\features\\dev"
+    }
+  }
+}

@@ -2,7 +2,6 @@
 using Ingres.Client;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Actian.EFCore.Storage.Internal
@@ -42,5 +41,11 @@ namespace Actian.EFCore.Storage.Internal
 
         /// <inheritdoc />
         protected override bool SupportsAmbientTransactions => true;
+
+        public override IDbContextTransaction UseTransaction(DbTransaction transaction)
+        {
+
+            return base.UseTransaction(transaction);
+        }
     }
 }

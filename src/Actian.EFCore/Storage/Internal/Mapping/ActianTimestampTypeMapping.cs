@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.Data.Common;
 using Ingres.Client;
 using JetBrains.Annotations;
@@ -25,7 +24,7 @@ namespace Actian.EFCore.Storage.Internal
                     new CoreTypeMappingParameters(clrType),
                     storeType,
                     storeTypePostfix: StoreTypePostfix.Precision,
-                    dbType: System.Data.DbType.Time
+                    dbType: System.Data.DbType.DateTime
                 ),
                 withTimeZone
             )
@@ -49,11 +48,27 @@ namespace Actian.EFCore.Storage.Internal
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new ActianTimestampTypeMapping(parameters, WithTimeZone);
 
+        public override DbParameter CreateParameter(DbCommand command, string name, object value, bool? nullable = null)
+        {
+            if (value is DateTimeOffset dateTimeOffset)
+            {
+                value = ActianDateTimeOffsetConverter.ConvertFromDateTimeOffset(dateTimeOffset);
+            }
+            var param = base.CreateParameter(command, name, value, nullable);
+            return param;
+        }
+
         /// <inheritdoc />
         protected override void ConfigureParameter(DbParameter parameter)
         {
             if (parameter is IngresParameter ingresParameter)
+            {
                 ingresParameter.IngresType = IngresType.DateTime;
+                if (ingresParameter.DbType == System.Data.DbType.DateTimeOffset)
+                {
+                    ingresParameter.DbType = System.Data.DbType.DateTime;
+                }
+            }
             else
                 throw new InvalidOperationException($"Actian-specific type mapping {GetType().Name} being used with non-Actian parameter type {parameter.GetType().Name}");
         }

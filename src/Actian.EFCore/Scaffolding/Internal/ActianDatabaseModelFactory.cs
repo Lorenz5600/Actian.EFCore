@@ -64,7 +64,7 @@ namespace Actian.EFCore.Scaffolding.Internal
 
             try
             {
-                var (dbNameCase, dbDelimitedCase) = GetDbCasing(connection);
+                var (dbNameCase, dbDelimitedCase) = connection.GetDbCasing();
 
                 var database = new DatabaseModel
                 {
@@ -136,17 +136,6 @@ namespace Actian.EFCore.Scaffolding.Internal
             return null;
         }
 
-        private (ActianCasing dbNameCase, ActianCasing dbDelimitedCase) GetDbCasing([NotNull] IngresConnection connection)
-        {
-            return connection.Select($@"
-                select dbmsinfo('db_name_case')      as db_name_case,
-                       dbmsinfo('db_delimited_case') as db_delimited_case
-            ", reader => (
-                dbNameCase: reader.GetTrimmedChar(0).ToActianCasing(),
-                dbDelimitedCase: reader.GetTrimmedChar(1).ToActianCasing()
-            )).Single();
-        }
-
         /// <summary>
         /// Queries the database for defined tables and registers them with the model.
         /// </summary>
@@ -188,6 +177,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                    and l.table_name  = t.table_name
                  where t.table_type in ('T', 'V')
                    and t.system_use = 'U'
+                   and t.table_name not like 'iietab_%'
                    {filter}
                  order by t.table_owner, t.table_name, l.loc_sequence
             ", reader => new
@@ -225,6 +215,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                    and c.table_name  = t.table_name
                  where t.table_type in ('T', 'V')
                    and t.system_use = 'U'
+                   and t.table_name not like 'iietab_%'
                    {filter}
             ", reader => new
             {

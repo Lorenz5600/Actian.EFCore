@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace Actian.EFCore
 {
     /// <summary>
-    /// Extension methods for <see cref="IModel" /> for SQL Server-specific metadata.
+    /// Extension methods for <see cref="IModel" /> for Actian-specific metadata.
     /// </summary>
     public static class ActianModelExtensions
     {

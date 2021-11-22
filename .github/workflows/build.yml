@@ -3,55 +3,178 @@ name: Build
 on:
   workflow_dispatch:
 
-  push:
-    branches:
-      - main
+  #push:
+  #  branches:
+  #    - main
+  #  paths:
+  #    - src/**
+  #    - test/**
 
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - src/**
+  #     - test/**
 
 jobs:
 
   Test:
-    runs-on: [self-hosted, windows, x64, '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
+    runs-on: [self-hosted, windows, x64, CI, '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
 
     strategy:
       fail-fast: false
       matrix:
         actian-efcore-environment:
-          - WIN64_INGRES_10_1_0
+          #- WIN64_INGRES_10_1_0
           - WIN64_ACTIANX_11_1_0
         compatibility:
           - Ingres
-          - Ansi
+          #- Ansi
 
     env:
       config: Debug
-      enabled: true
 
     steps:
-      - name: Check enabled
-        run: exit 1
-        if: ${{ env.enabled != 'true' }}
+      - name: Clean build directory
+        run: |
+          rd /s /q . 2>nul
+          exit /b 0
+        shell: cmd
 
       - uses: actions/checkout@v2
+
+      - name: Environment
+        run: |
+          Get-ChildItem env:
+
+      - name: Build
+        run: dotnet build Actian.EFCore.sln --configuration ${{ env.config }}
+
+      - name: Test
+        run: dotnet test Actian.EFCore.sln --configuration ${{ env.config }} --verbosity quiet --no-restore --no-build --logger "actian-json;LogFileName=${{ matrix.actian-efcore-environment }}-${{ matrix.compatibility }}.json"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: test-results-${{ matrix.actian-efcore-environment }}-${{ matrix.compatibility }}
+          path: "**/TestResults/**/${{ matrix.actian-efcore-environment }}-${{ matrix.compatibility }}.json"
+
+  Test-Report:
+    if: ${{ always() && !cancelled() }}
+    needs: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Checkout TestResults
+        uses: actions/checkout@v2
+        with:
+          ref: refs/heads/TestResults
+          path: TestResults
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.101
 
-      - name: dotnet restore
-        run: dotnet restore
+      - name: Download test results
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
 
-      - name: Build
-        run: dotnet build --configuration ${{ env.config }} --no-restore
+      - name: Set variables
+        id: variables
+        uses: actions/github-script@v4
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR: ${{ github.event.number }}
+          RUN_NUMBER: ${{ github.run_number }}
+          HEAD_REF: ${{ github.head_ref }}
+          REF: ${{ github.ref }}
+        with:
+          script: |
+            const { EVENT_NAME, PR, RUN_NUMBER, HEAD_REF, REF } = process.env;
 
-      - name: Test
-        run: dotnet test --configuration ${{ env.config }} --verbosity normal --no-restore --no-build --logger "GitHubActions"
+            const isPullRequest = EVENT_NAME === 'pull_request';
+
+            const branch = isPullRequest
+              ? (HEAD_REF || REF || '').replace(/^refs\/heads\//, '')
+              : (REF || '').replace(/^refs\/heads\//, '');
+
+            const title = isPullRequest
+              ? `Test Run for Pull Request ${PR} (build ${RUN_NUMBER})`
+              : `Test Run for Branch ${branch} (build ${RUN_NUMBER})`;
+
+            const filename = isPullRequest
+              ? `TestResults.PR${PR}.md`
+              : `TestResults.${branch}.md`;
+
+            const testResultsDirectory = isPullRequest
+              ? `Pull-Request-${PR}`
+              : `Branch-${branch}`;
+
+            const params = Object.entries({
+              '--branch': branch,
+              '--pull-request': isPullRequest ? PR : undefined,
+              '--details-url': `https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/${testResultsDirectory}/Index.md`
+            })
+            .filter(([param, value]) => value != null && /\S/.test(value))
+            .map(([param, value]) => `${param} ${value}`)
+            .join(' ');
+
+            core.setOutput('params', params);
+            core.setOutput('title', title);
+            core.setOutput('filename', filename);
+            core.setOutput('testResultsDirectory', testResultsDirectory);
+
+      - name: Create test report
+        run: dotnet run --project utils/Actian.TestLoggers/Actian.TestLoggers.csproj -- --format md-files --title "${{ steps.variables.outputs.title }}" ${{ steps.variables.outputs.params }} --output "TestResults/${{ steps.variables.outputs.testResultsDirectory }}" artifacts/**/*.json
+
+      - name: Push to TestResults
+        working-directory: TestResults
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Build ${{ github.run_number }}"
+          git push
+
+      - name: Create test overview report
+        run: dotnet run --project utils/Actian.TestLoggers/Actian.TestLoggers.csproj -- --format md --depth Installation ${{ steps.variables.outputs.params }} --output TestResults.overview.md artifacts/**/*.json
+
+      - name: Publish test report
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const fs = require('fs');
+            const text = fs.readFileSync('TestResults.overview.md', 'utf8');
+            github.checks.create({
+              name: 'Test Results',
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head_sha: context.sha,
+              status: 'completed',
+              conclusion: 'neutral',
+              output: {
+                title: '${{ steps.variables.outputs.title }}',
+                summary: text
+              }
+            });
+
+      - name: Add test report as comment to pull request
+        uses: machine-learning-apps/pr-comment@master
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path: TestResults.overview.md
 
   Create-NuGet-Package:
+    if: github.ref == 'refs/heads/main'
     needs: Test
     runs-on: [self-hosted, windows, x64]
 
@@ -59,6 +182,12 @@ jobs:
       config: Release
 
     steps:
+      - name: Clean build directory
+        run: |
+          rd /s /q . 2>nul
+          exit /b 0
+        shell: cmd
+
       - uses: actions/checkout@v2
 
       - name: Setup .NET Core
@@ -66,17 +195,17 @@ jobs:
         with:
           dotnet-version: 3.1.101
 
-      - name: dotnet restore
-        run: dotnet restore
-
       - name: Build
-        run: dotnet build --configuration ${{ env.config }} --no-restore
+        run: dotnet build --configuration ${{ env.config }}
 
       - name: Get version suffix
         run: powershell .\scripts\GetVersionSuffix.ps1
 
       - name: Delete nupkg folder
-        run: Remove-Item nupkg -Recurse -ErrorAction Ignore
+        run: |
+          rd /s /q nupkg 2>nul
+          exit /b 0
+        shell: cmd
 
       - name: dotnet pack
         run: dotnet pack src/Actian.EFCore/Actian.EFCore.csproj --configuration ${{ env.config }} --no-build --output nupkg --version-suffix ${{ env.VersionSuffix }}
@@ -84,4 +213,11 @@ jobs:
       # Not ready to push yet
       # - name: dotnet push
       #   working-directory: nupkg
-      #   run: dotnet nuget push "*.nupkg" --source Actian
+      #   run: dotnet nuget push "*.nupkg" --source https://nuget.pkg.github.com/2PS-Consulting/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: smartsquaregmbh/delete-old-packages@v0.2.0
+        with:
+          keep: 5
+          version-pattern: "^\\d+\\.\\d+\\.\\d+-beta"
+          names: |
+            Actian.EFCore

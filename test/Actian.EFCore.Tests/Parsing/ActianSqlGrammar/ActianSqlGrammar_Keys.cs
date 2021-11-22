@@ -1,12 +1,19 @@
-﻿using FluentAssertions;
+﻿using Actian.EFCore.TestUtilities;
+using FluentAssertions;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 
 namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_Keys
     {
+        public ActianSqlGrammar_Keys(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("(id)", new[] { "id" })]
         [InlineData("(\"æøå\", id)", new[] { "æøå", "id" })]

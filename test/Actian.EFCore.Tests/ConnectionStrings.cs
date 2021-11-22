@@ -1,12 +1,19 @@
-﻿using FluentAssertions;
+﻿using Actian.EFCore.TestUtilities;
+using FluentAssertions;
 using Ingres.Client;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests
 {
     public class ConnectionStrings
     {
         private const string ConnectionString = "Server=actian-client-test;Port=II7;Database=efcore_test;User ID=efcore_test;Password=efcore_test";
+
+        public ConnectionStrings(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
 
         [Fact]
         public void IngresConnectionStringBuilder_preserves_password()

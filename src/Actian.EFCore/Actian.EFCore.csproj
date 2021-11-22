@@ -1,16 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>Entity Framework Core provider for Actian</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <Company>Actian Corporation</Company>
+    <Authors>Actian Corporation</Authors>
+    <Copyright>©2020 Actian Corporation. All Rights Reserved.</Copyright>
+    <Product>Actian Entity Framework Core Provider</Product>
+    <Description>Actian Entity Framework Core Provider</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <MinClientVersion>4.3</MinClientVersion>
+
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/2PS-Consulting/Actian.EFCore.git</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <PackageProjectUrl>https://github.com/2PS-Consulting/Actian.EFCore</PackageProjectUrl>
+
+    <PackageTags>Actian;ActianX;Ingres;Entity Framework Core;entity-framework-core;EF;Data;O/RM;ORM;EntityFramework;EntityFrameworkCore;EFCore</PackageTags>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="" />
+    <!-- <None Include="$(MSBuildThisFileDirectory)[The icon file name]" Pack="true" PackagePath="" /> -->
+  </ItemGroup>
+
+  <!-- Language configuration -->
+  <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+
+    <!-- The version property specified contains SemVer 2.0.0 components or SemVer 1.0.0 components that may not be supported on NuGet clients older than v4.3 -->
+    <NoWarn>$(NoWarn);NU5105</NoWarn>
+
+    <!-- Working around https://github.com/NuGet/Home/issues/8467 -->
+    <NoWarn>$(NoWarn);NU5131</NoWarn>
+
+    <!-- Allow prerelease packages -->
+    <NoWarn>$(NoWarn);NU5104</NoWarn>
+
+    <!-- Ignore naming Styles -->
+    <NoWarn>$(NoWarn);IDE1006</NoWarn>
+
+    <!-- Ignore missing XML comments -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" PrivateAssets="none" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" PrivateAssets="none" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" PrivateAssets="none" />
-    <PackageReference Include="Actian.Client" />
-    <PackageReference Include="Sprache" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="3.1.10" />
+    <PackageReference Include="Actian.Client" Version="3.0.2-next-20211022-120826" />
+    <PackageReference Include="Sprache" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,5 +81,11 @@
     </EmbeddedResource>
 
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\*.cs" />
+  </ItemGroup>
+
+  <Import Project="..\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems" Label="Shared" />
 
 </Project>

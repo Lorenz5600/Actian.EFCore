@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
 
-// TODO: ActianQueryTranslationPostprocessor
 namespace Actian.EFCore.Query.Internal
 {
     public class ActianQueryTranslationPostprocessor : RelationalQueryTranslationPostprocessor
@@ -17,7 +16,7 @@ namespace Actian.EFCore.Query.Internal
         public override Expression Process(Expression query)
         {
             query = base.Process(query);
-            //query = new SearchConditionConvertingExpressionVisitor(SqlExpressionFactory).Visit(query);
+            query = new SearchConditionConvertingExpressionVisitor(SqlExpressionFactory).Visit(query);
 
             return query;
         }

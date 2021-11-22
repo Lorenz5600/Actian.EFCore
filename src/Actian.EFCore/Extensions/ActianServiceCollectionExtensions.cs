@@ -4,6 +4,7 @@ using Actian.EFCore.Internal;
 using Actian.EFCore.Metadata.Conventions;
 using Actian.EFCore.Migrations;
 using Actian.EFCore.Migrations.Internal;
+using Actian.EFCore.Query;
 using Actian.EFCore.Query.Internal;
 using Actian.EFCore.Storage.Internal;
 using Actian.EFCore.Update.Internal;
@@ -17,6 +18,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 
@@ -68,20 +70,20 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<ICompiledQueryCacheKeyGenerator, ActianCompiledQueryCacheKeyGenerator>()
                 .TryAdd<IExecutionStrategyFactory, ActianExecutionStrategyFactory>()
                 .TryAdd<ISingletonOptions, IActianOptions>(p => p.GetService<IActianOptions>())
-
-                // New Query Pipeline
+                .TryAdd<IValueConverterSelector, ActianValueConverterSelector>()
+                .TryAdd<ISqlExpressionFactory, ActianSqlExpressionFactory>()
                 .TryAdd<IMethodCallTranslatorProvider, ActianMethodCallTranslatorProvider>()
                 .TryAdd<IMemberTranslatorProvider, ActianMemberTranslatorProvider>()
                 .TryAdd<IQuerySqlGeneratorFactory, ActianQuerySqlGeneratorFactory>()
                 .TryAdd<IQueryTranslationPostprocessorFactory, ActianQueryTranslationPostprocessorFactory>()
                 .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, ActianSqlTranslatingExpressionVisitorFactory>()
-                .TryAddProviderSpecificServices(
-                    b => b
-                        .TryAddSingleton<IActianValueGeneratorCache, ActianValueGeneratorCache>()
-                        .TryAddSingleton<IActianOptions, ActianOptions>()
-                        .TryAddSingleton<IActianUpdateSqlGenerator, ActianUpdateSqlGenerator>()
-                        .TryAddSingleton<IActianSequenceValueGeneratorFactory, ActianSequenceValueGeneratorFactory>()
-                        .TryAddScoped<IActianConnection, ActianConnection>());
+                .TryAddProviderSpecificServices(b => b
+                    .TryAddSingleton<IActianValueGeneratorCache, ActianValueGeneratorCache>()
+                    .TryAddSingleton<IActianOptions, ActianOptions>()
+                    .TryAddSingleton<IActianUpdateSqlGenerator, ActianUpdateSqlGenerator>()
+                    .TryAddSingleton<IActianSequenceValueGeneratorFactory, ActianSequenceValueGeneratorFactory>()
+                    .TryAddScoped<IActianConnection, ActianConnection>()
+                );
 
             builder.TryAddCoreServices();
 

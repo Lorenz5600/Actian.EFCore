@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
-using Ingres.Client;
+using System.Linq;
 using Actian.EFCore.Storage.Internal;
+using Ingres.Client;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Linq;
 
 namespace Actian.EFCore
 {
     /// <summary>
     /// An <see cref="IExecutionStrategy" /> implementation for retrying failed executions
-    /// on SQL Server.
+    /// on Actian.
     /// </summary>
     public class ActianRetryingExecutionStrategy : ExecutionStrategy
     {

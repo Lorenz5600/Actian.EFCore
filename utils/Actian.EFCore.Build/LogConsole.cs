@@ -1,0 +1,125 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Actian.EFCore.Build
+{
+    public class LogConsole : IDisposable
+    {
+        private static readonly object _lock = new object();
+        private readonly List<(bool stderr, string line)> _lines = new List<(bool stderr, string line)>();
+        private readonly DateTime _start;
+        private readonly bool _buffer;
+        private int _indent = 0;
+
+        public LogConsole(string title, bool buffer = true)
+        {
+            _buffer = buffer;
+            WriteDoubleLine();
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                WriteLine(title);
+            }
+            _start = DateTime.Now;
+            WriteLine($"Started: {_start:yyyy-MM-dd HH:mm:ss.fff}");
+            WriteSingleLine();
+            WriteLine();
+        }
+
+        public void WriteSingleLine() => WriteLine(new string('-', 80));
+        public void WriteDoubleLine() => WriteLine(new string('=', 80));
+
+        public void WriteLine(string str = "", bool stderr = false)
+        {
+            lock (_lock)
+            {
+                foreach (var line in str.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).Select(l => l.TrimEnd()))
+                {
+                    var indent = string.IsNullOrWhiteSpace(line) ? "" : "  ".Repeat(_indent);
+
+                    if (_buffer)
+                    {
+                        _lines.Add((stderr, $"{indent}{line}"));
+                    }
+                    else if (stderr)
+                    {
+                        Console.Error.Write(indent);
+                        Console.Error.WriteLine(line);
+                    }
+                    else
+                    {
+                        Console.Out.Write(indent);
+                        Console.Out.WriteLine(line);
+                    }
+                }
+            }
+        }
+
+        public void WriteCaption(string caption)
+        {
+            WriteLine();
+            WriteSingleLine();
+            WriteLine(caption);
+            WriteSingleLine();
+            WriteLine();
+        }
+
+        public void Indent()
+        {
+            _indent += 1;
+        }
+
+        public void Outdent()
+        {
+            _indent = Math.Max(0, _indent - 1);
+        }
+
+        private void RenderToConsole()
+        {
+            if (!_buffer)
+                return;
+
+            lock (_lock)
+            {
+                foreach (var (stderr, line) in _lines)
+                {
+                    if (stderr)
+                    {
+                        Console.Error.WriteLine(line);
+                    }
+                    else
+                    {
+                        Console.Out.WriteLine(line);
+                    }
+                }
+                _lines.Clear();
+            }
+        }
+
+        private bool _disposedValue;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    var end = DateTime.Now;
+                    WriteLine();
+                    WriteSingleLine();
+                    WriteLine($"Finished: {end:yyyy-MM-dd HH:mm:ss.fff} - Elapsed: {end - _start}");
+                    WriteDoubleLine();
+                    WriteLine();
+                    RenderToConsole();
+                }
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
+}

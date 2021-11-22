@@ -1,36 +1,37 @@
 ﻿using System.Linq;
-using Actian.EFCore.TestUtilities.TestAttributes;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
-    [ServerSupportsSequences]
-    public class Sequences : ActianDatabaseModelFactoryTestBase
+    public partial class ActianDatabaseModelFactoryTest
     {
-        public Sequences(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        [ServerSupportsSequences]
+        public class Sequences : ActianDatabaseModelFactoryTestBase
         {
-        }
+            public Sequences(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+                : base(fixture, output)
+            {
+            }
 
-        [ConditionalFact]
-        public void Create_sequences_with_facets() => Test(test => test
+            public void Create_sequences_with_facets() => Test(test => test
             .Arrange(@$"
-                CREATE SEQUENCE ""DefaultFacetsSequence"";
+                    CREATE SEQUENCE ""DefaultFacetsSequence"";
 
-                SET SESSION AUTHORIZATION ""db2"";
-                CREATE SEQUENCE ""db2"".""CustomFacetsSequence""
-                    AS integer
-                    START WITH 1
-                    INCREMENT BY 2
-                    MINVALUE 1
-                    MAXVALUE 90
-                    CYCLE;
-            ")
+                    SET SESSION AUTHORIZATION ""db2"";
+                    CREATE SEQUENCE ""db2"".""CustomFacetsSequence""
+                        AS integer
+                        START WITH 1
+                        INCREMENT BY 2
+                        MINVALUE 1
+                        MAXVALUE 90
+                        CYCLE;
+                ")
             .Assert(dbModel => dbModel.Sequences.Should().BeEquivalentTo(Items(
-                new {
+                new
+                {
                     Schema = "dbo",
                     Name = "DefaultFacetsSequence",
                     StoreType = "bigint",
@@ -40,7 +41,8 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                     MinValue = null as long?,
                     MaxValue = null as long?
                 },
-                new {
+                new
+                {
                     Schema = "db2",
                     Name = "CustomFacetsSequence",
                     StoreType = "integer",
@@ -56,21 +58,22 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             ))
         );
 
-        [ConditionalFact]
-        public void Sequence_min_max_start_values_are_null_if_default() => Test(test => test
+            public void Sequence_min_max_start_values_are_null_if_default() => Test(test => test
             .Arrange($@"
-                CREATE SEQUENCE ""IntSequence"" AS int;
-                CREATE SEQUENCE ""BigIntSequence"" AS bigint;
-            ")
+                    CREATE SEQUENCE ""IntSequence"" AS int;
+                    CREATE SEQUENCE ""BigIntSequence"" AS bigint;
+                ")
             .Assert(dbModel => dbModel.Sequences.Should().BeEquivalentTo(Items(
-                new {
+                new
+                {
                     Schema = "dbo",
                     Name = "IntSequence",
                     StartValue = null as long?,
                     MinValue = null as long?,
                     MaxValue = null as long?
                 },
-                new {
+                new
+                {
                     Schema = "dbo",
                     Name = "BigIntSequence",
                     StartValue = null as long?,
@@ -83,21 +86,22 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             ))
         );
 
-        [ConditionalFact]
-        public void Sequence_min_max_start_values_are_not_null_if_decimal() => Test(test => test
+            public void Sequence_min_max_start_values_are_not_null_if_decimal() => Test(test => test
             .Arrange($@"
-                CREATE SEQUENCE ""DecimalSequence"" AS decimal;
-                CREATE SEQUENCE ""NumericSequence"" AS numeric;
-            ")
+                    CREATE SEQUENCE ""DecimalSequence"" AS decimal;
+                    CREATE SEQUENCE ""NumericSequence"" AS numeric;
+                ")
             .Assert(dbModel => dbModel.Sequences.Should().BeEquivalentTo(Items(
-                new {
+                new
+                {
                     Schema = "dbo",
                     Name = "DecimalSequence",
                     StartValue = 1L,
                     MinValue = 1L,
                     MaxValue = 99999L
                 },
-                new {
+                new
+                {
                     Schema = "dbo",
                     Name = "NumericSequence",
                     StartValue = 1L,
@@ -110,13 +114,13 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             ))
         );
 
-        [ConditionalFact]
-        public void Sequence_using_type_with_facets() => Test(test => test
+            public void Sequence_using_type_with_facets() => Test(test => test
             .Arrange($@"
-                CREATE SEQUENCE ""TypeFacetSequence"" AS decimal(10, 0);
-            ")
+                    CREATE SEQUENCE ""TypeFacetSequence"" AS decimal(10, 0);
+                ")
             .Assert(dbModel => dbModel.Sequences.Should().BeEquivalentTo(Items(
-                new {
+                new
+                {
                     Schema = "dbo",
                     Name = "TypeFacetSequence",
                     StoreType = "decimal(10)",
@@ -129,12 +133,11 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             ))
         );
 
-        [ConditionalFact]
-        public void Create_sequences_with_default_facets() => Test(test => test
+            public void Create_sequences_with_default_facets() => Test(test => test
             .Arrange($@"
-                SET SESSION AUTHORIZATION ""db2"";
-                CREATE SEQUENCE ""DefaultFacetsSequence"";
-            ")
+                    SET SESSION AUTHORIZATION ""db2"";
+                    CREATE SEQUENCE ""DefaultFacetsSequence"";
+                ")
             .Assert(dbModel => dbModel.Sequences
                 .SingleOrDefault(ds => ds.Name == dbModel.NormalizeDelimitedName("DefaultFacetsSequence"))
                 .Should().BeEquivalentTo(new
@@ -154,17 +157,16 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             )
         );
 
-        [ConditionalFact]
-        public void Create_sequences_with_custom_facets() => Test(test => test
+            public void Create_sequences_with_custom_facets() => Test(test => test
             .Arrange($@"
-                SET SESSION AUTHORIZATION ""db2"";
-                CREATE SEQUENCE ""db2"".""CustomFacetsSequence"" AS integer
-                    start with 10
-                    increment by 2
-                    maxvalue 80
-                    minvalue 3
-                    cycle;
-            ")
+                    SET SESSION AUTHORIZATION ""db2"";
+                    CREATE SEQUENCE ""db2"".""CustomFacetsSequence"" AS integer
+                        start with 10
+                        increment by 2
+                        maxvalue 80
+                        minvalue 3
+                        cycle;
+                ")
             .Assert(dbModel => dbModel.Sequences
                 .SingleOrDefault(ds => ds.Name == dbModel.NormalizeDelimitedName("CustomFacetsSequence"))
                 .Should().BeOfType<DatabaseSequence>().And.BeEquivalentTo(new
@@ -184,14 +186,13 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             )
         );
 
-        [ConditionalFact]
-        public void Filter_sequences_based_on_schema() => Test(test => test
+            public void Filter_sequences_based_on_schema() => Test(test => test
             .Arrange(@"
-                SET SESSION AUTHORIZATION ""dbo"";
-                CREATE SEQUENCE ""Sequence"";
-                SET SESSION AUTHORIZATION ""db2"";
-                CREATE SEQUENCE ""db2"".""Sequence""
-            ")
+                    SET SESSION AUTHORIZATION ""dbo"";
+                    CREATE SEQUENCE ""Sequence"";
+                    SET SESSION AUTHORIZATION ""db2"";
+                    CREATE SEQUENCE ""db2"".""Sequence""
+                ")
             .FilterSchemas(@"""db2""")
             .Assert(dbModel => dbModel.Sequences
                 .SingleOrDefault()
@@ -206,5 +207,6 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                 )
             )
         );
+        }
     }
 }

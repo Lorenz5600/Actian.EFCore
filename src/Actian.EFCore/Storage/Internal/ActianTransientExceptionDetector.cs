@@ -1,6 +1,6 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Ingres.Client;
+using JetBrains.Annotations;
 
 namespace Actian.EFCore.Storage.Internal
 {
@@ -70,8 +70,8 @@ namespace Actian.EFCore.Storage.Internal
                     //    // see http://go.microsoft.com/fwlink/?LinkId=267637.
                     //    case 10928:
                     //    // SQL Error Code: 10060
-                    //    // A network-related or instance-specific error occurred while establishing a connection to SQL Server.
-                    //    // The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server
+                    //    // A network-related or instance-specific error occurred while establishing a connection to Actian.
+                    //    // The server was not found or was not accessible. Verify that the instance name is correct and that Actian
                     //    // is configured to allow remote connections. (provider: TCP Provider, error: 0 - A connection attempt failed
                     //    // because the connected party did not properly respond after a period of time, or established connection failed
                     //    // because connected host has failed to respond.)"}
@@ -89,7 +89,7 @@ namespace Actian.EFCore.Storage.Internal
                     //    case 1205:
                     //    // SQL Error Code: 233
                     //    // The client was unable to establish a connection because of an error during connection initialization process before login.
-                    //    // Possible causes include the following: the client tried to connect to an unsupported version of SQL Server;
+                    //    // Possible causes include the following: the client tried to connect to an unsupported version of Actian;
                     //    // the server was too busy to accept new connections; or there was a resource limitation (insufficient memory or maximum
                     //    // allowed connections) on the server. (provider: TCP Provider, error: 0 - An existing connection was forcibly closed by
                     //    // the remote host.)
@@ -102,7 +102,7 @@ namespace Actian.EFCore.Storage.Internal
                     //    // (provider: TCP Provider, error: 0 - The specified network name is no longer available.)
                     //    case 64:
                     //    // DBNETLIB Error Code: 20
-                    //    // The instance of SQL Server you attempted to connect to does not support encryption.
+                    //    // The instance of Actian you attempted to connect to does not support encryption.
                     //    case 20:
                     //        return true;
                     //    // This exception can be thrown even if the operation completed successfully, so it's safer to let the application fail.

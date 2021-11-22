@@ -1,12 +1,19 @@
-﻿using FluentAssertions;
+﻿using Actian.EFCore.TestUtilities;
+using FluentAssertions;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 
 namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_TableNameWithSchema
     {
+        public ActianSqlGrammar_TableNameWithSchema(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("schema.table", "schema", "table")]
         [InlineData("\"schema\".\"table\"", "schema", "table")]

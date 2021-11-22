@@ -1,85 +1,147 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30309.148
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2A720C13-24EC-4606-B594-E61AD72BCA0A}"
-	ProjectSection(SolutionItems) = preProject
-		src\Directory.Build.props = src\Directory.Build.props
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7F6982F7-FE28-4BC4-A8AD-8DA6B07E023C}"
-	ProjectSection(SolutionItems) = preProject
-		test\Directory.Build.props = test\Directory.Build.props
-		test\xunit.runner.json = test\xunit.runner.json
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore", "src\Actian.EFCore\Actian.EFCore.csproj", "{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8E66E6F9-BC37-4640-B5C7-B635125F8CB1}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{84CD63E0-4D24-4CD2-A7F9-40A0695C4416}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
-		GetVersionSuffix.ps1 = GetVersionSuffix.ps1
-		LICENSE.txt = LICENSE.txt
+		LICENSE = LICENSE
 		Pack.cmd = Pack.cmd
 		Pack.ps1 = Pack.ps1
 		README.md = README.md
+		test-databases.json = test-databases.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.FunctionalTests", "test\Actian.EFCore.FunctionalTests\Actian.EFCore.FunctionalTests.csproj", "{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7E25A7A7-9C1C-441B-9295-A1977F75F1E5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.Tests", "test\Actian.EFCore.Tests\Actian.EFCore.Tests.csproj", "{7B7B4BBE-681B-49D8-A7BF-46161311D90F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{D0BB5C4C-ED65-4FE1-A008-C131086D5140}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{B91B27FE-D1D4-4BA1-B6DB-3CF592FAEF17}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{C4F14DB1-2ACF-43D5-8077-BF20BC0B8E75}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{D7F8A054-6622-4C87-A9CD-7F22A3EEB28D}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\workflows\clear-databases.yml = .github\workflows\clear-databases.yml
+		.github\workflows\create-databases.yml = .github\workflows\create-databases.yml
+		.github\workflows\create-missing-databases.yml = .github\workflows\create-missing-databases.yml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{C7427792-C32C-4A36-9310-CE29BB572D49}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{25B54B96-491B-44CD-984B-3081C3C62C6A}"
 	ProjectSection(SolutionItems) = preProject
-		tools\Resources.tt = tools\Resources.tt
+		scripts\create-user-dbo.sql = scripts\create-user-dbo.sql
+		scripts\CreateDatabase.ps1 = scripts\CreateDatabase.ps1
+		scripts\CreateDbUser.ps1 = scripts\CreateDbUser.ps1
+		scripts\CreateTestDatabases.ps1 = scripts\CreateTestDatabases.ps1
+		scripts\DropTestDatabases.ps1 = scripts\DropTestDatabases.ps1
+		scripts\GetVersionSuffix.ps1 = scripts\GetVersionSuffix.ps1
+		scripts\Northwind.ps1 = scripts\Northwind.ps1
+		scripts\SetupActianInstallation.ps1 = scripts\SetupActianInstallation.ps1
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsoleApp", "TestConsoleApp\TestConsoleApp.csproj", "{24485031-2405-4C1B-99B9-4E9A61B23C3A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{ADC020C9-8A41-4509-8476-1152E9B1919C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore", "src\Actian.EFCore\Actian.EFCore.csproj", "{C6C99F70-505B-4EE5-A665-6688B0F66CAD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.Test.Common", "test\Actian.EFCore.Test.Common\Actian.EFCore.Test.Common.csproj", "{B709B9A6-BA4C-46F6-8B57-0F47875F1A64}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.FunctionalTests", "test\Actian.EFCore.FunctionalTests\Actian.EFCore.FunctionalTests.csproj", "{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.Tests", "test\Actian.EFCore.Tests\Actian.EFCore.Tests.csproj", "{DDBC6493-6292-48C7-A9CE-A6EE05618B32}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateNorthwindScript", "utils\CreateNorthwindScript\CreateNorthwindScript.csproj", "{C52988FE-33AA-469F-B92E-4A504FCEC0F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsoleApp", "utils\TestConsoleApp\TestConsoleApp.csproj", "{A6014609-B387-4B58-B8CD-3E0472BF3C2A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.TestLoggers", "utils\Actian.TestLoggers\Actian.TestLoggers.csproj", "{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.TestGenerators", "utils\Actian.EFCore.TestGenerators\Actian.EFCore.TestGenerators.csproj", "{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.Build", "utils\Actian.EFCore.Build\Actian.EFCore.Build.csproj", "{1F57CAF0-15DC-449F-B37F-ACBC0950161F}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Actian.EFCore.Parsing", "src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.shproj", "{35F858F2-19ED-4FF8-987E-069A8A18E94A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UpdateTestTodos", "utils\UpdateTestTodos\UpdateTestTodos.csproj", "{5DA9F7BE-6EA6-4480-B82E-17052A3EA365}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{1f57caf0-15dc-449f-b37f-acbc0950161f}*SharedItemsImports = 5
+		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{35f858f2-19ed-4ff8-987e-069a8a18e94a}*SharedItemsImports = 13
+		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{c6c99f70-505b-4ee5-a665-6688b0f66cad}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B7B4BBE-681B-49D8-A7BF-46161311D90F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{24485031-2405-4C1B-99B9-4E9A61B23C3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{24485031-2405-4C1B-99B9-4E9A61B23C3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{24485031-2405-4C1B-99B9-4E9A61B23C3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{24485031-2405-4C1B-99B9-4E9A61B23C3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6C99F70-505B-4EE5-A665-6688B0F66CAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6C99F70-505B-4EE5-A665-6688B0F66CAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6C99F70-505B-4EE5-A665-6688B0F66CAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6C99F70-505B-4EE5-A665-6688B0F66CAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B709B9A6-BA4C-46F6-8B57-0F47875F1A64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B709B9A6-BA4C-46F6-8B57-0F47875F1A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B709B9A6-BA4C-46F6-8B57-0F47875F1A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B709B9A6-BA4C-46F6-8B57-0F47875F1A64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F57CAF0-15DC-449F-B37F-ACBC0950161F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F57CAF0-15DC-449F-B37F-ACBC0950161F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F57CAF0-15DC-449F-B37F-ACBC0950161F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F57CAF0-15DC-449F-B37F-ACBC0950161F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DA9F7BE-6EA6-4480-B82E-17052A3EA365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DA9F7BE-6EA6-4480-B82E-17052A3EA365}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DA9F7BE-6EA6-4480-B82E-17052A3EA365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DA9F7BE-6EA6-4480-B82E-17052A3EA365}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{FEC94E43-585E-4328-A43D-6BDF5B03F3B6} = {2A720C13-24EC-4606-B594-E61AD72BCA0A}
-		{7FDA07D4-EDA6-4B3A-BC31-A4B5C0CEED72} = {7F6982F7-FE28-4BC4-A8AD-8DA6B07E023C}
-		{7B7B4BBE-681B-49D8-A7BF-46161311D90F} = {7F6982F7-FE28-4BC4-A8AD-8DA6B07E023C}
-		{B91B27FE-D1D4-4BA1-B6DB-3CF592FAEF17} = {8E66E6F9-BC37-4640-B5C7-B635125F8CB1}
-		{C7427792-C32C-4A36-9310-CE29BB572D49} = {8E66E6F9-BC37-4640-B5C7-B635125F8CB1}
+		{C4F14DB1-2ACF-43D5-8077-BF20BC0B8E75} = {84CD63E0-4D24-4CD2-A7F9-40A0695C4416}
+		{D7F8A054-6622-4C87-A9CD-7F22A3EEB28D} = {C4F14DB1-2ACF-43D5-8077-BF20BC0B8E75}
+		{25B54B96-491B-44CD-984B-3081C3C62C6A} = {84CD63E0-4D24-4CD2-A7F9-40A0695C4416}
+		{C6C99F70-505B-4EE5-A665-6688B0F66CAD} = {7E25A7A7-9C1C-441B-9295-A1977F75F1E5}
+		{B709B9A6-BA4C-46F6-8B57-0F47875F1A64} = {D0BB5C4C-ED65-4FE1-A008-C131086D5140}
+		{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9} = {D0BB5C4C-ED65-4FE1-A008-C131086D5140}
+		{DDBC6493-6292-48C7-A9CE-A6EE05618B32} = {D0BB5C4C-ED65-4FE1-A008-C131086D5140}
+		{C52988FE-33AA-469F-B92E-4A504FCEC0F5} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
+		{A6014609-B387-4B58-B8CD-3E0472BF3C2A} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
+		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
+		{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
+		{1F57CAF0-15DC-449F-B37F-ACBC0950161F} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
+		{35F858F2-19ED-4FF8-987E-069A8A18E94A} = {7E25A7A7-9C1C-441B-9295-A1977F75F1E5}
+		{5DA9F7BE-6EA6-4480-B82E-17052A3EA365} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {87582BA1-32E6-40DE-A2A6-F325DDB8D907}
+		SolutionGuid = {40A8FCF0-CF89-44DF-B9A0-8D3336BA3E29}
 	EndGlobalSection
 EndGlobal

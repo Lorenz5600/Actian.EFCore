@@ -1,13 +1,20 @@
 ﻿using Actian.EFCore.Scaffolding.Internal;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests.Scaffolding
 {
     public class ActianForeignKeyConstraintParser_Action
     {
+        public ActianForeignKeyConstraintParser_Action(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("cascade", ReferentialAction.Cascade)]
         [InlineData("set null", ReferentialAction.SetNull)]

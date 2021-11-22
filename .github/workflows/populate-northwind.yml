@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  Create-databases:
+  Populate-northwind:
     runs-on: [self-hosted, windows, x64, '${{ matrix.dev-or-ci }}', '${{ matrix.actian-efcore-environment }}', '${{ matrix.compatibility }}']
 
     strategy:
       fail-fast: false
       matrix:
         dev-or-ci:
-          - Dev
+          # - Dev
           - CI
         actian-efcore-environment:
           - WIN64_INGRES_10_1_0
@@ -24,17 +24,21 @@ jobs:
       config: Debug
 
     steps:
+      - name: Clean build directory
+        run: |
+          rd /s /q . 2>nul
+          exit /b 0
+        shell: cmd
+
       - uses: actions/checkout@v2
 
       - name: Setup Actian installation
         run: powershell .\scripts\SetupActianInstallation.ps1
 
-      - name: Create Northwind.ascii.sql
-        run: dotnet run
-        shell: cmd
-        working-directory: utils/CreateNorthwindScript
+      - name: Environment
+        run: |
+          Get-ChildItem env:
 
-      - name: Populate efc_northwind
-        run: sql -S efc_northwind < Northwind.ascii.sql
-        shell: cmd
-        working-directory: test/Actian.EFCore.FunctionalTests/Northwind
+      - name: Populate northwind database
+        run: dotnet run -- create-northwind
+        working-directory: utils/Actian.EFCore.Build

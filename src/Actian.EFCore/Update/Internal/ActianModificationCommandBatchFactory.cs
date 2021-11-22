@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Actian.EFCore.Infrastructure.Internal;
-using Actian.EFCore.Utilities;
+﻿using Actian.EFCore.Utilities;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Update;
@@ -25,9 +23,11 @@ namespace Actian.EFCore.Update.Internal
 
         public virtual ModificationCommandBatch Create()
         {
-            var optionsExtension = _options.Extensions.OfType<ActianOptionsExtension>().FirstOrDefault();
+            //var optionsExtension = _options.Extensions.OfType<ActianOptionsExtension>().FirstOrDefault();
 
-            return new ActianModificationCommandBatch(_dependencies, optionsExtension?.MaxBatchSize);
+            //return new ActianModificationCommandBatch(_dependencies, optionsExtension?.MaxBatchSize);
+
+            return new SingularModificationCommandBatch(_dependencies);
         }
     }
 }

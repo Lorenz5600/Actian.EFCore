@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace Actian.EFCore
 {
     /// <summary>
-    /// Extension methods for <see cref="IProperty" /> for SQL Server-specific metadata.
+    /// Extension methods for <see cref="IProperty" /> for Actian-specific metadata.
     /// </summary>
     public static class ActianPropertyExtensions
     {

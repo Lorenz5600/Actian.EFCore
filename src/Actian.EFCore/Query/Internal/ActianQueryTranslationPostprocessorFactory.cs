@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Actian.EFCore.Query.Internal
 {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
@@ -9,28 +10,28 @@ namespace Actian.EFCore.Query.Internal
 {
     public class ActianSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
     {
-        private static readonly HashSet<string> _dateTimeDataTypes
-            = new HashSet<string>
-            {
-                "time",
-                "date",
-                "datetime",
-                "datetime2",
-                "datetimeoffset"
-            };
+        private static readonly HashSet<string> _dateTimeDataTypes = new HashSet<string>
+        {
+            "time",
+            "date",
+            "datetime",
+            "datetime2",
+            "datetimeoffset"
+        };
 
-        private static readonly HashSet<ExpressionType> _arithmeticOperatorTypes
-            = new HashSet<ExpressionType>
-            {
-                ExpressionType.Add,
-                ExpressionType.Subtract,
-                ExpressionType.Multiply,
-                ExpressionType.Divide,
-                ExpressionType.Modulo
-            };
+        private static bool HasDateTimeDataType(SqlExpression expression) => _dateTimeDataTypes.Contains(GetProviderType(expression));
+        private static bool HasBooleanType(Expression expression) => expression.Type == typeof(bool);
 
-        // TODO: Possibly make this protected in base
-        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private static readonly HashSet<ExpressionType> _arithmeticOperatorTypes = new HashSet<ExpressionType>
+        {
+            ExpressionType.Add,
+            ExpressionType.Subtract,
+            ExpressionType.Multiply,
+            ExpressionType.Divide,
+            ExpressionType.Modulo
+        };
+
+        private readonly ISqlExpressionFactory Factory;
 
         public ActianSqlTranslatingExpressionVisitor(
             RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
@@ -38,24 +39,31 @@ namespace Actian.EFCore.Query.Internal
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
         {
-            _sqlExpressionFactory = dependencies.SqlExpressionFactory;
+            Factory = dependencies.SqlExpressionFactory;
         }
 
         protected override Expression VisitBinary(BinaryExpression binaryExpression)
         {
+            if (binaryExpression.NodeType == ExpressionType.ExclusiveOr)
+            {
+                return TranslationFailed(binaryExpression.Left, Visit(binaryExpression.Left), out var sqlLeft)
+                    || TranslationFailed(binaryExpression.Right, Visit(binaryExpression.Right), out var sqlRight)
+                    ? null
+                    : Factory.Function(ActianFakeFunctions.ExclusiveOr, new[] { sqlLeft, sqlRight }, binaryExpression.Type);
+            }
+
             var visitedExpression = (SqlExpression)base.VisitBinary(binaryExpression);
 
             if (visitedExpression == null)
-            {
                 return null;
-            }
 
-            return visitedExpression is SqlBinaryExpression sqlBinary
-                && _arithmeticOperatorTypes.Contains(sqlBinary.OperatorType)
-                && (_dateTimeDataTypes.Contains(GetProviderType(sqlBinary.Left))
-                    || _dateTimeDataTypes.Contains(GetProviderType(sqlBinary.Right)))
-                    ? null
-                    : visitedExpression;
+            if (!(visitedExpression is SqlBinaryExpression sqlBinary))
+                return visitedExpression;
+
+            if (_arithmeticOperatorTypes.Contains(sqlBinary.OperatorType) && (HasDateTimeDataType(sqlBinary.Left) || HasDateTimeDataType(sqlBinary.Right)))
+                return null;
+
+            return visitedExpression;
         }
 
         public override SqlExpression TranslateLongCount(Expression expression = null)
@@ -66,13 +74,26 @@ namespace Actian.EFCore.Query.Internal
                 return null;
             }
 
-            return _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                _sqlExpressionFactory.Function("COUNT_BIG", new[] { _sqlExpressionFactory.Fragment("*") }, typeof(long)));
+            return Factory.ApplyDefaultTypeMapping(Factory.Function("COUNT_BIG", new[] { Factory.Fragment("*") }, typeof(long)));
         }
 
         private static string GetProviderType(SqlExpression expression)
         {
             return expression.TypeMapping?.StoreType;
+        }
+
+        [DebuggerStepThrough]
+        private bool TranslationFailed(Expression original, Expression translation, out SqlExpression castTranslation)
+        {
+            if (original != null
+                && !(translation is SqlExpression))
+            {
+                castTranslation = null;
+                return true;
+            }
+
+            castTranslation = translation as SqlExpression;
+            return false;
         }
     }
 }

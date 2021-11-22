@@ -1,0 +1,16 @@
+<Project>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\src\EFCore.Abstractions\EFCore.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\src\EFCore.Analyzers\EFCore.Analyzers.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\src\EFCore.Proxies\EFCore.Proxies.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\src\EFCore.Relational\EFCore.Relational.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\src\EFCore\EFCore.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\test\EFCore.Relational.Specification.Tests\EFCore.Relational.Specification.Tests.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\GitHub\efcore\test\EFCore.Specification.Tests\EFCore.Specification.Tests.csproj" />
+    <!-- <ProjectReference Include="..\..\..\..\..\Actian.Scripts\features\main\Actian.Scripts\Actian.Scripts.csproj" /> -->
+    <ProjectReference Include="..\..\src\Actian.EFCore\Actian.EFCore.csproj" />
+    <ProjectReference Include="..\Actian.EFCore.Test.Common\Actian.EFCore.Test.Common.csproj" />
+  </ItemGroup>
+
+</Project>

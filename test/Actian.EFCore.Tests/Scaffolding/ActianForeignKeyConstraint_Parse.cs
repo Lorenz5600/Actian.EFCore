@@ -1,12 +1,19 @@
 ﻿using Actian.EFCore.Scaffolding.Internal;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests.Scaffolding
 {
     public class ActianForeignKeyConstraint_Parse
     {
+        public ActianForeignKeyConstraint_Parse(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData(
             " FOREIGN KEY (\"id\") REFERENCES \"efcore_test\".test_table4(id) on update cascade on delete set null      ",

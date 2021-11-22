@@ -1,7 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 
-// TODO: ActianMethodCallTranslatorProvider
 namespace Actian.EFCore.Query.Internal
 {
     public class ActianMethodCallTranslatorProvider : RelationalMethodCallTranslatorProvider
@@ -11,19 +10,18 @@ namespace Actian.EFCore.Query.Internal
         {
             var sqlExpressionFactory = dependencies.SqlExpressionFactory;
 
-            AddTranslators(
-                new IMethodCallTranslator[]
-                {
-                    //new ActianConvertTranslator(sqlExpressionFactory),
-                    //new ActianDateTimeMethodTranslator(sqlExpressionFactory),
-                    //new ActianDateDiffFunctionsTranslator(sqlExpressionFactory),
-                    //new ActianFullTextSearchFunctionsTranslator(sqlExpressionFactory),
-                    //new ActianIsDateFunctionTranslator(sqlExpressionFactory),
-                    //new ActianMathTranslator(sqlExpressionFactory),
-                    //new ActianNewGuidTranslator(sqlExpressionFactory),
-                    //new ActianObjectToStringTranslator(sqlExpressionFactory),
-                    //new ActianStringMethodTranslator(sqlExpressionFactory)
-                });
+            AddTranslators(new IMethodCallTranslator[]
+            {
+                new ActianConvertTranslator(sqlExpressionFactory),
+                //new ActianDateTimeMethodTranslator(sqlExpressionFactory),
+                //new ActianDateDiffFunctionsTranslator(sqlExpressionFactory),
+                //new ActianFullTextSearchFunctionsTranslator(sqlExpressionFactory),
+                //new ActianIsDateFunctionTranslator(sqlExpressionFactory),
+                //new ActianMathTranslator(sqlExpressionFactory),
+                //new ActianNewGuidTranslator(sqlExpressionFactory),
+                //new ActianObjectToStringTranslator(sqlExpressionFactory),
+                new ActianStringMethodTranslator(sqlExpressionFactory)
+            });
         }
     }
 }

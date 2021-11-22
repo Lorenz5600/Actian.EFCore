@@ -2,39 +2,38 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
-    public class Tables : ActianDatabaseModelFactoryTestBase
+    public partial class ActianDatabaseModelFactoryTest
     {
-        public Tables(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public class Tables : ActianDatabaseModelFactoryTestBase
         {
-        }
+            public Tables(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+                : base(fixture, output)
+            {
+            }
 
-        [ConditionalFact]
-        public void Create_columns() => Test(test => test
+            public void Create_columns() => Test(test => test
             .Arrange(@$"
-                CREATE TABLE ""Blogs"" (
-                    ""Id"" int,
-                    ""Name"" text NOT NULL
-                );
+                    CREATE TABLE ""Blogs"" (
+                        ""Id"" int,
+                        ""Name"" text NOT NULL
+                    );
 
-                COMMENT ON TABLE ""Blogs"" IS 'Blog table comment.
+                    COMMENT ON TABLE ""Blogs"" IS 'Blog table comment.
 On multiple lines.';
 
-                COMMENT ON COLUMN ""Blogs"".""Id"" IS 'Blog.Id column comment.';
-            ")
+                    COMMENT ON COLUMN ""Blogs"".""Id"" IS 'Blog.Id column comment.';
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
                     Schema = "dbo",
                     Name = "Blogs",
-                    Comment = @"Blog table comment.
-On multiple lines.",
+                    Comment = "Blog table comment.\nOn multiple lines.",
                     Columns = Items(
                         new { Name = "Id", StoreType = "integer", Comment = "Blog.Id column comment.", Table = new { Schema = "dbo", Name = "Blogs" } },
                         new { Name = "Name", StoreType = "text", Comment = null as string, Table = new { Schema = "dbo", Name = "Blogs" } }
@@ -49,13 +48,12 @@ On multiple lines.",
             )
         );
 
-        [ConditionalFact]
-        public void Create_view_columns() => Test(test => test
+            public void Create_view_columns() => Test(test => test
             .Arrange(@"
-                CREATE VIEW ""BlogsView"" AS
-                SELECT int(100)          AS ""Id"",
-                       nvarchar('', 100) AS ""Name"";
-            ")
+                    CREATE VIEW ""BlogsView"" AS
+                    SELECT int(100)          AS ""Id"",
+                           nvarchar('', 100) AS ""Name"";
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseView>().And.BeEquivalentTo(new
@@ -77,13 +75,12 @@ On multiple lines.",
             )
         );
 
-        [ConditionalFact]
-        public void Create_primary_key() => Test(test => test
+            public void Create_primary_key() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""PrimaryKeyTable"" (
-                    ""Id"" int not null PRIMARY KEY
-                );
-            ")
+                    CREATE TABLE ""PrimaryKeyTable"" (
+                        ""Id"" int not null PRIMARY KEY
+                    );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>()
@@ -110,16 +107,15 @@ On multiple lines.",
             )
         );
 
-        [ConditionalFact]
-        public void Create_unique_constraints() => Test(test => test
+            public void Create_unique_constraints() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""UniqueConstraint"" (
-                    ""Id"" int not null,
-                    ""Name"" int Unique not null,
-                    ""IndexProperty"" int not null
-                );
-                CREATE INDEX ""IX_INDEX"" on ""UniqueConstraint"" ( ""IndexProperty"" );
-            ")
+                    CREATE TABLE ""UniqueConstraint"" (
+                        ""Id"" int not null,
+                        ""Name"" int Unique not null,
+                        ""IndexProperty"" int not null
+                    );
+                    CREATE INDEX ""IX_INDEX"" on ""UniqueConstraint"" ( ""IndexProperty"" );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
@@ -145,26 +141,25 @@ On multiple lines.",
             )
         );
 
-        [ConditionalFact]
-        public void Create_indexes() => Test(test => test
+            public void Create_indexes() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""IndexTable"" (
-                    ""Id""            int not null unique,
-                    ""Name""          int not null,
-                    ""IndexProperty"" int not null
-                );
+                    CREATE TABLE ""IndexTable"" (
+                        ""Id""            int not null unique,
+                        ""Name""          int not null,
+                        ""IndexProperty"" int not null
+                    );
 
-                CREATE INDEX ""IX_NAME"" on ""IndexTable"" ( ""Name"" );
-                CREATE INDEX ""IX_INDEX"" on ""IndexTable"" ( ""IndexProperty"" );
-            ")
+                    CREATE INDEX ""IX_NAME"" on ""IndexTable"" ( ""Name"" );
+                    CREATE INDEX ""IX_INDEX"" on ""IndexTable"" ( ""IndexProperty"" );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
                 {
                     Schema = "dbo",
                     Name = "IndexTable",
-                    // Unique constraints should *not* be modelled as indices
-                    Indexes = Items(
+                        // Unique constraints should *not* be modelled as indices
+                        Indexes = Items(
                         new
                         {
                             Table = new { Schema = "dbo", Name = "IndexTable" },
@@ -193,24 +188,23 @@ On multiple lines.",
             )
         );
 
-        [ConditionalFact]
-        public void Create_foreign_keys() => Test(test => test
+            public void Create_foreign_keys() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""PrincipalTable"" (
-                    ""Id""           int not null PRIMARY KEY
-                );
+                    CREATE TABLE ""PrincipalTable"" (
+                        ""Id""           int not null PRIMARY KEY
+                    );
 
-                CREATE TABLE ""FirstDependent"" (
-                    ""Id""           int not null PRIMARY KEY,
-                    ""ForeignKeyId"" int,
-                    FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE CASCADE
-                );
+                    CREATE TABLE ""FirstDependent"" (
+                        ""Id""           int not null PRIMARY KEY,
+                        ""ForeignKeyId"" int,
+                        FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE CASCADE
+                    );
 
-                CREATE TABLE ""SecondDependent"" (
-                    ""Id""           int not null PRIMARY KEY,
-                    FOREIGN KEY (""Id"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE NO ACTION
-                );
-            ")
+                    CREATE TABLE ""SecondDependent"" (
+                        ""Id""           int not null PRIMARY KEY,
+                        FOREIGN KEY (""Id"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE NO ACTION
+                    );
+                ")
             .Assert(dbModel =>
             {
                 dbModel.Tables
@@ -267,5 +261,6 @@ On multiple lines.",
                     );
             })
         );
+        }
     }
 }

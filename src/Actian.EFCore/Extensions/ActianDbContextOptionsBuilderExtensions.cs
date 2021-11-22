@@ -11,16 +11,16 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
-    /// SQL Server specific extension methods for <see cref="DbContextOptionsBuilder" />.
+    /// Actian specific extension methods for <see cref="DbContextOptionsBuilder" />.
     /// </summary>
     public static class ActianDbContextOptionsExtensions
     {
         /// <summary>
-        /// Configures the context to connect to a Microsoft SQL Server database.
+        /// Configures the context to connect to an Actian database.
         /// </summary>
         /// <param name="optionsBuilder"> The builder being used to configure the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
-        /// <param name="actianOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="actianOptionsAction">An optional action to allow additional Actian specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseActian(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
@@ -42,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore
 
         // Note: Decision made to use DbConnection not SqlConnection: Issue #772
         /// <summary>
-        /// Configures the context to connect to a Microsoft SQL Server database.
+        /// Configures the context to connect to an Actian database.
         /// </summary>
         /// <param name="optionsBuilder"> The builder being used to configure the context. </param>
         /// <param name="connection">
@@ -50,7 +50,7 @@ namespace Microsoft.EntityFrameworkCore
         /// in the open state then EF will not open or close the connection. If the connection is in the closed
         /// state then EF will open and close the connection as needed.
         /// </param>
-        /// <param name="actianOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="actianOptionsAction">An optional action to allow additional Actian specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseActian(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
@@ -71,12 +71,12 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        /// Configures the context to connect to a Microsoft SQL Server database.
+        /// Configures the context to connect to an Actian database.
         /// </summary>
         /// <typeparam name="TContext"> The type of context to be configured. </typeparam>
         /// <param name="optionsBuilder"> The builder being used to configure the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
-        /// <param name="actianOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="actianOptionsAction">An optional action to allow additional Actian specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder<TContext> UseActian<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
@@ -88,7 +88,7 @@ namespace Microsoft.EntityFrameworkCore
 
         // Note: Decision made to use DbConnection not SqlConnection: Issue #772
         /// <summary>
-        /// Configures the context to connect to a Microsoft SQL Server database.
+        /// Configures the context to connect to an Actian database.
         /// </summary>
         /// <typeparam name="TContext"> The type of context to be configured. </typeparam>
         /// <param name="optionsBuilder"> The builder being used to configure the context. </param>
@@ -97,7 +97,7 @@ namespace Microsoft.EntityFrameworkCore
         /// in the open state then EF will not open or close the connection. If the connection is in the closed
         /// state then EF will open and close the connection as needed.
         /// </param>
-        /// <param name="actianOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="actianOptionsAction">An optional action to allow additional Actian specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder<TContext> UseActian<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,

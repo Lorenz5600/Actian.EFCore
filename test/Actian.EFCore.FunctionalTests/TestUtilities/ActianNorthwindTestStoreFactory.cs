@@ -4,16 +4,15 @@ namespace Actian.EFCore.TestUtilities
 {
     public class ActianNorthwindTestStoreFactory : ActianTestStoreFactory
     {
-        public const string DatabaseName = "EFCore_Northwind";
-        public const string DbmsUser = @"""dbo""";
-        public static readonly string NorthwindConnectionString = TestEnvironment.GetConnectionString(DatabaseName, DbmsUser);
+        public const string Name = "Northwind";
+        public static readonly string NorthwindConnectionString = TestEnvironment.GetConnectionString(Name);
+        public static new ActianNorthwindTestStoreFactory Instance { get; } = new ActianNorthwindTestStoreFactory();
 
-        public ActianNorthwindTestStoreFactory()
-            : base(DbmsUser)
+        protected ActianNorthwindTestStoreFactory()
         {
         }
 
         public override TestStore GetOrCreate(string storeName)
-            => ActianTestStore.GetOrCreate(DatabaseName, DbmsUser, "Northwind.sql");
+            => ActianTestStore.GetOrCreate(Name, @"Northwind\Northwind.sql");
     }
 }

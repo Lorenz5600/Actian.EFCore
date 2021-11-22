@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
-namespace Actian.EFCore.TestUtilities.TestAttributes
+namespace Actian.EFCore.TestUtilities
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public class ServerTypeAttribute : Attribute, ITestCondition

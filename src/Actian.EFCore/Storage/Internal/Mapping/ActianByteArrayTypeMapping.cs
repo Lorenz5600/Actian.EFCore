@@ -25,7 +25,7 @@ namespace Actian.EFCore.Storage.Internal
                     new CoreTypeMappingParameters(typeof(byte[]), null, comparer),
                     storeType ?? (fixedLength, unbounded) switch
                     {
-                        (_, true) => "long varbyte",
+                        (_, true) => "long byte",
                         (true, _) => "byte",
                         (_, _) => "varbyte"
                     },

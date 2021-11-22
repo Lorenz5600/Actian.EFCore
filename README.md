@@ -32,7 +32,7 @@ The Actian.EFCore solution contains a number of automated tests. These tests can
 dotnet test
 ```
 
-When running tests the database server to be used is specified by the environment variable `EFCORE_TEST_CONNECTION_STRING`. This variable should contain an Actian client connection string specifying:
+When running tests the database server to be used is specified by the environment variable `ACTIAN_TEST_CONNECTION_STRING`. This variable should contain an Actian client connection string specifying:
 - The actian server
 - The port
 - The dabase user id

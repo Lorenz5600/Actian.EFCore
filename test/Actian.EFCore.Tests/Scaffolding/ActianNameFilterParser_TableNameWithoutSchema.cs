@@ -1,12 +1,19 @@
 ﻿using Actian.EFCore.Scaffolding.Internal;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests.Scaffolding
 {
     public class ActianNameFilterParser_TableNameWithoutSchema
     {
+        public ActianNameFilterParser_TableNameWithoutSchema(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("table", "table", false)]
         [InlineData("\"table\"", "table", true)]

@@ -1,13 +1,20 @@
 ﻿using Actian.EFCore.Scaffolding.Internal;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests.Scaffolding
 {
     public class ActianForeignKeyConstraintParser_ReferentialActionRule
     {
+        public ActianForeignKeyConstraintParser_ReferentialActionRule(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("on update cascade", ActianForeignKeyConstraintParser.RuleWhen.Update, ReferentialAction.Cascade)]
         [InlineData("on update set null", ActianForeignKeyConstraintParser.RuleWhen.Update, ReferentialAction.SetNull)]

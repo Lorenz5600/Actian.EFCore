@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.Data.Common;
 using Ingres.Client;
 using JetBrains.Annotations;
@@ -14,16 +13,19 @@ namespace Actian.EFCore.Storage.Internal
         /// </summary>
         /// <param name="storeType"> The name of the database type. </param>
         /// <param name="clrType">The CLR type</param>
+        /// <param name="precision"></param>
         /// <param name="withTimeZone"></param>
         public ActianTimeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
+            int? precision = null,
             bool withTimeZone = false
             )
             : this(
                 new RelationalTypeMappingParameters(
                     new CoreTypeMappingParameters(clrType),
                     storeType,
+                    precision: precision,
                     storeTypePostfix: StoreTypePostfix.Precision,
                     dbType: System.Data.DbType.Time
                 ),
@@ -53,7 +55,7 @@ namespace Actian.EFCore.Storage.Internal
         protected override void ConfigureParameter(DbParameter parameter)
         {
             if (parameter is IngresParameter ingresParameter)
-                ingresParameter.IngresType = IngresType.Time;
+                ingresParameter.IngresType = IngresType.IntervalDayToSecond;
             else
                 throw new InvalidOperationException($"Actian-specific type mapping {GetType().Name} being used with non-Actian parameter type {parameter.GetType().Name}");
         }

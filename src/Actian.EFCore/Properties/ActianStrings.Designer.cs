@@ -169,6 +169,20 @@ namespace Actian.EFCore.Internal
                 GetString("FunctionOnClient", nameof(methodName)),
                 methodName);
 
+        /// <summary>
+        ///     Generating idempotent scripts for migration is not currently supported by Actian databases
+        /// </summary>
+        public static string MigrationScriptGenerationNotSupported
+            => GetString("MigrationScriptGenerationNotSupported");
+
+        /// <summary>
+        ///     Table '{schema}.{table}' can not be renamed to '{newschema}.{newtable}' because it has a different schema.
+        /// </summary>
+        public static string RenameTableToDifferentSchema([CanBeNull] object schema, [CanBeNull] object table, [CanBeNull] object newschema, [CanBeNull] object newtable)
+            => string.Format(
+                GetString("RenameTableToDifferentSchema", nameof(schema), nameof(table), nameof(newschema), nameof(newtable)),
+                schema, table, newschema, newtable);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

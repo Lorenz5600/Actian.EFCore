@@ -1,0 +1,456 @@
+[
+  {
+    "Name": "efc_builtindatatypes",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "BuiltInDataTypes"
+    ]
+  },
+  {
+    "Name": "efc_cnvtoprovidertypes",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "ConvertToProviderTypes"
+    ]
+  },
+  {
+    "Name": "efc_commandinterception",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "CommandInterception"
+    ]
+  },
+  {
+    "Name": "efc_complexnavigations",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "ComplexNavigations"
+    ]
+  },
+  {
+    "Name": "efc_complexnavsowned",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "ComplexNavigationsOwned"
+    ]
+  },
+  {
+    "Name": "efc_compositekeyendtoend",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "CompositeKeyEndToEndTest"
+    ]
+  },
+  {
+    "Name": "efc_conferenceplanner",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "ConferencePlanner"
+    ]
+  },
+  {
+    "Name": "efc_conninterception",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "ConnectionInterception"
+    ]
+  },
+  {
+    "Name": "efc_customconverters",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "CustomConverters"
+    ]
+  },
+  {
+    "Name": "efc_databasemodelfactory",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "DatabaseModelFactory"
+    ]
+  },
+  {
+    "Name": "efc_dataannotations",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "DataAnnotations"
+    ]
+  },
+  {
+    "Name": "efc_f1",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "F1Test"
+    ]
+  },
+  {
+    "Name": "efc_fieldmapping",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "FieldMapping"
+    ]
+  },
+  {
+    "Name": "efc_find",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "FindTest"
+    ]
+  },
+  {
+    "Name": "efc_funkydataquery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "FunkyDataQueryTest"
+    ]
+  },
+  {
+    "Name": "efc_gearsofwarquery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "GearsOfWarQueryTest"
+    ]
+  },
+  {
+    "Name": "efc_graphcascadeupdates",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "GraphClientCascadeUpdatesTest"
+    ]
+  },
+  {
+    "Name": "efc_graphidentityupdates",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "GraphIdentityUpdatesTest"
+    ]
+  },
+  {
+    "Name": "efc_graphnoactionupdates",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "GraphClientNoActionUpdatesTest"
+    ]
+  },
+  {
+    "Name": "efc_graphsequenceupdates",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "GraphSequenceUpdatesTest"
+    ]
+  },
+  {
+    "Name": "efc_inheritance",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "InheritanceTest"
+    ]
+  },
+  {
+    "Name": "efc_inheritancerels",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "InheritanceRelationships"
+    ]
+  },
+  {
+    "Name": "efc_lazyloadproxy",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "LazyLoadProxyTest"
+    ]
+  },
+  {
+    "Name": "efc_load",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "LoadTest"
+    ]
+  },
+  {
+    "Name": "efc_logging",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "LoggingTest"
+    ]
+  },
+  {
+    "Name": "efc_migrations",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "MigrationsTest"
+    ]
+  },
+  {
+    "Name": "efc_monsterfullnotify",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "MonsterFullNotify"
+    ]
+  },
+  {
+    "Name": "efc_musicstore",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "MusicStore"
+    ]
+  },
+  {
+    "Name": "efc_northwind",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "Northwind"
+    ]
+  },
+  {
+    "Name": "efc_notificationentities",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "NotificationEntities"
+    ]
+  },
+  {
+    "Name": "efc_nullkeys",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "NullKeysTest"
+    ]
+  },
+  {
+    "Name": "efc_nullsemanticsquery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "NullSemanticsQueryTest"
+    ]
+  },
+  {
+    "Name": "efc_onetoonequery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "OneToOneQueryTest"
+    ]
+  },
+  {
+    "Name": "efc_ownedquery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "OwnedQueryTest"
+    ]
+  },
+  {
+    "Name": "efc_propertyvalues",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "PropertyValues"
+    ]
+  },
+  {
+    "Name": "efc_proxygraphlzyupdates",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "ProxyGraphLazyLoadingUpdatesTest"
+    ]
+  },
+  {
+    "Name": "efc_qfiltfuncletization",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "QueryFilterFuncletizationTest"
+    ]
+  },
+  {
+    "Name": "efc_seeds1a",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "Seeds1A"
+    ]
+  },
+  {
+    "Name": "efc_seeds1s",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "Seeds1S"
+    ]
+  },
+  {
+    "Name": "efc_spatial",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "SpatialTest"
+    ]
+  },
+  {
+    "Name": "efc_spatialqrygeography",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "SpatialQueryGeographyTest"
+    ]
+  },
+  {
+    "Name": "efc_spatialquery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "SpatialQueryTest"
+    ]
+  },
+  {
+    "Name": "efc_storegenerated",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "StoreGeneratedTest"
+    ]
+  },
+  {
+    "Name": "efc_storegeneratedfixup",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "StoreGeneratedFixup"
+    ]
+  },
+  {
+    "Name": "efc_tablesplitting",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "TableSplittingTest"
+    ]
+  },
+  {
+    "Name": "efc_transaction",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "TransactionTest"
+    ]
+  },
+  {
+    "Name": "efc_trxinterception",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "TransactionInterception"
+    ]
+  },
+  {
+    "Name": "efc_udfdbfunctiontests",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "UDFDbFunctionActianTests"
+    ]
+  },
+  {
+    "Name": "efc_update",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "UpdateTest"
+    ]
+  },
+  {
+    "Name": "efc_withconstructors",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "WithConstructors"
+    ]
+  },
+  {
+    "Name": "iidbdb",
+    "DbmsUser": null
+  }
+]

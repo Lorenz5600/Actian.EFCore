@@ -1,28 +1,28 @@
 ﻿using System.Linq;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
-    public class IndexFacets : ActianDatabaseModelFactoryTestBase
+    public partial class ActianDatabaseModelFactoryTest
     {
-        public IndexFacets(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public class IndexFacets : ActianDatabaseModelFactoryTestBase
         {
-        }
+            public IndexFacets(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+                : base(fixture, output)
+            {
+            }
 
-        [ConditionalFact]
-        public void Create_composite_index() => Test(test => test
+            public void Create_composite_index() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""CompositeIndexTable"" (
-                    ""id1"" int NOT NULL,
-                    ""id2"" int NOT NULL
-                );
+                    CREATE TABLE ""CompositeIndexTable"" (
+                        ""id1"" int NOT NULL,
+                        ""id2"" int NOT NULL
+                    );
 
-                CREATE INDEX ""IX_COMPOSITE"" ON ""CompositeIndexTable"" ( ""id2"", ""id1"" );
-            ")
+                    CREATE INDEX ""IX_COMPOSITE"" ON ""CompositeIndexTable"" ( ""id2"", ""id1"" );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
@@ -50,16 +50,15 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             )
         );
 
-        [ConditionalFact]
-        public void Set_unique_true_for_unique_index() => Test(test => test
+            public void Set_unique_true_for_unique_index() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""UniqueIndexTable"" (
-                    ""id1"" int NOT NULL,
-                    ""id2"" int NOT NULL
-                );
+                    CREATE TABLE ""UniqueIndexTable"" (
+                        ""id1"" int NOT NULL,
+                        ""id2"" int NOT NULL
+                    );
 
-                CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""UniqueIndexTable"" ( ""id2"" );
-            ")
+                    CREATE UNIQUE INDEX ""IX_UNIQUE"" ON ""UniqueIndexTable"" ( ""id2"" );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
@@ -85,5 +84,6 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                 )
             )
         );
+        }
     }
 }

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="dist\**" />
+    <EmbeddedResource Remove="dist\**" />
+    <None Remove="dist\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Actian.Client" Version="3.0.2-next-20211022-120826" />
+    <PackageReference Include="CliWrap" Version="3.3.3" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\test\Actian.EFCore.Test.Common\Actian.EFCore.Test.Common.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems" Label="Shared" />
+
+</Project>

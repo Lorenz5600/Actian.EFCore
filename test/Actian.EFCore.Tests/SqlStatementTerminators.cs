@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Actian.EFCore.TestUtilities;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Actian.EFCore.Tests
 {
@@ -15,6 +17,11 @@ namespace Actian.EFCore.Tests
                 .Split(statements)
                 .Select(statement => statement.Trim())
                 .Where(statement => !string.IsNullOrWhiteSpace(statement));
+        }
+
+        public SqlStatementTerminators(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
         }
 
         [Fact]

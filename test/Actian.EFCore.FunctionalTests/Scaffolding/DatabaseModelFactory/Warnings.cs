@@ -9,20 +9,21 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
-    public class Warnings : ActianDatabaseModelFactoryTestBase
+    public partial class ActianDatabaseModelFactoryTest
     {
-        public Warnings(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public class Warnings : ActianDatabaseModelFactoryTestBase
         {
-        }
+            public Warnings(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+                : base(fixture, output)
+            {
+            }
 
-        [ConditionalFact]
-        public void Warn_missing_schema() => Test(test => test
+            public void Warn_missing_schema() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""Blank"" (
-                    ""Id"" int
-                );
-            ")
+                    CREATE TABLE ""Blank"" (
+                        ""Id"" int
+                    );
+                ")
             .FilterSchemas(@"""MySchema""")
             .Assert(dbModel =>
             {
@@ -37,13 +38,12 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             })
         );
 
-        [ConditionalFact]
-        public void Warn_missing_table() => Test(test => test
+            public void Warn_missing_table() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""Blank"" (
-                    ""Id"" int
-                );
-            ")
+                    CREATE TABLE ""Blank"" (
+                        ""Id"" int
+                    );
+                ")
             .FilterTables("MyTable")
             .Assert(dbModel =>
             {
@@ -58,19 +58,18 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             })
         );
 
-        [ConditionalFact]
-        public void Warn_missing_principal_table_for_foreign_key() => Test(test => test
+            public void Warn_missing_principal_table_for_foreign_key() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""PrincipalTable"" (
-                    ""Id"" int NOT NULL PRIMARY KEY
-                );
+                    CREATE TABLE ""PrincipalTable"" (
+                        ""Id"" int NOT NULL PRIMARY KEY
+                    );
 
-                CREATE TABLE ""DependentTable"" (
-                    ""Id""           int NOT NULL PRIMARY KEY,
-                    ""ForeignKeyId"" int NOT NULL,
-                    CONSTRAINT ""MYFK"" FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE CASCADE
-                );
-            ")
+                    CREATE TABLE ""DependentTable"" (
+                        ""Id""           int NOT NULL PRIMARY KEY,
+                        ""ForeignKeyId"" int NOT NULL,
+                        CONSTRAINT ""MYFK"" FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable"" (""Id"") ON DELETE CASCADE
+                    );
+                ")
             .FilterTables(@"""DependentTable""")
             .Assert(dbModel =>
             {
@@ -84,14 +83,13 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             })
         );
 
-        [ConditionalFact]
-        public void Skip_reflexive_foreign_key() => Test(test => test
+            public void Skip_reflexive_foreign_key() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""PrincipalTable"" (
-                    ""Id"" int NOT NULL PRIMARY KEY,
-                    CONSTRAINT ""MYFK"" FOREIGN KEY (""Id"") REFERENCES ""PrincipalTable"" (""Id"")
-                );
-            ")
+                    CREATE TABLE ""PrincipalTable"" (
+                        ""Id"" int NOT NULL PRIMARY KEY,
+                        CONSTRAINT ""MYFK"" FOREIGN KEY (""Id"") REFERENCES ""PrincipalTable"" (""Id"")
+                    );
+                ")
             .Assert(dbModel =>
             {
                 var (level, _, message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log, t => t.Id == ActianEventId.ReflexiveConstraintIgnored);
@@ -105,5 +103,6 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                 Assert.Empty(table.ForeignKeys);
             })
         );
+        }
     }
 }

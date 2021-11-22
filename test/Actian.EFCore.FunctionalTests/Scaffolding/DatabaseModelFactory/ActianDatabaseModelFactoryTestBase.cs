@@ -5,6 +5,7 @@ using System.Linq;
 using Actian.EFCore.Diagnostics.Internal;
 using Actian.EFCore.Metadata.Internal;
 using Actian.EFCore.Scaffolding.Internal;
+using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
@@ -17,11 +18,12 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
     [Collection("ActianDatabaseModelFactoryTests")]
     public abstract class ActianDatabaseModelFactoryTestBase : IClassFixture<ActianDatabaseModelFixture>, IDisposable
     {
-        public ActianDatabaseModelFactoryTestBase(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+        public ActianDatabaseModelFactoryTestBase(ActianDatabaseModelFixture fixture, ITestOutputHelper testOutputHelper)
         {
+            TestEnvironment.Log(this, testOutputHelper);
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
             Fixture.ListLoggerFactory.Clear();
-            Output = output ?? throw new ArgumentNullException(nameof(output));
+            Output = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
             Fixture.SetOutput(Output);
         }
 

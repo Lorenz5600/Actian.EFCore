@@ -15,7 +15,7 @@ namespace Actian.EFCore.Storage.Internal
         public override string StatementTerminator => "";
 
         /// <inheritdoc />
-        public override string BatchTerminator => "\\g";
+        public override string BatchTerminator => "";
 
         /// <inheritdoc />
         public override void GenerateParameterName(StringBuilder builder, string name)

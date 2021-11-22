@@ -14,7 +14,7 @@ namespace Actian.EFCore.Utilities
     internal static class Check
     {
         [ContractAnnotation("value:null => halt")]
-        public static T NotNull<T>([NoEnumeration] T value, [InvokerParameterName] [NotNull] string parameterName)
+        public static T NotNull<T>([NoEnumeration] T value, [InvokerParameterName][NotNull] string parameterName)
         {
 #pragma warning disable IDE0041 // Use 'is null' check
             if (ReferenceEquals(value, null))
@@ -29,7 +29,7 @@ namespace Actian.EFCore.Utilities
         }
 
         [ContractAnnotation("value:null => halt")]
-        public static IReadOnlyList<T> NotEmpty<T>(IReadOnlyList<T> value, [InvokerParameterName] [NotNull] string parameterName)
+        public static IReadOnlyList<T> NotEmpty<T>(IReadOnlyList<T> value, [InvokerParameterName][NotNull] string parameterName)
         {
             NotNull(value, parameterName);
 
@@ -44,7 +44,7 @@ namespace Actian.EFCore.Utilities
         }
 
         [ContractAnnotation("value:null => halt")]
-        public static string NotEmpty(string value, [InvokerParameterName] [NotNull] string parameterName)
+        public static string NotEmpty(string value, [InvokerParameterName][NotNull] string parameterName)
         {
             Exception e = null;
             if (value is null)
@@ -66,7 +66,7 @@ namespace Actian.EFCore.Utilities
             return value;
         }
 
-        public static string NullButNotEmpty(string value, [InvokerParameterName] [NotNull] string parameterName)
+        public static string NullButNotEmpty(string value, [InvokerParameterName][NotNull] string parameterName)
         {
             if (!(value is null)
                 && value.Length == 0)
@@ -79,7 +79,7 @@ namespace Actian.EFCore.Utilities
             return value;
         }
 
-        public static IReadOnlyList<T> HasNoNulls<T>(IReadOnlyList<T> value, [InvokerParameterName] [NotNull] string parameterName)
+        public static IReadOnlyList<T> HasNoNulls<T>(IReadOnlyList<T> value, [InvokerParameterName][NotNull] string parameterName)
             where T : class
         {
             NotNull(value, parameterName);

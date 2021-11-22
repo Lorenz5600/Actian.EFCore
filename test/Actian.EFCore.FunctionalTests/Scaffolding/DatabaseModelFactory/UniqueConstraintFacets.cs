@@ -1,27 +1,27 @@
 ﻿using System.Linq;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
-    public class UniqueConstraintFacets : ActianDatabaseModelFactoryTestBase
+    public partial class ActianDatabaseModelFactoryTest
     {
-        public UniqueConstraintFacets(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public class UniqueConstraintFacets : ActianDatabaseModelFactoryTestBase
         {
-        }
+            public UniqueConstraintFacets(ActianDatabaseModelFixture fixture, ITestOutputHelper output)
+                : base(fixture, output)
+            {
+            }
 
-        [ConditionalFact]
-        public void Create_composite_unique_constraint() => Test(test => test
+            public void Create_composite_unique_constraint() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""CompositeUniqueConstraintTable"" (
-                    ""Id1"" int NOT NULL,
-                    ""Id2"" int NOT NULL,
-                    UNIQUE (""Id2"", ""Id1"")
-                );
-            ")
+                    CREATE TABLE ""CompositeUniqueConstraintTable"" (
+                        ""Id1"" int NOT NULL,
+                        ""Id2"" int NOT NULL,
+                        UNIQUE (""Id2"", ""Id1"")
+                    );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
@@ -47,15 +47,14 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             )
         );
 
-        [ConditionalFact]
-        public void Set_unique_constraint_name_from_index() => Test(test => test
+            public void Set_unique_constraint_name_from_index() => Test(test => test
             .Arrange(@"
-                CREATE TABLE ""UniqueConstraintName"" (
-                    ""Id1"" int NOT NULL,
-                    ""Id2"" int NOT NULL,
-                    CONSTRAINT ""MyUC"" UNIQUE ( ""Id2"" )
-                );
-            ")
+                    CREATE TABLE ""UniqueConstraintName"" (
+                        ""Id1"" int NOT NULL,
+                        ""Id2"" int NOT NULL,
+                        CONSTRAINT ""MyUC"" UNIQUE ( ""Id2"" )
+                    );
+                ")
             .Assert(dbModel => dbModel.Tables
                 .SingleOrDefault()
                 .Should().BeOfType<DatabaseTable>().And.BeEquivalentTo(new
@@ -79,5 +78,6 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
                 )
             )
         );
+        }
     }
 }

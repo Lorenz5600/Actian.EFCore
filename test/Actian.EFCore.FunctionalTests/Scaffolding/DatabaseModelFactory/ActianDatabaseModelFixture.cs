@@ -8,14 +8,12 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
 {
     public class ActianDatabaseModelFixture : SharedStoreFixtureBase<PoolableDbContext>
     {
-        public const string DatabaseName = "EFCore_DatabaseModelFactory";
-        public const string DbmsUser = @"""dbo""";
-
-        protected override string StoreName { get; } = DatabaseName;
-        protected override ITestStoreFactory TestStoreFactory => new ActianTestStoreFactory(DbmsUser);
+        protected override string StoreName { get; } = "DatabaseModelFactory";
+        protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
         public new ActianTestStore TestStore { get; }
         private readonly ActianTestStore IIDbDbStore;
         public ITestOutputHelper Output { get; private set; }
+        public string DatabaseName => TestEnvironment.GetDatabaseName(StoreName);
 
         public ActianDatabaseModelFixture()
         {
@@ -29,7 +27,7 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
             CreateUser("db2");
             CreateUser("db.2");
 
-            IIDbDbStore.ExecuteNonQuery(@$"grant access, db_admin on database {StoreName} to public");
+            IIDbDbStore.ExecuteNonQuery(@$"grant access, db_admin on database {DatabaseName} to public");
         }
 
         public void SetOutput(ITestOutputHelper output)
@@ -50,10 +48,10 @@ namespace Actian.EFCore.Scaffolding.DatabaseModelFactory
         private bool UserExists(string user)
         {
             return IIDbDbStore.ExecuteScalar<int?>(@$"
-                    select 1
-                      from iiusers
-                     where user_name = '{user.Replace("'", "''")}'
-                ") == 1;
+                select 1
+                  from iiusers
+                 where user_name = '{user.Replace("'", "''")}'
+            ") == 1;
         }
 
         protected override bool ShouldLogCategory(string logCategory)

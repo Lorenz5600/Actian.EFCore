@@ -1,6 +1,8 @@
-﻿using FluentAssertions;
+﻿using Actian.EFCore.TestUtilities;
+using FluentAssertions;
 using Sprache;
 using Xunit;
+using Xunit.Abstractions;
 using static Actian.EFCore.Parsing.Internal.ActianSqlGrammar;
 
 
@@ -8,6 +10,11 @@ namespace Actian.EFCore.Tests.Parsing.ActianSqlGrammar
 {
     public class ActianSqlGrammar_DelimitedIdentifier
     {
+        public ActianSqlGrammar_DelimitedIdentifier(ITestOutputHelper testOutputHelper)
+        {
+            TestEnvironment.Log(this, testOutputHelper);
+        }
+
         [Theory]
         [InlineData("\"æøå\"", "æøå")]
         [InlineData("\"1table\"", "1table")]

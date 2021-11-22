@@ -37,8 +37,8 @@ namespace Actian.EFCore.Metadata.Conventions
 
             //var valueGenerationStrategyConvention = new ActianValueGenerationStrategyConvention(Dependencies, RelationalDependencies);
             //conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
-            //conventionSet.ModelInitializedConventions.Add(
-            //    new RelationalMaxIdentifierLengthConvention(128, Dependencies, RelationalDependencies));
+
+            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(128, Dependencies, RelationalDependencies));
 
             //ValueGenerationConvention valueGenerationConvention =
             //    new ActianValueGenerationConvention(Dependencies, RelationalDependencies);
@@ -86,7 +86,7 @@ namespace Actian.EFCore.Metadata.Conventions
 
         /// <summary>
         /// <para>
-        ///     Call this method to build a <see cref="ConventionSet" /> for SQL Server when using
+        ///     Call this method to build a <see cref="ConventionSet" /> for Actian when using
         ///     the <see cref="ModelBuilder" /> outside of <see cref="DbContext.OnModelCreating" />.
         /// </para>
         /// <para>
