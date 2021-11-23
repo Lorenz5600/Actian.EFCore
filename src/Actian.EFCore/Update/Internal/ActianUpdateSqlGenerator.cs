@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Actian.EFCore.Utilities;
@@ -14,6 +15,11 @@ namespace Actian.EFCore.Update.Internal
             [NotNull] UpdateSqlGeneratorDependencies dependencies)
             : base(dependencies)
         {
+        }
+
+        protected override ResultSetMapping AppendSelectAffectedCommand(StringBuilder commandStringBuilder, string name, string schema, IReadOnlyList<ColumnModification> readOperations, IReadOnlyList<ColumnModification> conditionOperations, int commandPosition)
+        {
+            return ResultSetMapping.NoResultSet;
         }
 
         protected override void AppendIdentityWhereCondition([NotNull] StringBuilder commandStringBuilder, [NotNull] ColumnModification columnModification)
