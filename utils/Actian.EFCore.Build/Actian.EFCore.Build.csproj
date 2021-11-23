@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Actian.Client" Version="3.0.2-next-20211022-120826" />
+    <PackageReference Include="Actian.Client" Version="3.0.2-next-20211123-104028" />
     <PackageReference Include="CliWrap" Version="3.3.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
   </ItemGroup>
