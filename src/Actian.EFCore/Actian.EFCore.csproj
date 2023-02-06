@@ -55,7 +55,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="3.1.10" />
-    <PackageReference Include="Actian.Client" Version="3.0.2-next-20211123-104028" />
+    <PackageReference Include="Actian.Client" Version="3.0.1" />
     <PackageReference Include="Sprache" Version="2.3.0" />
   </ItemGroup>
 

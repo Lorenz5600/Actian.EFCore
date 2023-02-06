@@ -94,7 +94,6 @@ namespace Actian.EFCore.Parsing
 
                 foreach (var statement in _buffer)
                 {
-
                     await _executeStatementAsync(statement.CommandText, _ignoreErrors);
                 }
             }

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Actian.EFCore.Parsing.Internal;
 using Actian.EFCore.Storage.Internal;
-using Actian.Scripts;
 using Ingres.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;

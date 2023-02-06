@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Actian.Client" Version="3.0.2-next-20211123-104028" />
-    <PackageReference Include="Actian.Scripts" Version="1.0.0-next-20210926-145915" />
+    <PackageReference Include="Actian.Client" Version="3.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="DiffPlex" Version="1.6.3" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />

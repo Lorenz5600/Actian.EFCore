@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Actian.EFCore.Build.Commands
 {
@@ -14,14 +15,11 @@ namespace Actian.EFCore.Build.Commands
             var userIds = new[] { "dbo", "db2", "db.2" };
 
             using var console = new LogConsole($"Creating database users");
-            using var session = new IngresSession(Config.GetConnectionString("iidbdb"), console);
-
-            var existingUsers = await session.SelectAsync($@"
-                select name from iiuser
-            ", reader => reader.GetString(0));
+            var existingUsers = await ListUsers(console);
 
             foreach (var userId in userIds)
             {
+                using var session = new IngresSession(Config.GetConnectionString("iidbdb"), console);
                 console.WriteCaption($"Create user {userId}");
 
                 if (existingUsers.Contains(userId))
@@ -43,6 +41,26 @@ namespace Actian.EFCore.Build.Commands
                           nopassword
                 ");
             }
+
+            await ListUsers(console);
+        }
+
+        private static async Task<List<string>> ListUsers(LogConsole console)
+        {
+            List<string> userIds;
+            using (var session = new IngresSession(Config.GetConnectionString("iidbdb"), console))
+            {
+                userIds = await session.SelectAsync($@"
+                    select name from iiuser
+                ", reader => reader.GetString(0));
+            }
+
+            console.WriteCaption("Existing users");
+            foreach (var user in userIds)
+            {
+                console.WriteLine($"    {user}");
+            }
+            return userIds;
         }
     }
 }

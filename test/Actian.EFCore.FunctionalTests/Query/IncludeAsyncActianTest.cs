@@ -3,6 +3,7 @@ using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -24,7 +25,7 @@ namespace Actian.EFCore.Query
             return base.Include_collection();
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Include_collection_order_by_subquery()
         {
             await base.Include_collection_order_by_subquery();

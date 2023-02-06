@@ -63,43 +63,164 @@ namespace Actian.EFCore.Build
 
         public IEnumerable<TestDatabase> TestDatabases { get; } = TestUtilities.TestDatabases
             .Load(Config.TestDatabasesPath).Databases
-            .Where(db => db.Create && db.Name != "iidbdb")
+            .Where(db => (db.Create || db.Drop) && db.Name != "iidbdb")
             .ToList();
 
         private List<(string name, string owner)> _existingDatabases = null;
         public List<(string name, string owner)> ExistingDatabases => _existingDatabases ?? throw new Exception("Existing databases have not been retrieved");
-        public async Task<List<(string name, string owner)>> GetExistingDatabases(LogConsole console)
+        public async Task<List<(string name, string owner)>> GetExistingDatabases(LogConsole console, bool force = false)
         {
-            if (_existingDatabases != null)
+            if (_existingDatabases != null && !force)
                 return _existingDatabases;
 
-            using var session = new IngresSession(Config.GetConnectionString("iidbdb"), console);
+            console.WriteCaption("Get existing databases");
+            using (console.Indent())
+            {
+                using var session = new IngresSession(Config.GetConnectionString("iidbdb"), console);
 
-            return _existingDatabases = await session.SelectAsync<(string name, string owner)>($@"
-                select name,own
-                  from iidatabase
-            ", reader => (reader.GetString(0), reader.GetString(1)));
+                _existingDatabases = await session.SelectAsync<(string name, string owner)>($@"
+                    select name,own
+                      from iidatabase
+                ", reader => (reader.GetString(0), reader.GetString(1)));
+
+                foreach (var (name, owner) in _existingDatabases)
+                {
+                    console.WriteLine($"Database: {name} ({owner})");
+                }
+
+                return _existingDatabases;
+            }
         }
 
-        public bool DatabaseExists(string name)
+        public Task<bool> DatabaseExists(TestDatabase db, LogConsole console)
+            => DatabaseExists(db.Name, console);
+
+        public async Task<bool> DatabaseExists(string name, LogConsole console)
         {
-            return ExistingDatabases
+            var existingDatabases = await GetExistingDatabases(console);
+            return existingDatabases
                 .Any(edb => edb.name.ToLowerInvariant() == name.ToLowerInvariant());
         }
 
-        public (string name, string owner) GetExistingDatabase(string name)
+        public Task<(string name, string owner)> GetExistingDatabase(TestDatabase db, LogConsole console)
+            => GetExistingDatabase(db.Name, console);
+
+        public async Task<(string name, string owner)> GetExistingDatabase(string name, LogConsole console)
         {
-            return ExistingDatabases
+            var existingDatabases = await GetExistingDatabases(console);
+            return existingDatabases
                 .Where(edb => edb.name.ToLowerInvariant() == name.ToLowerInvariant())
                 .DefaultIfEmpty((null, null))
                 .First();
         }
 
+        public Task AddExistingDatabase(TestDatabase db, LogConsole console)
+            => AddExistingDatabase(db.Name, db.DbmsUser, console);
+
+        public async Task AddExistingDatabase(string name, string owner, LogConsole console)
+        {
+            var existingDatabases = await GetExistingDatabases(console);
+            _existingDatabases = existingDatabases
+                .Where(edb => edb.name.ToLowerInvariant() != name.ToLowerInvariant())
+                .Concat(new[] { (name, owner) })
+                .ToList();
+        }
+
+        public Task RemoveExistingDatabase(TestDatabase db, LogConsole console)
+            => RemoveExistingDatabase(db.Name, console);
+
+        public async Task RemoveExistingDatabase(string name, LogConsole console)
+        {
+            var existingDatabases = await GetExistingDatabases(console);
+            _existingDatabases = existingDatabases
+                .Where(edb => edb.name.ToLowerInvariant() != name.ToLowerInvariant())
+                .ToList();
+        }
+
+        public async Task EnsureTestDatabases(LogConsole console)
+        {
+            await GetExistingDatabases(console);
+            foreach (var db in TestDatabases.Where(d => d.Create && !d.IsTemplateDatabase))
+            {
+                await EnsureTestDatabase(db, console);
+            }
+        }
+
+        public async Task EnsureTestDatabase(TestDatabase db, LogConsole console)
+        {
+            var templateDb = db.IsTemplateDatabase ? null : TestDatabases.FirstOrDefault(d => d.IsTemplateDatabase && d.DbmsUser == db.DbmsUser);
+
+            if (templateDb != null)
+            {
+                await CopyTestDatabase(db, templateDb, console);
+            }
+            else
+            {
+                await CreateTestDatabase(db, console);
+            }
+        }
+
+        public async Task CreateTestDatabase(TestDatabase db, LogConsole console)
+        {
+            if (await DatabaseExists(db.Name, console))
+                return;
+
+            console.WriteCaption($"Create database {db.Name}");
+
+            using var cli = new CliSession(console);
+            await cli.ExecuteAsync("createdb", $@"-i -u\""{db.DbmsUser}\"" -no_x100 {db.Name}");
+
+            using var session = new IngresSession(Config.GetConnectionString("iidbdb"), console);
+
+            await session.ExecuteAsync($@"
+                grant access, db_admin on database {db.Name} to public
+            ", ignoreErrors: true);
+
+            await AddExistingDatabase(db, console);
+        }
+
+        public async Task CopyTestDatabase(TestDatabase db, TestDatabase templateDb, LogConsole console)
+        {
+            if (await DatabaseExists(db.Name, console))
+                return;
+
+            await CreateTestDatabase(templateDb, console);
+
+            console.WriteCaption($"Copy database {db.Name} from {templateDb.Name}");
+
+            using var cli = new CliSession(console);
+            await cli.ExecuteAsync("relocatedb", $@"-new_database={db.Name} {templateDb.Name}");
+
+            await AddExistingDatabase(db, console);
+        }
+
+        public async Task DropDatabases(LogConsole console)
+        {
+            foreach (var db in TestDatabases.Where(d => d.Drop || d.Create).OrderBy(db => db.Name))
+            {
+                await DropDatabase(db, console);
+            }
+        }
+
+        public async Task DropDatabase(TestDatabase db, LogConsole console)
+        {
+            var (name, owner) = await GetExistingDatabase(db.Name, console);
+
+            if (name is null)
+                return;
+
+            console.WriteCaption($"Drop database {db.Name}");
+            using var cli = new CliSession(console);
+            await cli.ExecuteAsync("destroydb", $@"-u\""{owner}\"" {name}");
+            await RemoveExistingDatabase(db.Name, console);
+        }
+
+
         private void HandleRootCommand()
         {
             Console.WriteLine($"InstallationPath:     {Config.InstallationPath}");
             Console.WriteLine($"InstallationCode:     {Config.InstallationCode}");
-            Console.WriteLine($"BaseConnectionString: {Config.BaseConnectionString}");
+            Console.WriteLine($"BaseConnectionString: {Config.EFCoreTestConnectionString}");
         }
 
         private void AddCommand(BuildCommand command)

@@ -8,19 +8,15 @@ namespace Actian.EFCore.Build
     public class IngresSession : IDisposable
     {
         private readonly LogConsole _console;
-        private readonly bool _quiet;
         private readonly IngresConnectionStringBuilder _connectionStringBuilder;
+        private IngresTransaction _transaction;
 
-        public IngresSession(string connectionString, LogConsole console, bool quiet = false)
+        public IngresSession(string connectionString, LogConsole console)
         {
             _connectionStringBuilder = new IngresConnectionStringBuilder(connectionString);
             _console = console;
-            _quiet = quiet;
-            if (!_quiet)
-            {
-                _console.WriteLine($"Execute SQL in database {Database}");
-                _console.WriteLine();
-            }
+            _console.WriteLine($"Execute SQL in database {Database}");
+            _console.WriteLine();
         }
 
         public string Database => _connectionStringBuilder.Database;
@@ -50,76 +46,116 @@ namespace Actian.EFCore.Build
             }
         }
 
+        private void EnsureTransaction()
+        {
+            _transaction ??= Connection.BeginTransaction();
+        }
+
+        public int Commit(bool beginNewTransaction = true)
+        {
+            if (_transaction is null)
+                return -1;
+
+            _console.WriteLine();
+            _console.WriteLine("commit");
+            _transaction?.Commit();
+            _transaction = null;
+            _console.WriteLine("ok");
+            return -1;
+        }
+
+        public int Rollback(bool beginNewTransaction = true)
+        {
+            if (_transaction is null)
+                return -1;
+
+            _console.WriteLine();
+            _console.WriteLine("rollback");
+            _transaction?.Rollback();
+            _transaction = null;
+            _console.WriteLine("ok");
+            return -1;
+        }
+
         public async Task<int> ExecuteAsync(string sql, bool ignoreErrors = false)
         {
-            _console.Indent();
-            var connected = false;
-            try
+            sql = sql.NormalizeText();
+
+            using (_console.Indent())
             {
-                using var cmd = Connection.CreateCommand();
-                cmd.CommandText = Text.Normalize(sql);
-                connected = true;
-                if (!_quiet) _console.WriteLine(cmd.CommandText);
-                var rows = await cmd.ExecuteNonQueryAsync();
-                if (!_quiet) _console.WriteLine(rows == -1 ? "ok" : $"{rows} rows");
-                return rows;
+                var connected = false;
+                try
+                {
+                    connected = true;
+                    return sql.Trim().ToLowerInvariant() switch
+                    {
+                        "commit" => Commit(),
+                        "rollback" => Rollback(),
+                        _ => await ExecuteAsyncInternal(sql),
+                    };
+                }
+                catch (Exception ex) when (!connected)
+                {
+                    _console.WriteLine(ex.Message);
+                    throw;
+                }
+                catch (Exception ex) when (ignoreErrors)
+                {
+                    _console.WriteLine(ex.Message);
+                    return 0;
+                }
+                catch (Exception ex)
+                {
+                    _console.WriteLine(ex.Message, stderr: true);
+                    throw;
+                }
             }
-            catch (Exception ex) when (!connected)
-            {
-                if (!_quiet) _console.WriteLine(ex.Message);
-                throw;
-            }
-            catch (Exception ex) when (ignoreErrors)
-            {
-                if (!_quiet) _console.WriteLine(ex.Message);
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                if (!_quiet) _console.WriteLine(ex.Message, stderr: true);
-                throw;
-            }
-            finally
-            {
-                if (!_quiet) _console.WriteLine();
-                _console.Outdent();
-            }
+        }
+
+        private async Task<int> ExecuteAsyncInternal(string sql)
+        {
+            EnsureTransaction();
+            using var cmd = Connection.CreateCommand();
+            cmd.CommandText = sql;
+            _console.WriteLine();
+            _console.WriteLine(cmd.CommandText);
+            var rows = await cmd.ExecuteNonQueryAsync();
+            _console.WriteLine(rows == -1 ? "ok" : $"{rows} rows");
+            return rows;
         }
 
         public async Task<List<T>> SelectAsync<T>(string sql, Func<IngresDataReader, T> getRow, bool ignoreErrors = false)
         {
-            _console.Indent();
-            try
+            sql = sql.NormalizeText();
+
+            using (_console.Indent())
             {
-                using var cmd = Connection.CreateCommand();
-                cmd.CommandText = Text.Normalize(sql);
-                if (!_quiet) _console.WriteLine(cmd.CommandText);
-
-                var rows = new List<T>();
-
-                using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
+                try
                 {
-                    rows.Add(getRow(reader));
-                }
-                if (!_quiet) _console.WriteLine($"{rows.Count} rows");
+                    EnsureTransaction();
+                    using var cmd = Connection.CreateCommand();
+                    cmd.CommandText = sql;
+                    var rows = new List<T>();
+                    _console.WriteLine(cmd.CommandText);
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        rows.Add(getRow(reader));
+                    }
+                    _console.WriteLine($"{rows.Count} rows");
 
-                return rows;
-            }
-            catch (Exception ex) when (ignoreErrors)
-            {
-                if (!_quiet) _console.WriteLine(ex.Message);
-                return new List<T>();
-            }
-            catch (Exception ex)
-            {
-                if (!_quiet) _console.WriteLine(ex.Message, stderr: true);
-                throw;
-            }
-            finally
-            {
-                if (!_quiet) _console.WriteLine();
-                _console.Outdent();
+                    return rows;
+                }
+                catch (Exception ex) when (ignoreErrors)
+                {
+                    _console.WriteLine(ex.Message);
+                    return new List<T>();
+                }
+                catch (Exception ex)
+                {
+                    _console.WriteLine(ex.Message, stderr: true);
+                    throw;
+                }
             }
         }
 
@@ -130,7 +166,11 @@ namespace Actian.EFCore.Build
             {
                 if (disposing)
                 {
-                    _connection?.Dispose();
+                    using (_console.Indent())
+                    {
+                        Commit(false);
+                        _connection?.Dispose();
+                    }
                 }
                 _disposedValue = true;
             }

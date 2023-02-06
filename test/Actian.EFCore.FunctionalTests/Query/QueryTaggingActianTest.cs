@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -56,7 +57,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Tags_on_subquery()
         {
             base.Tags_on_subquery();
@@ -76,7 +77,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Tag_on_include_query()
         {
             base.Tag_on_include_query();
@@ -94,7 +95,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Tag_on_scalar_query()
         {
             base.Tag_on_scalar_query();

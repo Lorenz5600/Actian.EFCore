@@ -1,23 +1,29 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
 namespace Actian.EFCore.TestUtilities
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class ActianTodoAttribute : Attribute, ITestCondition
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class ActianTodoAttribute : ActianTestAttribute, ITestCondition
     {
-        public ActianTodoAttribute(string skipReason = null)
+        public ActianTodoAttribute(string skipReason = null, [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+            : base(sourceFilePath, sourceLineNumber)
         {
             SkipReason = string.IsNullOrWhiteSpace(skipReason)
                 ? "Todo"
-                : $"Todo:\n{Text.Normalize(skipReason)}";
+                : $"Todo:\n{skipReason.NormalizeText()}";
         }
 
+        public string SkipReason { get; }
         private static bool Disabled => Environment.GetEnvironmentVariable("DISABLE_ACTIAN_TODO") == "true";
 
-        public ValueTask<bool> IsMetAsync() => new ValueTask<bool>(Disabled);
+        public ValueTask<bool> IsMetAsync() => new ValueTask<bool>(IsMet());
 
-        public string SkipReason { get; }
+        private bool IsMet()
+            => Disabled || Member.DeclaringType.GetCustomAttributes<ActianIncludeTodosAttribute>().Any();
     }
 }

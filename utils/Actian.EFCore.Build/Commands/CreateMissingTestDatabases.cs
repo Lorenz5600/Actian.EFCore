@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Actian.EFCore.Build.Commands
@@ -12,35 +13,16 @@ namespace Actian.EFCore.Build.Commands
 
         public override async Task RunInternal()
         {
-            await GetExistingDatabases();
-            await CreateMissing();
-
-            var northwindDb = Context.TestDatabases.FirstOrDefault(db => db.Aliases.Contains("Northwind"));
-            if (northwindDb != null && northwindDb.Create && !Context.DatabaseExists(northwindDb.Name))
-            {
-                await Context.RunCommand<PopulateNorthwind>();
-            }
-        }
-
-        private async Task GetExistingDatabases()
-        {
-            using var console = new LogConsole($"Get existing databases", buffer: false);
-            await Context.GetExistingDatabases(console);
-        }
-
-        private async Task CreateMissing()
-        {
             using var console = new LogConsole($"Creating missing test databases", buffer: false);
 
-            await Context.GetExistingDatabases(console);
+            await Context.EnsureTestDatabases(console);
 
-            foreach (var db in Context.TestDatabases.Where(d => d.Create))
-            {
-                if (!Context.DatabaseExists(db.Name))
-                {
-                    await CreateTestDatabases.CreateTestDatabase(db, console);
-                }
-            }
+            var northwindDb = Context.TestDatabases.FirstOrDefault(db => db.Aliases.Contains("Northwind"));
+
+            if (northwindDb is null || !northwindDb.Create)
+                return;
+
+            await Context.RunCommand<PopulateNorthwind>();
         }
     }
 }

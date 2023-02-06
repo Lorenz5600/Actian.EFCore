@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore
 {
@@ -40,7 +41,7 @@ namespace Actian.EFCore
             base.Can_perform_query_with_max_length();
         }
 
-        [ActianSkip("Long running")]
+        [ActianSkip(LongRunning)]
         public override void Can_perform_query_with_ansi_strings_test()
         {
             base.Can_perform_query_with_ansi_strings_test();

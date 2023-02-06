@@ -27,7 +27,8 @@ jobs:
       matrix:
         actian-efcore-environment:
           #- WIN64_INGRES_10_1_0
-          - WIN64_ACTIANX_11_1_0
+          #- WIN64_ACTIANX_11_1_0
+          - WIN64_ACTIANX_11_2_0
         compatibility:
           - Ingres
           #- Ansi

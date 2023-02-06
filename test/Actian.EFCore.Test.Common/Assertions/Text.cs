@@ -13,12 +13,12 @@ namespace Actian.EFCore
             return TextDiffLine.Diff(text1, text2, normalize);
         }
 
-        public static string Normalize(string text)
+        public static string NormalizeText(this string text)
         {
-            return Normalize(text, true);
+            return text.NormalizeText(true);
         }
 
-        public static string Normalize(string text, bool normalize)
+        public static string NormalizeText(this string text, bool normalize)
         {
             if (!normalize)
                 return text;

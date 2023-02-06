@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Actian.EFCore.TestUtilities;
-using Xunit;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -31,7 +31,7 @@ namespace Actian.EFCore.Query
             return base.Concat_non_entity(isAsync);
         }
 
-        [ActianSkip("EXCEPT does not always work correctly with nulls")]
+        [ActianSkip(ExceptDoesNotAlwaysWorkCorrectlyWithNulls)]
         public override async Task Except(bool isAsync)
         {
             await base.Except(isAsync);
@@ -46,19 +46,19 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("EXCEPT does not always work correctly with nulls")]
+        [ActianSkip(ExceptDoesNotAlwaysWorkCorrectlyWithNulls)]
         public override Task Except_simple_followed_by_projecting_constant(bool isAsync)
         {
             return base.Except_simple_followed_by_projecting_constant(isAsync);
         }
 
-        [ActianSkip("EXCEPT does not always work correctly with nulls")]
+        [ActianSkip(ExceptDoesNotAlwaysWorkCorrectlyWithNulls)]
         public override Task Except_nested(bool isAsync)
         {
             return base.Except_nested(isAsync);
         }
 
-        [ActianSkip("EXCEPT does not always work correctly with nulls")]
+        [ActianSkip(ExceptDoesNotAlwaysWorkCorrectlyWithNulls)]
         public override Task Except_non_entity(bool isAsync)
         {
             return base.Except_non_entity(isAsync);
@@ -159,7 +159,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Union_Skip_Take_OrderBy_ThenBy_Where(bool isAsync)
         {
             try
@@ -230,7 +230,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Union_Take_Union_Take(bool isAsync)
         {
             try
@@ -303,7 +303,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("EXCEPT does not always work correctly with nulls")]
+        [ActianSkip(ExceptDoesNotAlwaysWorkCorrectlyWithNulls)]
         public override async Task Union_Select_scalar(bool isAsync)
         {
             try
@@ -365,7 +365,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_Union_different_fields_in_anonymous_with_subquery(bool isAsync)
         {
             try
@@ -437,7 +437,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("EXCEPT does not always work correctly with nulls")]
+        [ActianSkip(ExceptDoesNotAlwaysWorkCorrectlyWithNulls)]
         public override async Task Select_Except_reference_projection(bool isAsync)
         {
             await base.Select_Except_reference_projection(isAsync);
@@ -589,7 +589,7 @@ FROM ""Orders"" AS ""o0""";
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task OrderBy_Take_Union(bool isAsync)
         {
             try

@@ -1,6 +1,7 @@
 ﻿using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -280,7 +281,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Can_include_prey()
         {
             base.Can_include_prey();
@@ -464,7 +465,7 @@ namespace Actian.EFCore.Query
             AssertSql(@"");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Subquery_OfType()
         {
             base.Subquery_OfType();

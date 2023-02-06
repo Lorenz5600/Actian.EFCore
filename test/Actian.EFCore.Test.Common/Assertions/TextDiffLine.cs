@@ -12,8 +12,8 @@ namespace Actian.EFCore
             static IEnumerable<TextDiffLine> createDiff(string text1, string text2, bool normalize)
             {
                 var diffResult = Differ.Instance.CreateLineDiffs(
-                    Text.Normalize(text1, normalize),
-                    Text.Normalize(text2, normalize),
+                    text1.NormalizeText(normalize),
+                    text2.NormalizeText(normalize),
                     ignoreWhitespace: false,
                     ignoreCase: false
                 );

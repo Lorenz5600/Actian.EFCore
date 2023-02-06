@@ -1,1 +1,0 @@
-\include ../test/Actian.EFCore.FunctionalTests/Northwind.sql

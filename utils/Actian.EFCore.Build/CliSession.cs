@@ -45,19 +45,17 @@ namespace Actian.EFCore.Build
 
         private async Task<CommandResult> ExecuteInternalAsync(Command cmd, bool ignoreErrors)
         {
-            _console.Indent();
-            try
+            using (_console.Indent())
             {
-                return await cmd.ExecuteAsync();
-            }
-            catch (Exception ex)
-            {
-                _console.WriteLine($"ERROR: {ex.Message}", stderr: !ignoreErrors);
-                throw;
-            }
-            finally
-            {
-                _console.Outdent();
+                try
+                {
+                    return await cmd.ExecuteAsync();
+                }
+                catch (Exception ex)
+                {
+                    _console.WriteLine($"ERROR: {ex.Message}", stderr: !ignoreErrors);
+                    throw;
+                }
             }
         }
 

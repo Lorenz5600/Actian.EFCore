@@ -3,6 +3,7 @@ using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -60,7 +61,7 @@ namespace Actian.EFCore.Query
             return base.Average_on_nav_subquery_in_projection();
         }
 
-        [ActianSkip("Long running")]
+        [ActianSkip(LongRunning)]
         public override Task ToListAsync_can_be_canceled()
         {
             return base.ToListAsync_can_be_canceled();

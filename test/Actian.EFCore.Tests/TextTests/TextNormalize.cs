@@ -81,7 +81,7 @@ namespace Actian.EFCore.Tests.TextTests
 
             public void Test()
             {
-                Text.Normalize(Value).Should().Be(Expected);
+                Value.NormalizeText().Should().Be(Expected);
             }
 
             public override string ToString()

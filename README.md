@@ -50,20 +50,21 @@ The database user specified in the connection string should:
 - have permission to create new database users
 - have permission to impersonate other database users
 
-The database user `"dbo"` with permission to create databases should be created before running tests.
+A number of databases, owned by the `"dbo"` user, should be created before running tests.
 
-A number of databases, owned by the `"dbo"` user, should be created before running tests:
-- efcore_databasemodelfactory
-- efcore_northwind
+These databases can be created on the machine that hosts the database server:
 
-These databases can be created using PowerShell:
-
-```powershell
-createdb -n -u\"""dbo\""" efcore_databasemodelfactory
-createdb -n -u\"""dbo\""" efcore_northwind
+```
+scripts\setup-test-databases.cmd
 ```
 
-When running the tests the following users will be created:
+The user that runs this script should:
+- have permission to create new database users
+- have permission to create new databases
+- have permission to impersonate other database users
+
+When running `scripts\setup-test-databases.cmd` the following users will be created:
+- `"dbo"`
 - `"db2"`
 - `"db.2"`
 

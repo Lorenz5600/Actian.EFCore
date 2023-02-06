@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.Linq;
 
 namespace Actian.EFCore.Build
@@ -10,11 +11,13 @@ namespace Actian.EFCore.Build
         private readonly List<(bool stderr, string line)> _lines = new List<(bool stderr, string line)>();
         private readonly DateTime _start;
         private readonly bool _buffer;
+        private readonly bool _quiet;
         private int _indent = 0;
 
-        public LogConsole(string title, bool buffer = true)
+        public LogConsole(string title, bool buffer = true, bool quiet = false)
         {
             _buffer = buffer;
+            _quiet = quiet;
             WriteDoubleLine();
             if (!string.IsNullOrWhiteSpace(title))
             {
@@ -31,6 +34,9 @@ namespace Actian.EFCore.Build
 
         public void WriteLine(string str = "", bool stderr = false)
         {
+            if (_quiet)
+                return;
+
             lock (_lock)
             {
                 foreach (var line in str.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).Select(l => l.TrimEnd()))
@@ -64,14 +70,26 @@ namespace Actian.EFCore.Build
             WriteLine();
         }
 
-        public void Indent()
+        private class IndentationMarker : IDisposable
         {
-            _indent += 1;
+            private readonly LogConsole _logConsole;
+
+            public IndentationMarker(LogConsole logConsole)
+            {
+                _logConsole = logConsole ?? throw new ArgumentNullException(nameof(logConsole));
+            }
+
+            public void Dispose()
+            {
+                _logConsole.WriteLine();
+                _logConsole._indent = Math.Max(0, _logConsole._indent - 1);
+            }
         }
 
-        public void Outdent()
+        public IDisposable Indent()
         {
-            _indent = Math.Max(0, _indent - 1);
+            _indent += 1;
+            return new IndentationMarker(this);
         }
 
         private void RenderToConsole()

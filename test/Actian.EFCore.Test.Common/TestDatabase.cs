@@ -16,6 +16,7 @@ namespace Actian.EFCore.TestUtilities
         public bool Drop { get; set; } = false;
         public bool Create { get; set; } = false;
         public bool Valid { get; set; } = false;
+        public bool IsTemplateDatabase { get; set; } = false;
         public IEnumerable<string> Messages { get; set; }
 
         public IEnumerable<string> Aliases

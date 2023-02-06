@@ -8,13 +8,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		Create-test-report.cmd = Create-test-report.cmd
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		LICENSE = LICENSE
 		Pack.cmd = Pack.cmd
 		Pack.ps1 = Pack.ps1
 		README.md = README.md
+		Run-tests.cmd = Run-tests.cmd
 		test-databases.json = test-databases.json
+		UpdateTodoTests.cmd = UpdateTodoTests.cmd
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7E25A7A7-9C1C-441B-9295-A1977F75F1E5}"
@@ -30,19 +33,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
 		.github\workflows\clear-databases.yml = .github\workflows\clear-databases.yml
+		.github\workflows\create-database-users.yml = .github\workflows\create-database-users.yml
 		.github\workflows\create-databases.yml = .github\workflows\create-databases.yml
 		.github\workflows\create-missing-databases.yml = .github\workflows\create-missing-databases.yml
+		.github\workflows\populate-northwind.yml = .github\workflows\populate-northwind.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{25B54B96-491B-44CD-984B-3081C3C62C6A}"
 	ProjectSection(SolutionItems) = preProject
-		scripts\create-user-dbo.sql = scripts\create-user-dbo.sql
-		scripts\CreateDatabase.ps1 = scripts\CreateDatabase.ps1
-		scripts\CreateDbUser.ps1 = scripts\CreateDbUser.ps1
-		scripts\CreateTestDatabases.ps1 = scripts\CreateTestDatabases.ps1
-		scripts\DropTestDatabases.ps1 = scripts\DropTestDatabases.ps1
 		scripts\GetVersionSuffix.ps1 = scripts\GetVersionSuffix.ps1
-		scripts\Northwind.ps1 = scripts\Northwind.ps1
+		scripts\setup-test-databases.cmd = scripts\setup-test-databases.cmd
 		scripts\SetupActianInstallation.ps1 = scripts\SetupActianInstallation.ps1
 	EndProjectSection
 EndProject
@@ -56,10 +56,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.FunctionalTes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.Tests", "test\Actian.EFCore.Tests\Actian.EFCore.Tests.csproj", "{DDBC6493-6292-48C7-A9CE-A6EE05618B32}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateNorthwindScript", "utils\CreateNorthwindScript\CreateNorthwindScript.csproj", "{C52988FE-33AA-469F-B92E-4A504FCEC0F5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsoleApp", "utils\TestConsoleApp\TestConsoleApp.csproj", "{A6014609-B387-4B58-B8CD-3E0472BF3C2A}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.TestLoggers", "utils\Actian.TestLoggers\Actian.TestLoggers.csproj", "{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actian.EFCore.TestGenerators", "utils\Actian.EFCore.TestGenerators\Actian.EFCore.TestGenerators.csproj", "{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C}"
@@ -71,11 +67,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UpdateTestTodos", "utils\UpdateTestTodos\UpdateTestTodos.csproj", "{5DA9F7BE-6EA6-4480-B82E-17052A3EA365}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{1f57caf0-15dc-449f-b37f-acbc0950161f}*SharedItemsImports = 5
-		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{35f858f2-19ed-4ff8-987e-069a8a18e94a}*SharedItemsImports = 13
-		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{c6c99f70-505b-4ee5-a665-6688b0f66cad}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -97,14 +88,6 @@ Global
 		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDBC6493-6292-48C7-A9CE-A6EE05618B32}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C52988FE-33AA-469F-B92E-4A504FCEC0F5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6014609-B387-4B58-B8CD-3E0472BF3C2A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -133,8 +116,6 @@ Global
 		{B709B9A6-BA4C-46F6-8B57-0F47875F1A64} = {D0BB5C4C-ED65-4FE1-A008-C131086D5140}
 		{198129F8-BBE1-4F45-8BF6-55B2A52B9BA9} = {D0BB5C4C-ED65-4FE1-A008-C131086D5140}
 		{DDBC6493-6292-48C7-A9CE-A6EE05618B32} = {D0BB5C4C-ED65-4FE1-A008-C131086D5140}
-		{C52988FE-33AA-469F-B92E-4A504FCEC0F5} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
-		{A6014609-B387-4B58-B8CD-3E0472BF3C2A} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
 		{4948C1EC-7E79-4000-BAA4-D9CC70326EAB} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
 		{768D9BC4-19BB-4D94-B3A4-5242DE6B4A6C} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
 		{1F57CAF0-15DC-449F-B37F-ACBC0950161F} = {ADC020C9-8A41-4509-8476-1152E9B1919C}
@@ -143,5 +124,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40A8FCF0-CF89-44DF-B9A0-8D3336BA3E29}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{1f57caf0-15dc-449f-b37f-acbc0950161f}*SharedItemsImports = 5
+		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{35f858f2-19ed-4ff8-987e-069a8a18e94a}*SharedItemsImports = 13
+		src\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems*{c6c99f70-505b-4ee5-a665-6688b0f66cad}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

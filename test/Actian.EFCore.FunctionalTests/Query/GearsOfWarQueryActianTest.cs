@@ -2,6 +2,7 @@
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -611,7 +612,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_enum_has_flag_subquery(bool isAsync)
         {
             await base.Where_enum_has_flag_subquery(isAsync);
@@ -661,7 +662,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_enum_has_flag_subquery_with_pushdown(bool isAsync)
         {
             await base.Where_enum_has_flag_subquery_with_pushdown(isAsync);
@@ -711,7 +712,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_enum_has_flag_subquery_client_eval(bool isAsync)
         {
             await base.Where_enum_has_flag_subquery_client_eval(isAsync);
@@ -1147,6 +1148,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
+        [ActianTodo]
         public override async Task Select_null_propagation_negative7(bool isAsync)
         {
             await base.Select_null_propagation_negative7(isAsync);
@@ -1366,7 +1368,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_boolean(bool isAsync)
         {
             await base.Where_subquery_boolean(isAsync);
@@ -1381,7 +1383,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_boolean_with_pushdown(bool isAsync)
         {
             await base.Where_subquery_boolean_with_pushdown(isAsync);
@@ -1396,7 +1398,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_firstordefault_boolean(bool isAsync)
         {
             await base.Where_subquery_distinct_firstordefault_boolean(isAsync);
@@ -1414,7 +1416,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_firstordefault_boolean_with_pushdown(bool isAsync)
         {
             await base.Where_subquery_distinct_firstordefault_boolean_with_pushdown(isAsync);
@@ -1432,7 +1434,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_first_boolean(bool isAsync)
         {
             await base.Where_subquery_distinct_first_boolean(isAsync);
@@ -1451,7 +1453,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_singleordefault_boolean1(bool isAsync)
         {
             await base.Where_subquery_distinct_singleordefault_boolean1(isAsync);
@@ -1484,7 +1486,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_singleordefault_boolean_with_pushdown(bool isAsync)
         {
             await base.Where_subquery_distinct_singleordefault_boolean_with_pushdown(isAsync);
@@ -1502,7 +1504,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_lastordefault_boolean(bool isAsync)
         {
             await base.Where_subquery_distinct_lastordefault_boolean(isAsync);
@@ -1521,7 +1523,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_last_boolean(bool isAsync)
         {
             await base.Where_subquery_distinct_last_boolean(isAsync);
@@ -1540,7 +1542,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_orderby_firstordefault_boolean(bool isAsync)
         {
             await base.Where_subquery_distinct_orderby_firstordefault_boolean(isAsync);
@@ -1558,7 +1560,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Where_subquery_distinct_orderby_firstordefault_boolean_with_pushdown(bool isAsync)
         {
             await base.Where_subquery_distinct_orderby_firstordefault_boolean_with_pushdown(isAsync);
@@ -1730,7 +1732,7 @@ namespace Actian.EFCore.Query
             return base.Union_with_collection_navigations(isAsync);
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_distinct_firstordefault(bool isAsync)
         {
             await base.Select_subquery_distinct_firstordefault(isAsync);
@@ -3334,7 +3336,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Subquery_with_result_operator_is_not_lifted(bool isAsync)
         {
             await base.Subquery_with_result_operator_is_not_lifted(isAsync);
@@ -3371,7 +3373,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Take_without_orderby_followed_by_orderBy_is_pushed_down1(bool isAsync)
         {
             await base.Take_without_orderby_followed_by_orderBy_is_pushed_down1(isAsync);
@@ -3388,7 +3390,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Take_without_orderby_followed_by_orderBy_is_pushed_down2(bool isAsync)
         {
             await base.Take_without_orderby_followed_by_orderBy_is_pushed_down2(isAsync);
@@ -3405,7 +3407,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Take_without_orderby_followed_by_orderBy_is_pushed_down3(bool isAsync)
         {
             await base.Take_without_orderby_followed_by_orderBy_is_pushed_down3(isAsync);
@@ -4900,7 +4902,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Correlated_collections_with_FirstOrDefault(bool isAsync)
         {
             await base.Correlated_collections_with_FirstOrDefault(isAsync);
@@ -5135,7 +5137,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Correlated_collection_with_top_level_FirstOrDefault(bool isAsync)
         {
             await base.Correlated_collection_with_top_level_FirstOrDefault(isAsync);
@@ -5162,7 +5164,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Correlated_collection_with_top_level_Last_with_orderby_on_outer(bool isAsync)
         {
             await base.Correlated_collection_with_top_level_Last_with_orderby_on_outer(isAsync);
@@ -5179,7 +5181,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Correlated_collection_with_top_level_Last_with_order_by_on_inner(bool isAsync)
         {
             await base.Correlated_collection_with_top_level_Last_with_order_by_on_inner(isAsync);
@@ -5242,7 +5244,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_with_group_by_order_by_take()
         {
             base.Include_with_group_by_order_by_take();
@@ -5332,7 +5334,7 @@ namespace Actian.EFCore.Query
             AssertSql(@"");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Include_on_derived_type_with_order_by_and_paging(bool isAsync)
         {
             await base.Include_on_derived_type_with_order_by_and_paging(isAsync);
@@ -5843,7 +5845,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Project_one_value_type_from_empty_collection(bool isAsync)
         {
             await base.Project_one_value_type_from_empty_collection(isAsync);
@@ -5857,7 +5859,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Project_one_value_type_converted_to_nullable_from_empty_collection(bool isAsync)
         {
             await base.Project_one_value_type_converted_to_nullable_from_empty_collection(isAsync);
@@ -5890,7 +5892,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Filter_on_subquery_projecting_one_value_type_from_empty_collection(bool isAsync)
         {
             await base.Filter_on_subquery_projecting_one_value_type_from_empty_collection(isAsync);
@@ -5905,7 +5907,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_projecting_single_constant_int(bool isAsync)
         {
             await base.Select_subquery_projecting_single_constant_int(isAsync);
@@ -5918,7 +5920,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_projecting_single_constant_string(bool isAsync)
         {
             await base.Select_subquery_projecting_single_constant_string(isAsync);
@@ -5931,7 +5933,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_projecting_single_constant_bool(bool isAsync)
         {
             await base.Select_subquery_projecting_single_constant_bool(isAsync);
@@ -6126,7 +6128,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Include_collection_with_complex_OrderBy2(bool isAsync)
         {
             await base.Include_collection_with_complex_OrderBy2(isAsync);
@@ -6147,7 +6149,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Include_collection_with_complex_OrderBy3(bool isAsync)
         {
             await base.Include_collection_with_complex_OrderBy3(isAsync);
@@ -6188,7 +6190,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Correlated_collection_with_very_complex_order_by(bool isAsync)
         {
             await base.Correlated_collection_with_very_complex_order_by(isAsync);
@@ -6226,7 +6228,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_boolean(bool isAsync)
         {
             await base.Select_subquery_boolean(isAsync);
@@ -6241,7 +6243,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_boolean_with_pushdown(bool isAsync)
         {
             await base.Select_subquery_boolean_with_pushdown(isAsync);
@@ -6256,7 +6258,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_int_with_inside_cast_and_coalesce(bool isAsync)
         {
             await base.Select_subquery_int_with_inside_cast_and_coalesce(isAsync);
@@ -6271,7 +6273,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_int_with_outside_cast_and_coalesce(bool isAsync)
         {
             await base.Select_subquery_int_with_outside_cast_and_coalesce(isAsync);
@@ -6286,7 +6288,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_int_with_pushdown_and_coalesce(bool isAsync)
         {
             await base.Select_subquery_int_with_pushdown_and_coalesce(isAsync);
@@ -6301,7 +6303,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_int_with_pushdown_and_coalesce2(bool isAsync)
         {
             await base.Select_subquery_int_with_pushdown_and_coalesce2(isAsync);
@@ -6320,7 +6322,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_boolean_empty(bool isAsync)
         {
             await base.Select_subquery_boolean_empty(isAsync);
@@ -6335,7 +6337,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_boolean_empty_with_pushdown(bool isAsync)
         {
             await base.Select_subquery_boolean_empty_with_pushdown(isAsync);
@@ -6350,7 +6352,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_boolean_empty_with_pushdown_without_convert_to_nullable1(bool isAsync)
         {
             await base.Select_subquery_boolean_empty_with_pushdown_without_convert_to_nullable1(isAsync);
@@ -6365,7 +6367,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_boolean_empty_with_pushdown_without_convert_to_nullable2(bool isAsync)
         {
             await base.Select_subquery_boolean_empty_with_pushdown_without_convert_to_nullable2(isAsync);
@@ -6380,7 +6382,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_distinct_singleordefault_boolean1(bool isAsync)
         {
             await base.Select_subquery_distinct_singleordefault_boolean1(isAsync);
@@ -6411,7 +6413,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_distinct_singleordefault_boolean_with_pushdown(bool isAsync)
         {
             await base.Select_subquery_distinct_singleordefault_boolean_with_pushdown(isAsync);
@@ -6428,7 +6430,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_distinct_singleordefault_boolean_empty1(bool isAsync)
         {
             await base.Select_subquery_distinct_singleordefault_boolean_empty1(isAsync);
@@ -6459,7 +6461,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Select_subquery_distinct_singleordefault_boolean_empty_with_pushdown(bool isAsync)
         {
             await base.Select_subquery_distinct_singleordefault_boolean_empty_with_pushdown(isAsync);
@@ -6901,7 +6903,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Filter_with_complex_predicate_containing_subquery(bool isAsync)
         {
             await base.Filter_with_complex_predicate_containing_subquery(isAsync);
@@ -6916,7 +6918,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Query_with_complex_let_containing_ordering_and_filter_projecting_firstOrDefault_element_of_let(
             bool isAsync)
         {
@@ -7091,7 +7093,7 @@ namespace Actian.EFCore.Query
             return base.Project_derivied_entity_with_convert_to_parent(isAsync);
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Include_with_complex_order_by(bool isAsync)
         {
             await base.Include_with_complex_order_by(isAsync);
@@ -7114,7 +7116,7 @@ namespace Actian.EFCore.Query
             AssertSql(@"");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Bool_projection_from_subquery_treated_appropriately_in_where(bool isAsync)
         {
             await base.Bool_projection_from_subquery_treated_appropriately_in_where(isAsync);
@@ -7189,7 +7191,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Project_collection_navigation_nested_with_take_composite_key(bool isAsync)
         {
             await base.Project_collection_navigation_nested_with_take_composite_key(isAsync);
@@ -7758,7 +7760,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task FirstOrDefault_navigation_access_entity_equality_in_where_predicate_apply_peneding_selector(bool isAsync)
         {
             await base.FirstOrDefault_navigation_access_entity_equality_in_where_predicate_apply_peneding_selector(isAsync);
@@ -7798,7 +7800,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Conditional_expression_with_test_being_simplified_to_constant_complex(bool isAsync)
         {
             await base.Conditional_expression_with_test_being_simplified_to_constant_complex(isAsync);

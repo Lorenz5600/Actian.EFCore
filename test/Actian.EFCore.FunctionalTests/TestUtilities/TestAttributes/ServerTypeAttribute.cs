@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
 namespace Actian.EFCore.TestUtilities
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public class ServerTypeAttribute : Attribute, ITestCondition
+    public class ServerTypeAttribute : ActianTestAttribute, ITestCondition
     {
-        public ServerTypeAttribute(string serverType)
+        public ServerTypeAttribute(string serverType, [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+            : base(sourceFilePath, sourceLineNumber)
         {
             ServerType = serverType ?? throw new ArgumentNullException(nameof(serverType));
         }

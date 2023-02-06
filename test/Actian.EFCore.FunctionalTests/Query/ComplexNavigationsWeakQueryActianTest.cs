@@ -2,6 +2,7 @@
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -1352,7 +1353,7 @@ namespace Actian.EFCore.Query
             return base.Navigation_filter_navigation_grouping_ordering_by_group_key(isAsync);
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Nested_group_join_with_take(bool isAsync)
         {
             await base.Nested_group_join_with_take(isAsync);

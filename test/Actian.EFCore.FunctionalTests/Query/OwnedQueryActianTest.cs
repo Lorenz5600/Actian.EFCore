@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -394,7 +395,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Query_when_subquery(bool isAsync)
         {
             await base.Query_when_subquery(isAsync);
@@ -556,7 +557,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Navigation_rewrite_on_owned_collection_with_composition(bool isAsync)
         {
             await base.Navigation_rewrite_on_owned_collection_with_composition(isAsync);
@@ -575,7 +576,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Navigation_rewrite_on_owned_collection_with_composition_complex(bool isAsync)
         {
             await base.Navigation_rewrite_on_owned_collection_with_composition_complex(isAsync);

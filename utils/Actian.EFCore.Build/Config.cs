@@ -14,29 +14,31 @@ namespace Actian.EFCore.Build
         public static string FunctionalTestsDir => Path.Combine(SolutionRoot, "test", "Actian.EFCore.FunctionalTests");
         public static string NorthwindDir => Path.Combine(FunctionalTestsDir, "Northwind");
         public static string NorthwindSqlPath => Path.Combine(NorthwindDir, "Northwind.sql");
-        public static string NorthwindAsciiSqlName => "Northwind.ascii.sql";
-        public static string NorthwindAsciiSqlPath => Path.Combine(NorthwindDir, NorthwindAsciiSqlName);
         public static string InstallationPath => Environment.GetEnvironmentVariable("II_SYSTEM");
         public static string InstallationCode => GetInstallationCode();
-        public static string DbUserId => "efcore_test";
-        public static string DbUserPassword => "efcore_test";
-        public static string BaseConnectionString => $@"Server=localhost;Port={InstallationCode}7;User ID={DbUserId};Password={DbUserPassword};Trim Chars=True;Persist Security Info=true";
-
-        public static string GetConnectionString(string database)
+        public static string EFCoreTestConnectionString
         {
-            return new IngresConnectionStringBuilder(BaseConnectionString)
+            get
             {
-                Database = database
-            }.ConnectionString;
+                var connectionString = Environment.GetEnvironmentVariable($"ACTIAN_TEST_CONNECTION_STRING");
+                if (string.IsNullOrWhiteSpace(connectionString))
+                    throw new Exception($"Test connection string not found");
+                return connectionString;
+            }
         }
 
-        public static string GetConnectionString(string database, string dbmsUser)
+        public static string GetConnectionString(string database, string dbmsUser = null)
         {
-            return new IngresConnectionStringBuilder(BaseConnectionString)
+            var connectionStringBuilder = new IngresConnectionStringBuilder(EFCoreTestConnectionString)
             {
-                Database = database,
-                DbmsUser = $@"""{dbmsUser}"""
-            }.ConnectionString;
+                Database = database
+            };
+            if (!string.IsNullOrWhiteSpace(dbmsUser))
+            {
+                connectionStringBuilder.DbmsUser = $"\"{dbmsUser}\"";
+            }
+            connectionStringBuilder["Trim Chars"] = true;
+            return connectionStringBuilder.ConnectionString;
         }
 
         private static string GetDirUp(string filename)

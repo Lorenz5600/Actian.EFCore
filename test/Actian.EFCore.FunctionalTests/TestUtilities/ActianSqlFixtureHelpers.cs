@@ -64,8 +64,8 @@ namespace Actian.EFCore.TestUtilities
         private static string NormalizeSqlStatement(string statement, int index)
         {
             return index == 0
-                ? $"<Statement {index + 1}>\n{Text.Normalize(statement)}\n"
-                : $"\n<Statement {index + 1}>\n{Text.Normalize(statement)}\n";
+                ? $"<Statement {index + 1}>\n{statement.NormalizeText()}\n"
+                : $"\n<Statement {index + 1}>\n{statement.NormalizeText()}\n";
         }
 
         public void ClearLog() => ListLoggerFactory.Clear();

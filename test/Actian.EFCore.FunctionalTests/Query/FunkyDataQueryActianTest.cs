@@ -3,6 +3,7 @@ using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -66,7 +67,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("Long running")]
+        [ActianSkip(LongRunning)]
         public override async Task String_contains_on_argument_with_wildcard_parameter(bool isAsync)
         {
             await base.String_contains_on_argument_with_wildcard_parameter(isAsync);

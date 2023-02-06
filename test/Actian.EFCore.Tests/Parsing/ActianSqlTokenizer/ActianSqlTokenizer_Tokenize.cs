@@ -79,7 +79,7 @@ namespace Actian.EFCore.Tests.Parsing.ActianSqlTokenizer
             if (File.Exists(resultPath))
                 File.Delete(resultPath);
 
-            var script = File.ReadAllText(scriptPath, Encoding.UTF8);
+            var script = string.Join("\n", File.ReadLines(scriptPath, Encoding.UTF8));
 
             var expected = File.ReadLines(expectedPath, Encoding.UTF8)
                 .Select(Deserialize)

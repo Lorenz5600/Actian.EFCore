@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Globalization;
 using Ingres.Client;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -76,13 +77,13 @@ namespace Actian.EFCore.Storage.Internal
         /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value) => value switch
         {
-            DateTime dateTime when WithTimeZone => $"TIMESTAMP '{dateTime:yyyy-MM-dd HH:mm:ss.FFFFFFF}{GetTimeZone(dateTime)}'",
-            DateTime dateTime => $"TIMESTAMP '{dateTime:yyyy-MM-dd HH:mm:ss.FFFFFFF}'",
-            DateTimeOffset dateTimeOffset => $"TIMESTAMP '{dateTimeOffset:yyyy-MM-dd HH:mm:ss.FFFFFFFzzz}'",
+            DateTime dateTime when WithTimeZone => string.Format(CultureInfo.InvariantCulture, "TIMESTAMP '{0:yyyy-MM-dd HH:mm:ss.FFFFFFF}{1}'", dateTime, GetTimeZone(dateTime)),
+            DateTime dateTime => string.Format(CultureInfo.InvariantCulture, "TIMESTAMP '{0:yyyy-MM-dd HH:mm:ss.FFFFFFF}'", dateTime),
+            DateTimeOffset dateTimeOffset => string.Format(CultureInfo.InvariantCulture, "TIMESTAMP '{0:yyyy-MM-dd HH:mm:ss.FFFFFFFzzz}'", dateTimeOffset),
             _ => throw new InvalidCastException($"Attempted to generate timestamp literal for type {value.GetType()}, only DateTime and DateTimeOffset are supported")
         };
 
         private string GetTimeZone(DateTime value)
-            => value.Kind == DateTimeKind.Local ? $"{value:zzz}" : "+00:00";
+            => value.Kind == DateTimeKind.Local ? string.Format(CultureInfo.InvariantCulture, "{0:zzz}", value) : "+00:00";
     }
 }

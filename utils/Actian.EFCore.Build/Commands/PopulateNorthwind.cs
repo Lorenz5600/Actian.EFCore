@@ -19,9 +19,10 @@ namespace Actian.EFCore.Build.Commands
             if (db is null)
                 throw new Exception("Northwind test database not found");
 
-            using var console = new LogConsole($"Populating databases {db.Name}", buffer: false);
-            using var session = new IngresSession(Config.GetConnectionString(db.Name, db.DbmsUser), console);
+            using var console = new LogConsole($"Populating database {db.Name}", buffer: false);
 
+            await Context.EnsureTestDatabase(db, console);
+            using var session = new IngresSession(Config.GetConnectionString(db.Name, db.DbmsUser), console);
             await ActianSqlExecutor.ExecuteFileAsync(Config.NorthwindSqlPath, (sql, ignoreErrors) => session.ExecuteAsync(sql, ignoreErrors));
         }
     }

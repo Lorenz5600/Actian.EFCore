@@ -3,6 +3,7 @@ using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore.Query
 {
@@ -54,7 +55,7 @@ namespace Actian.EFCore.Query
             base.Include_property_expression_invalid();
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Then_include_collection_order_by_collection_column(bool useString)
         {
             base.Then_include_collection_order_by_collection_column(useString);
@@ -124,7 +125,7 @@ namespace Actian.EFCore.Query
             base.Include_collection_then_reference(useString);
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_with_last(bool useString)
         {
             base.Include_collection_with_last(useString);
@@ -167,7 +168,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_take_no_order_by(bool useString)
         {
             base.Include_collection_take_no_order_by(useString);
@@ -252,7 +253,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_as_no_tracking2(bool useString)
         {
             base.Include_collection_as_no_tracking2(useString);
@@ -270,7 +271,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_dependent_already_tracked(bool useString)
         {
             base.Include_collection_dependent_already_tracked(useString);
@@ -293,7 +294,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_dependent_already_tracked_as_no_tracking(bool useString)
         {
             base.Include_collection_dependent_already_tracked_as_no_tracking(useString);
@@ -316,7 +317,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_on_additional_from_clause(bool useString)
         {
             base.Include_collection_on_additional_from_clause(useString);
@@ -357,7 +358,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_on_additional_from_clause2(bool useString)
         {
             base.Include_collection_on_additional_from_clause2(useString);
@@ -461,7 +462,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_when_groupby_subquery(bool useString)
         {
             base.Include_collection_when_groupby_subquery(useString);
@@ -502,7 +503,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_order_by_collection_column(bool useString)
         {
             base.Include_collection_order_by_collection_column(useString);
@@ -549,7 +550,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_order_by_non_key_with_take(bool useString)
         {
             base.Include_collection_order_by_non_key_with_take(useString);
@@ -589,7 +590,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_order_by_non_key_with_first_or_default(bool useString)
         {
             base.Include_collection_order_by_non_key_with_first_or_default(useString);
@@ -605,7 +606,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_order_by_subquery(bool useString)
         {
             base.Include_collection_order_by_subquery(useString);
@@ -630,7 +631,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_principal_already_tracked(bool useString)
         {
             base.Include_collection_principal_already_tracked(useString);
@@ -653,7 +654,7 @@ namespace Actian.EFCore.Query
             );
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_principal_already_tracked_as_no_tracking(bool useString)
         {
             base.Include_collection_principal_already_tracked_as_no_tracking(useString);
@@ -715,7 +716,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_duplicate_collection(bool useString)
         {
             base.Include_duplicate_collection(useString);
@@ -743,7 +744,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_duplicate_collection_result_operator(bool useString)
         {
             base.Include_duplicate_collection_result_operator(useString);
@@ -808,7 +809,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_duplicate_reference(bool useString)
         {
             base.Include_duplicate_reference(useString);
@@ -836,7 +837,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_duplicate_reference2(bool useString)
         {
             base.Include_duplicate_reference2(useString);
@@ -863,7 +864,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_duplicate_reference3(bool useString)
         {
             base.Include_duplicate_reference3(useString);
@@ -895,7 +896,7 @@ namespace Actian.EFCore.Query
             base.Include_collection_with_client_filter(useString);
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_multi_level_reference_and_collection_predicate(bool useString)
         {
             base.Include_multi_level_reference_and_collection_predicate(useString);
@@ -912,7 +913,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_multi_level_collection_and_then_include_reference_predicate(bool useString)
         {
             base.Include_multi_level_collection_and_then_include_reference_predicate(useString);
@@ -1219,7 +1220,7 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_with_take(bool useString)
         {
             base.Include_with_take(useString);
@@ -1259,7 +1260,7 @@ namespace Actian.EFCore.Query
             }
         }
 
-        [ActianSkip("ORDER BY, OFFSET, FIRST and FETCH FIRST clauses cannot be used in subselects.")]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Include_collection_with_multiple_conditional_order_by(bool useString)
         {
             base.Include_collection_with_multiple_conditional_order_by(useString);

@@ -1,5 +1,12 @@
 [
   {
+    "Name": "efc_db_template",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "IsTemplateDatabase": true
+  },
+  {
     "Name": "efc_builtindatatypes",
     "DbmsUser": "dbo",
     "Drop": true,
