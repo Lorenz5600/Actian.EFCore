@@ -212,7 +212,7 @@ jobs:
         working-directory: nupkg
         run: dotnet nuget push "*.nupkg" --source https://nuget.pkg.github.com/2PS-Consulting/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: smartsquaregmbh/delete-old-packages@v0.2.0
+      - uses: smartsquaregmbh/delete-old-packages@v0.6.0
         with:
           keep: 5
           version-pattern: "^\\d+\\.\\d+\\.\\d+-beta"
