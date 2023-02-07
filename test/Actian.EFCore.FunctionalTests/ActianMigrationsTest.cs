@@ -19,8 +19,8 @@ namespace Actian.EFCore
         public ActianMigrationsTest(ActianMigrationsFixture fixture, ITestOutputHelper output)
             : base(fixture)
         {
-            TestEnvironment.Log(this, output);
             Output = output;
+            TestEnvironment.Log(this, output);
         }
 
         protected override void GiveMeSomeTime(DbContext db)

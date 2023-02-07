@@ -59,6 +59,7 @@ namespace Actian.EFCore.TestUtilities
             var fixture = testObject?.GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+                .Where(p => p.PropertyType.IsSubclassOf(typeof(FixtureBase)))
                 .Select(p => p.GetValue(testObject))
                 .OfType<FixtureBase>()
                 .FirstOrDefault();
@@ -66,6 +67,7 @@ namespace Actian.EFCore.TestUtilities
             var storeName = fixture?.GetType()
                 .GetProperties(BindingFlags.Instance| BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(p => p.CanRead && p.Name == "TestStore" && p.GetIndexParameters().Length == 0)
+                .Where(p => p.PropertyType.IsSubclassOf(typeof(TestStore)))
                 .Select(p => p.GetValue(fixture))
                 .OfType<TestStore>()
                 .FirstOrDefault()?.Name;
