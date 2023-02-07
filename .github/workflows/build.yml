@@ -78,18 +78,22 @@ jobs:
           path: TestResults
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 3.1.101
+          dotnet-version: |
+            3.1.x
+            5.0.x
+            6.0.x
+            7.0.x
 
       - name: Download test results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
 
       - name: Set variables
         id: variables
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         env:
           EVENT_NAME: ${{ github.event_name }}
           PR: ${{ github.event.number }}
@@ -148,22 +152,20 @@ jobs:
         run: dotnet run --project utils/Actian.TestLoggers/Actian.TestLoggers.csproj -- --format md --depth Installation ${{ steps.variables.outputs.params }} --output TestResults.overview.md artifacts/**/*.json
 
       - name: Publish test report
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
-            const text = fs.readFileSync('TestResults.overview.md', 'utf8');
-            github.checks.create({
+            const title = '${{ steps.variables.outputs.title }}';
+            const summary = fs.readFileSync('TestResults.overview.md', 'utf8');
+            github.rest.checks.create({
               name: 'Test Results',
               owner: context.repo.owner,
               repo: context.repo.repo,
               head_sha: context.sha,
               status: 'completed',
               conclusion: 'neutral',
-              output: {
-                title: '${{ steps.variables.outputs.title }}',
-                summary: text
-              }
+              output: { title, summary }
             });
 
       - name: Add test report as comment to pull request

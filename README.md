@@ -42,7 +42,7 @@ When running tests the database server to be used is specified by the environmen
 
 Example:
 ```
-Server=actian-client-test;Port=II7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true
+Server=actian-client-test;Port=II7;User ID=efcore_test;Password=xxxxxxxxxx;Persist Security Info=true
 ```
 
 The connection string should _not_ specify the database.
@@ -102,8 +102,10 @@ The tests are run in each of the following environments:
 - Actian X server 11.2.0
 - Compatibility: Ingres
 - Installation: CI
-- `ACTIAN_TEST_CONNECTION_STRING`: "localhost;Port=CI7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true"
-- Test results for main branch: <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CI7/Index.md>
+- `ACTIAN_TEST_CONNECTION_STRING`:   
+  "localhost;Port=CI7;User ID=efcore_test;Password=xxxxxxxxxx;Persist Security Info=true"
+- Latest test results for main branch:   
+  <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CI7/Index.md>
 
 ### WIN64_INGRES_11_2_0, Ansi
 
@@ -112,8 +114,10 @@ The tests are run in each of the following environments:
 - Actian X server 11.2.0
 - Compatibility: ANSI/ISO Entry SQL-92
 - Installation: CA
-- `ACTIAN_TEST_CONNECTION_STRING`: "localhost;Port=CA7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true"
-- Test results for main branch: <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CA7/Index.md>
+- `ACTIAN_TEST_CONNECTION_STRING`:   
+  "localhost;Port=CA7;User ID=efcore_test;Password=xxxxxxxxxx;Persist Security Info=true"
+- Latest test results for main branch:   
+  <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CA7/Index.md>
 
 
 [Customer Downloads]: https://esd.actian.com/
