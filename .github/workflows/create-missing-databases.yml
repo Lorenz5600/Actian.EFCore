@@ -35,7 +35,7 @@ jobs:
           exit /b 0
         shell: cmd
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Actian installation
         run: powershell .\scripts\SetupActianInstallation.ps1

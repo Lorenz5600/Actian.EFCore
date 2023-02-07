@@ -43,7 +43,7 @@ jobs:
           exit /b 0
         shell: cmd
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Environment
         run: |
@@ -56,7 +56,7 @@ jobs:
         run: dotnet test Actian.EFCore.sln --configuration ${{ env.config }} --verbosity quiet --no-restore --no-build --logger "actian-json;LogFileName=${{ matrix.actian-efcore-environment }}-${{ matrix.compatibility }}.json"
 
       - name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-results-${{ matrix.actian-efcore-environment }}-${{ matrix.compatibility }}
@@ -69,10 +69,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout TestResults
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: refs/heads/TestResults
           path: TestResults
@@ -189,7 +189,7 @@ jobs:
           exit /b 0
         shell: cmd
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Build
         run: dotnet build Actian.EFCore.sln --configuration ${{ env.config }}
