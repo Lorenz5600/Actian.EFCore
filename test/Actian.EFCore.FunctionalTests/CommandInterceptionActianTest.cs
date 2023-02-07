@@ -42,6 +42,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_passively(async, inject);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_passively(bool async, bool inject)
         {
             return base.Intercept_non_query_passively(async, inject);
@@ -82,6 +83,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_to_mutate_command(async, inject);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_to_mutate_command(bool async, bool inject)
         {
             return base.Intercept_non_query_to_mutate_command(async, inject);
@@ -102,6 +104,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_to_replace_execution(async, inject);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_to_replace_execution(bool async, bool inject)
         {
             return base.Intercept_non_query_to_replace_execution(async, inject);
@@ -117,6 +120,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_to_replace_result(async, inject);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_to_replace_result(bool async, bool inject)
         {
             return base.Intercept_non_query_to_replace_result(async, inject);
@@ -162,6 +166,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_with_one_app_and_one_injected_interceptor(async);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_one_app_and_one_injected_interceptor(bool async)
         {
             return base.Intercept_non_query_one_app_and_one_injected_interceptor(async);
@@ -177,6 +182,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_with_two_injected_interceptors(async);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_with_two_injected_interceptors(bool async)
         {
             return base.Intercept_non_query_with_two_injected_interceptors(async);
@@ -192,6 +198,7 @@ namespace Actian.EFCore
             return base.Intercept_scalar_with_explicitly_composed_app_interceptor(async);
         }
 
+        [ActianSkipAnsi]
         public override Task Intercept_non_query_with_explicitly_composed_app_interceptor(bool async)
         {
             return base.Intercept_non_query_with_explicitly_composed_app_interceptor(async);

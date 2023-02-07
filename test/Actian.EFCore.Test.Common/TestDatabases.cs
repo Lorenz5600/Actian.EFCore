@@ -51,13 +51,13 @@ namespace Actian.EFCore.TestUtilities
             .OrderBy(db => db.Name)
             .SelectMany(db => db.Messages.Select(message => $"{db.Name}: {message}"));
 
-        public TestDatabase GetTestDatabase(string name)
+        public TestDatabase GetTestDatabase(string name, bool strict = true)
         {
             if (name is null)
-                throw new ArgumentNullException(nameof(name));
+                return strict ? throw new ArgumentNullException(nameof(name)) : (TestDatabase)null;
 
             if (string.IsNullOrWhiteSpace(name))
-                throw new Exception($"Argument {nameof(name)} must have a value");
+                return strict ? throw new Exception($"Argument {nameof(name)} must have a value") : (TestDatabase)null;
 
             var testDatabases = Databases.Where(db => db.Matches(name)).ToList();
             return testDatabases.Count switch

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Ingres.Client;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore.TestUtilities
@@ -11,7 +14,7 @@ namespace Actian.EFCore.TestUtilities
     {
         public static void Log(object testObject, ITestOutputHelper testOutputHelper)
         {
-            LogInternal(GetImplementedClass(testObject?.GetType()), testOutputHelper);
+            LogInternal(GetImplementedClass(testObject?.GetType()), GetTestDatabaseFromTestObject(testObject), testOutputHelper);
         }
 
         private static Type GetImplementedClass(Type type, Assembly assembly = null)
@@ -27,16 +30,47 @@ namespace Actian.EFCore.TestUtilities
             return GetImplementedClass(type.BaseType, assembly);
         }
 
-        private static void LogInternal(Type implementedClass, ITestOutputHelper testOutputHelper)
+        private static void LogInternal(Type implementedClass, TestDatabase db, ITestOutputHelper testOutputHelper)
         {
             testOutputHelper.WriteLine($"### Actian Server: {GetConnectionStringParameter(cb => cb.Server)}");
             testOutputHelper.WriteLine($"### Actian Server Port: {GetConnectionStringParameter(cb => cb.Port)}");
             testOutputHelper.WriteLine($"### Actian Server Version: {ActianServerVersion}");
-            testOutputHelper.WriteLine($"### Actian Server Compatibilty: {ActianServerCompatibilty}");
+            testOutputHelper.WriteLine($"### Actian Server Compatibilty: {ActianServerCompatibilty.AsString()}");
             if (implementedClass != null)
             {
                 testOutputHelper.WriteLine($"### Test class implements: {implementedClass.PrettyName(true)}");
             }
+            if (db != null)
+            {
+                testOutputHelper.WriteLine($"### Database: {db}");
+                testOutputHelper.WriteLine($"### Connection string: {db.ConnectionString}");
+                foreach (var alias in db.Aliases)
+                {
+                    testOutputHelper.WriteLine($"### Database alias: {alias}");
+                }
+            }
+        }
+
+        private static TestDatabase GetTestDatabaseFromTestObject(object testObject)
+            => GetTestDatabaseFromFixture(testObject);
+
+        private static TestDatabase GetTestDatabaseFromFixture(object testObject)
+        {
+            var fixture = testObject?.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+                .Select(p => p.GetValue(testObject))
+                .OfType<FixtureBase>()
+                .FirstOrDefault();
+
+            var storeName = fixture?.GetType()
+                .GetProperties(BindingFlags.Instance| BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(p => p.CanRead && p.Name == "TestStore" && p.GetIndexParameters().Length == 0)
+                .Select(p => p.GetValue(fixture))
+                .OfType<TestStore>()
+                .FirstOrDefault()?.Name;
+
+            return TestDatabases.GetTestDatabase(storeName, strict: false);
         }
 
         public static string EFCoreTestConnectionString
@@ -104,19 +138,19 @@ namespace Actian.EFCore.TestUtilities
             return (dbNameCase, dbDelimitedCase);
         });
 
-        public static string ActianServerCompatibilty
+        public static ActianCompatibility ActianServerCompatibilty
         {
             get
             {
                 var (dbNameCase, dbDelimitedCase) = _dbCasing.Value;
 
                 if (dbNameCase == "UPPER" && dbDelimitedCase == "MIXED")
-                    return "ANSI/ISO Entry SQL-92";
+                    return ActianCompatibility.Ansi;
 
                 if (dbNameCase == "LOWER" && dbDelimitedCase == "LOWER")
-                    return "Ingres";
+                    return ActianCompatibility.Ingres;
 
-                return "Unknown";
+                return ActianCompatibility.Unknown;
             }
         }
 

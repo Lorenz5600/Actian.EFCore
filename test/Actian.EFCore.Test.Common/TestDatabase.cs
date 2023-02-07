@@ -32,12 +32,9 @@ namespace Actian.EFCore.TestUtilities
                 var builder = new IngresConnectionStringBuilder(TestEnvironment.EFCoreTestConnectionString)
                 {
                     Database = Name,
+                    DbmsUser = !string.IsNullOrWhiteSpace(DbmsUser) ? $@"""{DbmsUser}""" : null,
                     Pooling = Pooling
                 };
-                if (!string.IsNullOrWhiteSpace(DbmsUser))
-                {
-                    builder.DbmsUser = $@"""{DbmsUser}""";
-                }
                 return builder.ConnectionString;
             }
         }

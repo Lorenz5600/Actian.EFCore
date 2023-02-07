@@ -22,5 +22,13 @@
             Concatenating `nchar(...)` and `nvarchar(...)` in ActianX results in a fixed length string.
             This test expects a variable length string.
         ";
+
+        public static readonly string TestFailsForAnsi = $@"
+            This test fails for databases compatible with {ActianCompatibility.Ansi.AsString()}.
+        ";
+
+        public static readonly string TestFailsForIngres = $@"
+            This test fails for databases compatible with {ActianCompatibility.Ingres.AsString()}.
+        ";
     }
 }
