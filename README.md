@@ -12,6 +12,8 @@ Actian.Client can be downloaded from [Customer Downloads].
 
 For help setting up a local NuGet feed see: [Setting up Local NuGet Feeds | Microsoft Docs].
 
+Beta versions of Actian.EFCore can be installed from [Actian.EFCore Packages].
+
 ### Install using the .NET Core CLI
 
 ```
@@ -26,13 +28,12 @@ Install-Package Actian.EFCore
 
 ## Testing
 
-The Actian.EFCore solution contains a number of automated tests. These tests can be run in Visual Studio or from the command line:
+The Actian.EFCore solution contains a number of automated tests.
 
-```
-dotnet test
-```
+### Configuration for tests
 
 When running tests the database server to be used is specified by the environment variable `ACTIAN_TEST_CONNECTION_STRING`. This variable should contain an Actian client connection string specifying:
+
 - The actian server
 - The port
 - The dabase user id
@@ -44,21 +45,26 @@ Example:
 Server=actian-client-test;Port=II7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true
 ```
 
-The connection string does _not_ need to specify the database.
+The connection string should _not_ specify the database.
 
 The database user specified in the connection string should:
 - have permission to create new database users
 - have permission to impersonate other database users
 
-A number of databases, owned by the `"dbo"` user, should be created before running tests.
+### Preparing to test
 
-These databases can be created on the machine that hosts the database server:
+A number of databases, owned by the `"dbo"` user, need to be created before running tests.
+
+These databases can be created on the machine that hosts the database server by running the following script:
 
 ```
 scripts\setup-test-databases.cmd
 ```
 
+The environment variable `ACTIAN_TEST_CONNECTION_STRING` must be have a valid value for this to work.
+
 The user that runs this script should:
+
 - have permission to create new database users
 - have permission to create new databases
 - have permission to impersonate other database users
@@ -68,40 +74,51 @@ When running `scripts\setup-test-databases.cmd` the following users will be crea
 - `"db2"`
 - `"db.2"`
 
+### Running tests
+
+These tests can be run in Visual Studio or from the command line:
+
+```
+dotnet test
+```
+
+The environment variable `ACTIAN_TEST_CONNECTION_STRING` must be have a valid value for this to work.
+
 ## Continous integration
 
-Actian.EFCore is tested and built using build script `.github/workflows/build.yml`. A build is started when:
+Actian.EFCore is built and tested using build script `.github/workflows/build.yml`. A build is started when:
 
 - Changes are pushed to branch `main`.
 - Changes are pushed to a branch that has a pull request to branch `main`.
 
+Test results are saved to branch [TestResults] branch of the [Actian.EFCore repository].
+
 The tests are run in each of the following environments:
 
-### WIN64_INGRES_10_1_0, Ingres
+### WIN64_INGRES_11_2_0, Ingres
 
-- Windows Server 2019 64 bit
-- Ingres server 10.1.0
+- Host: Actian1
+- Windows Server 2022 64 bit
+- Actian X server 11.2.0
 - Compatibility: Ingres
+- Installation: CI
+- `ACTIAN_TEST_CONNECTION_STRING`: "localhost;Port=CI7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true"
+- Test results for main branch: <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CI7/Index.md>
 
-### WIN64_INGRES_10_1_0, Ansi
+### WIN64_INGRES_11_2_0, Ansi
 
-- Windows Server 2019 64 bit
-- Ingres server 10.1.0
+- Host: Actian1
+- Windows Server 2022 64 bit
+- Actian X server 11.2.0
 - Compatibility: ANSI/ISO Entry SQL-92
-
-### WIN64_ACTIANX_11_1_0, Ingres
-
-- Windows Server 2019 64 bit
-- ActianX server 11.1.0
-- Compatibility: Ingres
-
-### WIN64_ACTIANX_11_1_0, Ansi
-
-- Windows Server 2019 64 bit
-- ActianX server 11.1.0
-- Compatibility: ANSI/ISO Entry SQL-92
+- Installation: CA
+- `ACTIAN_TEST_CONNECTION_STRING`: "localhost;Port=CA7;User ID=efcore_test;Password=efcore_test;Persist Security Info=true"
+- Test results for main branch: <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CA7/Index.md>
 
 
 [Customer Downloads]: https://esd.actian.com/
 [Setting up Local NuGet Feeds | Microsoft Docs]: https://docs.microsoft.com/en-us/nuget/hosting-packages/local-feeds
 [NuGet.org]: https://www.nuget.org/
+[Actian.EFCore Packages]: https://github.com/2PS-Consulting/Actian.EFCore/pkgs/nuget/Actian.EFCore
+[TestResults]: https://github.com/2PS-Consulting/Actian.EFCore/tree/TestResults
+[Actian.EFCore repository]: https://github.com/2PS-Consulting/Actian.EFCore
