@@ -89,7 +89,7 @@ The environment variable `ACTIAN_TEST_CONNECTION_STRING` must be have a valid va
 Actian.EFCore is built and tested using build script `.github/workflows/build.yml`. A build is started when:
 
 - Changes are pushed to branch `main`.
-- Changes are pushed to a branch that has a pull request to branch `main`.
+- Changes are pushed to a branch that has a pull request to branch `main`. _This has been disabled for now_
 
 Test results are saved to branch [TestResults] branch of the [Actian.EFCore repository].
 
