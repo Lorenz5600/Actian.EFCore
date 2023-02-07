@@ -200,8 +200,15 @@ namespace Actian.EFCore.Storage.Internal
                     var isUnicode = mappingInfo.IsUnicode ?? true;
                     var isFixedLength = mappingInfo.IsFixedLength ?? false;
                     var maxSize = isUnicode ? 16000 : 32000;
+                    var maxKeySize = isUnicode ? 220 : 440; // TODO: Make this an option
 
                     var size = mappingInfo.Size;
+
+                    if (size is null && mappingInfo.IsKeyOrIndex)
+                    {
+                        size = maxKeySize;
+                    }
+
                     if (size > maxSize)
                     {
                         size = isFixedLength ? maxSize : (int?)null;
