@@ -7,20 +7,25 @@ using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 namespace Actian.EFCore.TestUtilities
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class ActianSkipAttribute : ActianTestAttribute, ITestCondition
+    public class ActianSkipAttribute : ActianTestAttribute, ITestCondition
     {
         public IEnumerable<ActianCondition> Conditions { get; set; }
 
-        public ActianSkipAttribute(string skipReason, [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        public ActianSkipAttribute(string skipReason, ActianCompatibility compatibility = ActianCompatibility.Ansi | ActianCompatibility.Ingres, [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
             : base(sourceFilePath, sourceLineNumber)
         {
             SkipReason = skipReason.NormalizeText() ?? throw new ArgumentNullException(nameof(skipReason));
+            Compatibility = compatibility;
         }
 
-        private static readonly ValueTask<bool> FalseValueTask = new ValueTask<bool>(false);
-
-        public ValueTask<bool> IsMetAsync() => FalseValueTask;
+        public ValueTask<bool> IsMetAsync() => Compatibility switch
+        {
+            ActianCompatibility.Ingres => new ValueTask<bool>(TestEnvironment.ActianServerCompatibilty != ActianCompatibility.Ingres),
+            ActianCompatibility.Ansi => new ValueTask<bool>(TestEnvironment.ActianServerCompatibilty != ActianCompatibility.Ansi),
+            _ => new ValueTask<bool>(false)
+        };
 
         public string SkipReason { get; }
+        public ActianCompatibility Compatibility { get; }
     }
 }

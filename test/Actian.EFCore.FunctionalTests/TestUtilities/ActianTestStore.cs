@@ -685,6 +685,25 @@ namespace Actian.EFCore.TestUtilities
             return command;
         }
 
+        public override string NormalizeDelimitersInRawString(string sql)
+        {
+            Logger.LogInformation(new string('=', 80));
+            Logger.LogInformation("NormalizeDelimitersInRawString");
+            Logger.LogInformation(new string('-', 80));
+            Logger.LogInformation(sql);
+            Logger.LogInformation(new string('-', 80));
+            sql = base.NormalizeDelimitersInRawString(sql);
+            Logger.LogInformation(sql);
+            Logger.LogInformation(new string('=', 80));
+            return sql;
+        }
+
+        public override FormattableString NormalizeDelimitersInInterpolatedString(FormattableString sql)
+        {
+            sql = base.NormalizeDelimitersInInterpolatedString(sql);
+            return sql;
+        }
+
         public override void Dispose()
         {
             Connection?.Dispose();
