@@ -78,7 +78,7 @@ namespace Actian.EFCore
             Sql.Should().NotDifferFrom(@"
                 CREATE TABLE ""__EFMigrationsHistory"" (
                     ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL,
+                    ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
                     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
                 )
             ");
@@ -93,7 +93,7 @@ namespace Actian.EFCore
             Sql.Should().NotDifferFrom(@"
                 CREATE TABLE ""__EFMigrationsHistory"" (
                     ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL,
+                    ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
                     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
                 )
             ");
@@ -108,7 +108,7 @@ namespace Actian.EFCore
             Sql.Should().NotDifferFrom(@"
                 CREATE TABLE ""__EFMigrationsHistory"" (
                     ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL,
+                    ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
                     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
                 )
 

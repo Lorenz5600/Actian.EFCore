@@ -258,10 +258,38 @@ namespace Actian.EFCore.Migrations
                 .Append(" ")
                 .Append(columnType);
 
-            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
-
             builder.Append(operation.IsNullable ? " WITH NULL" : " NOT NULL");
+
+            if (!operation.IsNullable && operation.DefaultValue is null && operation.DefaultValueSql is null)
+            {
+                var property = FindProperty(model, schema, table, name);
+                if (property != null && !property.IsKey() && !property.IsForeignKey())
+                {
+                    operation.DefaultValueSql = GetDefaultValueSql(columnType);
+                }
+            }
+
+            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
         }
+
+        private string GetDefaultValueSql(string columnType) => columnType.ToLowerInvariant() switch
+        {
+            _ when columnType.Contains("int") => "0",
+            _ when columnType.Contains("float") => "0",
+            _ when columnType.Contains("decimal") => "0",
+            "money" => "0",
+            _ when columnType.Contains("char") => "''",
+            "time" => "time '00:00:00'",
+            "time without time zone" => "time '00:00:00'",
+            "time with time zone" => "time '00:00:00'",
+            "time with local time zone" => "time '00:00:00'",
+            "timestamp" => "current_timestamp",
+            "timestamp without time zone" => "current_timestamp",
+            "timestamp with time zone" => "current_timestamp",
+            "timestamp with local time zone" => "current_timestamp",
+            "date" => "current_date",
+            _ => null
+        };
 
         protected override void ComputedColumnDefinition(
             [CanBeNull] string schema,
@@ -286,31 +314,69 @@ namespace Actian.EFCore.Migrations
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(operation, nameof(operation));
 
-            var keyOrIndex = false;
+            var keyOrIndex = GetIsKeyOrIndex(schema, table, name, model);
 
             var property = FindProperty(model, schema, table, name);
             if (property != null)
             {
-                if (operation.IsUnicode == property.IsUnicode()
-                    && operation.MaxLength == property.GetMaxLength()
-                    && (operation.IsFixedLength ?? false) == property.IsFixedLength()
-                    && operation.IsRowVersion == (property.IsConcurrencyToken && property.ValueGenerated == ValueGenerated.OnAddOrUpdate))
+                var isUnicode = property.IsUnicode();
+                var maxLength = property.GetMaxLength();
+                var isFixedLength = property.IsFixedLength();
+                var isRowVersion = property.IsConcurrencyToken && property.ValueGenerated == ValueGenerated.OnAddOrUpdate;
+
+                if (!keyOrIndex
+                    && operation.IsUnicode == isUnicode
+                    && operation.MaxLength == maxLength
+                    && (operation.IsFixedLength ?? false) == isFixedLength
+                    && operation.IsRowVersion == isRowVersion)
                 {
                     return Dependencies.TypeMappingSource.FindMapping(property).StoreType;
                 }
-
-                keyOrIndex = property.IsKey() || property.IsForeignKey();
             }
 
             return Dependencies.TypeMappingSource.FindMapping(
-                    operation.ClrType,
-                    null,
-                    keyOrIndex,
-                    operation.IsUnicode,
-                    operation.MaxLength,
-                    operation.IsRowVersion,
-                    operation.IsFixedLength)
-                .StoreType;
+                operation.ClrType,
+                null,
+                keyOrIndex,
+                operation.IsUnicode,
+                operation.MaxLength,
+                operation.IsRowVersion,
+                operation.IsFixedLength
+            ).StoreType;
+        }
+
+        private bool GetIsKeyOrIndex(
+            [CanBeNull] string schema,
+            [NotNull] string table,
+            [NotNull] string name,
+            [CanBeNull] IModel model
+            )
+        {
+            Check.NotEmpty(table, nameof(table));
+            Check.NotEmpty(name, nameof(name));
+
+            if (model is null)
+                return false;
+
+            foreach (var entity in FindEntityTypes(model, schema, table))
+            {
+                var entityProperty = entity.GetDeclaredProperties()
+                    .FirstOrDefault(p => p.GetColumnName() == name);
+
+                if (entityProperty is null)
+                    continue;
+
+                if (entityProperty.IsKey() || entityProperty.IsForeignKey())
+                    return true;
+
+                foreach (var index in entity.GetDeclaredIndexes())
+                {
+                    if (index.Properties.Any(p => p.Name == entityProperty.Name))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         protected override void DefaultValue(
@@ -324,9 +390,8 @@ namespace Actian.EFCore.Migrations
             if (defaultValueSql != null)
             {
                 builder
-                    .Append(" DEFAULT (")
-                    .Append(defaultValueSql)
-                    .Append(")");
+                    .Append(" WITH DEFAULT ")
+                    .Append(defaultValueSql);
             }
             else if (defaultValue != null)
             {
@@ -340,7 +405,7 @@ namespace Actian.EFCore.Migrations
                 }
 
                 builder
-                    .Append(" DEFAULT ")
+                    .Append(" WITH DEFAULT ")
                     .Append(typeMapping.GenerateSqlLiteral(defaultValue));
             }
         }

@@ -188,7 +188,7 @@ namespace Actian.EFCore
         {
             base.AlterColumnOperation();
             AssertSql(@"
-                ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" int DEFAULT 7 NOT NULL
+                ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" int NOT NULL WITH DEFAULT 7
                 GO
 
                 set session authorization ""dbo""
