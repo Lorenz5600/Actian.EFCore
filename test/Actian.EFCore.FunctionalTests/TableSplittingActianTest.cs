@@ -1,11 +1,12 @@
-﻿using Actian.EFCore.TestUtilities;
+﻿using System;
+using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public class TableSplittingActianTest : TableSplittingTestBase
+    public class TableSplittingActianTest : TableSplittingTestBase, IDisposable
     {
         public TableSplittingActianTest(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
@@ -16,17 +17,17 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public new void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
 
-        [ActianTodo]
+
         public override void Can_update_just_dependents()
         {
             base.Can_update_just_dependents();
         }
 
-        [ActianTodo]
+
         public override void Can_query_shared()
         {
             base.Can_query_shared();
@@ -42,7 +43,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_query_shared_nonhierarchy()
         {
             base.Can_query_shared_nonhierarchy();
@@ -69,7 +70,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_query_shared_nonhierarchy_with_nonshared_dependent()
         {
             base.Can_query_shared_nonhierarchy_with_nonshared_dependent();
@@ -92,7 +93,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_query_shared_derived_hierarchy()
         {
             base.Can_query_shared_derived_hierarchy();
@@ -121,7 +122,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_query_shared_derived_nonhierarchy()
         {
             base.Can_query_shared_derived_nonhierarchy();
@@ -150,7 +151,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_query_shared_derived_nonhierarchy_all_required()
         {
             base.Can_query_shared_derived_nonhierarchy_all_required();
@@ -179,7 +180,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_use_with_redundant_relationships()
         {
             base.Can_use_with_redundant_relationships();
@@ -249,69 +250,65 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_use_with_chained_relationships()
         {
             base.Can_use_with_chained_relationships();
         }
 
-        [ActianTodo]
+
         public override void Can_use_with_fanned_relationships()
         {
             base.Can_use_with_fanned_relationships();
         }
 
-        [ActianTodo]
+
         public override void Can_share_required_columns()
         {
             base.Can_share_required_columns();
         }
 
-        [ActianTodo]
+
         public override void Can_manipulate_entities_sharing_row_independently()
         {
             base.Can_manipulate_entities_sharing_row_independently();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_dependent_with_just_one_parent()
         {
             base.Can_insert_dependent_with_just_one_parent();
         }
 
-        [ActianTodo]
+
         public override void Can_change_dependent_instance_non_derived()
         {
             base.Can_change_dependent_instance_non_derived();
             AssertSql(@"
-                @p3='Trek Pro Fit Madone 6 Series' (Nullable = false) (Size = 450)
-                @p0='LicensedOperator' (Nullable = false) (Size = 4000)
-                @p1='repairman' (Size = 4000)
-                @p2='Repair' (Size = 4000)
+                @p3='Trek Pro Fit Madone 6 Series' (Nullable = false)
+                @p0='LicensedOperator' (Nullable = false)
+                @p1='repairman'
+                @p2='Repair'
                 
-                SET NOCOUNT ON;
                 UPDATE ""Vehicles"" SET ""Operator_Discriminator"" = @p0, ""Operator_Name"" = @p1, ""LicenseType"" = @p2
-                WHERE ""Name"" = @p3;
-                SELECT @@ROWCOUNT;
+                WHERE ""Name"" = @p3
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_change_principal_instance_non_derived()
         {
             base.Can_change_principal_instance_non_derived();
             AssertSql(@"
-                @p1='Trek Pro Fit Madone 6 Series' (Nullable = false) (Size = 450)
+                @p1='Trek Pro Fit Madone 6 Series' (Nullable = false)
                 @p0='2'
                 
-                SET NOCOUNT ON;
                 UPDATE ""Vehicles"" SET ""SeatingCapacity"" = @p0
-                WHERE ""Name"" = @p1;
-                SELECT @@ROWCOUNT;
+                WHERE ""Name"" = @p1
             ");
         }
 
-        [ActianTodo]
+
         public override void Can_change_principal_and_dependent_instance_non_derived()
         {
             base.Can_change_principal_and_dependent_instance_non_derived();
