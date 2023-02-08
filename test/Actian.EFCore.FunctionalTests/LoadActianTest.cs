@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore
 {
@@ -184,7 +185,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Lazy_load_collection_already_loaded(EntityState state, CascadeTiming cascadeDeleteTiming)
         {
             base.Lazy_load_collection_already_loaded(state, cascadeDeleteTiming);
@@ -748,7 +749,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Load_collection_already_loaded(EntityState state, bool async, CascadeTiming cascadeDeleteTiming)
         {
             await base.Load_collection_already_loaded(state, async, cascadeDeleteTiming);
@@ -792,7 +793,7 @@ namespace Actian.EFCore
             AssertSql(@"");
         }
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Load_collection_using_Query_already_loaded(
             EntityState state, bool async, CascadeTiming cascadeDeleteTiming)
         {
@@ -1080,7 +1081,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Load_collection_already_loaded_untyped(EntityState state, bool async, CascadeTiming cascadeDeleteTiming)
         {
             await base.Load_collection_already_loaded_untyped(state, async, cascadeDeleteTiming);
@@ -1109,7 +1110,7 @@ namespace Actian.EFCore
             AssertSql(@"");
         }
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override async Task Load_collection_using_Query_already_loaded_untyped(
             EntityState state, bool async, CascadeTiming cascadeDeleteTiming)
         {

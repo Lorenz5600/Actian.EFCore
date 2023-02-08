@@ -10,6 +10,7 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
+    // TODO: Make sure read of inserted values works
     public class DataAnnotationActianTest : DataAnnotationTestBase<DataAnnotationActianTest.DataAnnotationActianFixture>
     {
         protected DataAnnotationActianTest(DataAnnotationActianFixture fixture, ITestOutputHelper testOutputHelper)

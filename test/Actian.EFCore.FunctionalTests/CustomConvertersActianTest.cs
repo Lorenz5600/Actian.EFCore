@@ -10,7 +10,7 @@ using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore
 {
-    public class CustomConvertersActianTest : CustomConvertersTestBase<CustomConvertersActianTest.CustomConvertersActianFixture>
+    public class CustomConvertersActianTest : CustomConvertersTestBase<CustomConvertersActianTest.CustomConvertersActianFixture>, IDisposable
     {
         public CustomConvertersActianTest(CustomConvertersActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -23,13 +23,18 @@ namespace Actian.EFCore
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
         public void LogSql() => Helpers.LogSql();
 
-        [ActianTodo]
+        public void Dispose()
+        {
+            Helpers.LogSql();
+        }
+
+
         public override Task Can_filter_projection_with_captured_enum_variable(bool async)
         {
             return base.Can_filter_projection_with_captured_enum_variable(async);
         }
 
-        [ActianTodo]
+
         public override Task Can_filter_projection_with_inline_enum_variable(bool async)
         {
             return base.Can_filter_projection_with_inline_enum_variable(async);
@@ -47,19 +52,19 @@ namespace Actian.EFCore
             base.Can_perform_query_with_ansi_strings_test();
         }
 
-        [ActianTodo]
+
         public override void Can_query_using_any_data_type()
         {
             base.Can_query_using_any_data_type();
         }
 
-        [ActianTodo]
+
         public override void Can_query_using_any_data_type_shadow()
         {
             base.Can_query_using_any_data_type_shadow();
         }
 
-        [ActianTodo]
+
         public override void Can_query_using_any_nullable_data_type()
         {
             base.Can_query_using_any_nullable_data_type();
@@ -71,61 +76,61 @@ namespace Actian.EFCore
             base.Can_query_using_any_data_type_nullable_shadow();
         }
 
-        [ActianTodo]
+
         public override void Can_query_using_any_nullable_data_type_as_literal()
         {
             base.Can_query_using_any_nullable_data_type_as_literal();
         }
 
-        [ActianTodo]
+
         public override void Can_query_with_null_parameters_using_any_nullable_data_type()
         {
             base.Can_query_with_null_parameters_using_any_nullable_data_type();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_all_non_nullable_data_types()
         {
             base.Can_insert_and_read_back_all_non_nullable_data_types();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_with_max_length_set()
         {
             base.Can_insert_and_read_with_max_length_set();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_with_binary_key()
         {
             base.Can_insert_and_read_back_with_binary_key();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_with_null_binary_foreign_key()
         {
             base.Can_insert_and_read_back_with_null_binary_foreign_key();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_with_string_key()
         {
             base.Can_insert_and_read_back_with_string_key();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_with_null_string_foreign_key()
         {
             base.Can_insert_and_read_back_with_null_string_foreign_key();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_all_nullable_data_types_with_values_set_to_null()
         {
             base.Can_insert_and_read_back_all_nullable_data_types_with_values_set_to_null();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_all_nullable_data_types_with_values_set_to_non_null()
         {
             base.Can_insert_and_read_back_all_nullable_data_types_with_values_set_to_non_null();
@@ -149,37 +154,37 @@ namespace Actian.EFCore
             base.Can_insert_and_read_back_non_nullable_backed_data_types();
         }
 
-        [ActianTodo]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Can_read_back_mapped_enum_from_collection_first_or_default()
         {
             base.Can_read_back_mapped_enum_from_collection_first_or_default();
         }
 
-        [ActianTodo]
+
         public override void Can_read_back_bool_mapped_as_int_through_navigation()
         {
             base.Can_read_back_bool_mapped_as_int_through_navigation();
         }
 
-        [ActianTodo]
+
         public override void Can_query_and_update_with_nullable_converter_on_unique_index()
         {
             base.Can_query_and_update_with_nullable_converter_on_unique_index();
         }
 
-        [ActianTodo]
+
         public override void Can_query_and_update_with_nullable_converter_on_primary_key()
         {
             base.Can_query_and_update_with_nullable_converter_on_primary_key();
         }
 
-        [ActianTodo]
+
         public override void Can_query_and_update_with_conversion_for_custom_type()
         {
             base.Can_query_and_update_with_conversion_for_custom_type();
         }
 
-        [ActianTodo]
+
         public override void Can_query_and_update_with_conversion_for_custom_struct()
         {
             base.Can_query_and_update_with_conversion_for_custom_struct();
@@ -191,61 +196,61 @@ namespace Actian.EFCore
             base.Can_insert_and_read_back_with_case_insensitive_string_key();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_read_back_with_string_list()
         {
             base.Can_insert_and_read_back_with_string_list();
         }
 
-        [ActianTodo]
+
         public override void Can_insert_and_query_struct_to_string_converter_for_pk()
         {
             base.Can_insert_and_query_struct_to_string_converter_for_pk();
         }
 
-        [ActianTodo]
+
         public override Task Can_query_custom_type_not_mapped_by_default_equality(bool isAsync)
         {
             return base.Can_query_custom_type_not_mapped_by_default_equality(isAsync);
         }
 
-        [ActianTodo]
+
         public override void Field_on_derived_type_retrieved_via_cast_applies_value_converter()
         {
             base.Field_on_derived_type_retrieved_via_cast_applies_value_converter();
         }
 
-        [ActianTodo]
+
         public override void Value_conversion_is_appropriately_used_for_join_condition()
         {
             base.Value_conversion_is_appropriately_used_for_join_condition();
         }
 
-        [ActianTodo]
+
         public override void Value_conversion_is_appropriately_used_for_left_join_condition()
         {
             base.Value_conversion_is_appropriately_used_for_left_join_condition();
         }
 
-        [ActianTodo]
+
         public override void Where_bool_gets_converted_to_equality_when_value_conversion_is_used()
         {
             base.Where_bool_gets_converted_to_equality_when_value_conversion_is_used();
         }
 
-        [ActianTodo]
+
         public override void Value_conversion_with_property_named_value()
         {
             base.Value_conversion_with_property_named_value();
         }
 
-        [ActianTodo]
+
         public override void Collection_property_as_scalar()
         {
             base.Collection_property_as_scalar();
         }
 
-        [ActianTodo]
+
         public virtual void Columns_have_expected_data_types()
         {
             var actual = ActianBuiltInDataTypesTest.QueryForColumnTypes(

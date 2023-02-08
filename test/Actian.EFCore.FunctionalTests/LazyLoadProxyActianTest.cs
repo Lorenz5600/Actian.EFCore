@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
+using static Actian.EFCore.TestUtilities.ActianSkipReasons;
 
 namespace Actian.EFCore
 {
@@ -128,13 +129,13 @@ namespace Actian.EFCore
         }
 
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Lazy_load_collection_already_loaded(EntityState state, CascadeTiming cascadeDeleteTiming)
         {
             base.Lazy_load_collection_already_loaded(state, cascadeDeleteTiming);
         }
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Lazy_load_many_to_one_reference_to_principal_already_loaded(
             EntityState state, CascadeTiming cascadeDeleteTiming)
         {
@@ -316,7 +317,7 @@ namespace Actian.EFCore
         }
 
 
-        [ActianSkip(ActianSkipReasons.NoOrderByOffsetFirstAndFetchInSubselects)]
+        [ActianSkip(NoOrderByOffsetFirstAndFetchInSubselects)]
         public override void Lazy_load_collection_for_no_tracking_does_not_throw_if_populated()
         {
             base.Lazy_load_collection_for_no_tracking_does_not_throw_if_populated();

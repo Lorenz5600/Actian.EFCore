@@ -61,7 +61,10 @@ namespace Actian.EFCore.Storage.Internal
         }
 
         /// <inheritdoc />
-        protected override string GenerateNonNullSqlLiteral(object value) => value switch
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => FormattableString.Invariant(GenerateNonNullSqlLiteralAsFormattableString(value));
+
+        private FormattableString GenerateNonNullSqlLiteralAsFormattableString(object value) => value switch
         {
             TimeSpan timeSpan when WithTimeZone => $@"TIME '{timeSpan:hh\:mm\:ss\.FFFFFFF}+00:00'",
             TimeSpan timeSpan => $@"TIME '{timeSpan:hh\:mm\:ss\.FFFFFFF}'",
@@ -72,6 +75,6 @@ namespace Actian.EFCore.Storage.Internal
         };
 
         private string GetTimeZone(DateTime value)
-            => value.Kind == DateTimeKind.Local ? $"{value:zzz}" : "+00:00";
+            => value.Kind == DateTimeKind.Local ? FormattableString.Invariant($"{value:zzz}") : "+00:00";
     }
 }
