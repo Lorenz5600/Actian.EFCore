@@ -20,14 +20,14 @@ namespace Actian.EFCore
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
         public void LogSql() => Helpers.LogSql();
 
-        [ActianTodo]
+
         public override void Find_int_key_tracked()
         {
             base.Find_int_key_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_int_key_from_store()
         {
             base.Find_int_key_from_store();
@@ -40,7 +40,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_int_key_not_in_store()
         {
             base.Returns_null_for_int_key_not_in_store();
@@ -53,14 +53,14 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_nullable_int_key_tracked()
         {
             base.Find_int_key_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_nullable_int_key_from_store()
         {
             base.Find_int_key_from_store();
@@ -73,7 +73,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_nullable_int_key_not_in_store()
         {
             base.Returns_null_for_int_key_not_in_store();
@@ -86,19 +86,19 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_string_key_tracked()
         {
             base.Find_string_key_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_string_key_from_store()
         {
             base.Find_string_key_from_store();
             AssertSql(@"
-                @__p_0='Cat' (Size = 450)
+                @__p_0='Cat'
                 
                 SELECT FIRST 1 ""s"".""Id"", ""s"".""Foo""
                 FROM ""StringKey"" AS ""s""
@@ -106,12 +106,12 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_string_key_not_in_store()
         {
             base.Returns_null_for_string_key_not_in_store();
             AssertSql(@"
-                @__p_0='Fox' (Size = 450)
+                @__p_0='Fox'
                 
                 SELECT FIRST 1 ""s"".""Id"", ""s"".""Foo""
                 FROM ""StringKey"" AS ""s""
@@ -119,20 +119,20 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_composite_key_tracked()
         {
             base.Find_composite_key_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_composite_key_from_store()
         {
             base.Find_composite_key_from_store();
             AssertSql(@"
                 @__p_0='77'
-                @__p_1='Dog' (Size = 450)
+                @__p_1='Dog'
                 
                 SELECT FIRST 1 ""c"".""Id1"", ""c"".""Id2"", ""c"".""Foo""
                 FROM ""CompositeKey"" AS ""c""
@@ -140,13 +140,13 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_composite_key_not_in_store()
         {
             base.Returns_null_for_composite_key_not_in_store();
             AssertSql(@"
                 @__p_0='77'
-                @__p_1='Fox' (Size = 450)
+                @__p_1='Fox'
                 
                 SELECT FIRST 1 ""c"".""Id1"", ""c"".""Id2"", ""c"".""Foo""
                 FROM ""CompositeKey"" AS ""c""
@@ -154,14 +154,14 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_base_type_tracked()
         {
             base.Find_base_type_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_base_type_from_store()
         {
             base.Find_base_type_from_store();
@@ -174,7 +174,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_base_type_not_in_store()
         {
             base.Returns_null_for_base_type_not_in_store();
@@ -187,14 +187,14 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_derived_type_tracked()
         {
             base.Find_derived_type_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_derived_type_from_store()
         {
             base.Find_derived_type_from_store();
@@ -207,7 +207,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_derived_type_not_in_store()
         {
             base.Returns_null_for_derived_type_not_in_store();
@@ -220,7 +220,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_base_type_using_derived_set_tracked()
         {
             base.Find_base_type_using_derived_set_tracked();
@@ -233,7 +233,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_base_type_using_derived_set_from_store()
         {
             base.Find_base_type_using_derived_set_from_store();
@@ -246,14 +246,14 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_derived_type_using_base_set_tracked()
         {
             base.Find_derived_type_using_base_set_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_derived_using_base_set_type_from_store()
         {
             base.Find_derived_using_base_set_type_from_store();
@@ -266,14 +266,14 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Find_shadow_key_tracked()
         {
             base.Find_shadow_key_tracked();
             Assert.Equal("", Sql);
         }
 
-        [ActianTodo]
+
         public override void Find_shadow_key_from_store()
         {
             base.Find_shadow_key_from_store();
@@ -286,7 +286,7 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_shadow_key_not_in_store()
         {
             base.Returns_null_for_shadow_key_not_in_store();
@@ -299,253 +299,253 @@ namespace Actian.EFCore
             ");
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_null_key_values_array()
         {
             base.Returns_null_for_null_key_values_array();
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_null_key()
         {
             base.Returns_null_for_null_key();
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_null_nullable_key()
         {
             base.Returns_null_for_null_nullable_key();
         }
 
-        [ActianTodo]
+
         public override void Returns_null_for_null_in_composite_key()
         {
             base.Returns_null_for_null_in_composite_key();
         }
 
-        [ActianTodo]
+
         public override void Throws_for_multiple_values_passed_for_simple_key()
         {
             base.Throws_for_multiple_values_passed_for_simple_key();
         }
 
-        [ActianTodo]
+
         public override void Throws_for_wrong_number_of_values_for_composite_key()
         {
             base.Throws_for_wrong_number_of_values_for_composite_key();
         }
 
-        [ActianTodo]
+
         public override void Throws_for_bad_type_for_simple_key()
         {
             base.Throws_for_bad_type_for_simple_key();
         }
 
-        [ActianTodo]
+
         public override void Throws_for_bad_type_for_composite_key()
         {
             base.Throws_for_bad_type_for_composite_key();
         }
 
-        [ActianTodo]
+
         public override void Throws_for_bad_entity_type()
         {
             base.Throws_for_bad_entity_type();
         }
 
-        [ActianTodo]
+
         public override Task Find_int_key_tracked_async()
         {
             return base.Find_int_key_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_int_key_from_store_async()
         {
             return base.Find_int_key_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_int_key_not_in_store_async()
         {
             return base.Returns_null_for_int_key_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_nullable_int_key_tracked_async()
         {
             return base.Find_nullable_int_key_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_nullable_int_key_from_store_async()
         {
             return base.Find_nullable_int_key_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_nullable_int_key_not_in_store_async()
         {
             return base.Returns_null_for_nullable_int_key_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_string_key_tracked_async()
         {
             return base.Find_string_key_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_string_key_from_store_async()
         {
             return base.Find_string_key_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_string_key_not_in_store_async()
         {
             return base.Returns_null_for_string_key_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_composite_key_tracked_async()
         {
             return base.Find_composite_key_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_composite_key_from_store_async()
         {
             return base.Find_composite_key_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_composite_key_not_in_store_async()
         {
             return base.Returns_null_for_composite_key_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_base_type_tracked_async()
         {
             return base.Find_base_type_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_base_type_from_store_async()
         {
             return base.Find_base_type_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_base_type_not_in_store_async()
         {
             return base.Returns_null_for_base_type_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_derived_type_tracked_async()
         {
             return base.Find_derived_type_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_derived_type_from_store_async()
         {
             return base.Find_derived_type_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_derived_type_not_in_store_async()
         {
             return base.Returns_null_for_derived_type_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_base_type_using_derived_set_tracked_async()
         {
             return base.Find_base_type_using_derived_set_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_base_type_using_derived_set_from_store_async()
         {
             return base.Find_base_type_using_derived_set_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_derived_type_using_base_set_tracked_async()
         {
             return base.Find_derived_type_using_base_set_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_derived_using_base_set_type_from_store_async()
         {
             return base.Find_derived_using_base_set_type_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_shadow_key_tracked_async()
         {
             return base.Find_shadow_key_tracked_async();
         }
 
-        [ActianTodo]
+
         public override Task Find_shadow_key_from_store_async()
         {
             return base.Find_shadow_key_from_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_shadow_key_not_in_store_async()
         {
             return base.Returns_null_for_shadow_key_not_in_store_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_null_key_values_array_async()
         {
             return base.Returns_null_for_null_key_values_array_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_null_key_async()
         {
             return base.Returns_null_for_null_key_async();
         }
 
-        [ActianTodo]
+
         public override Task Returns_null_for_null_in_composite_key_async()
         {
             return base.Returns_null_for_null_in_composite_key_async();
         }
 
-        [ActianTodo]
+
         public override Task Throws_for_multiple_values_passed_for_simple_key_async()
         {
             return base.Throws_for_multiple_values_passed_for_simple_key_async();
         }
 
-        [ActianTodo]
+
         public override Task Throws_for_wrong_number_of_values_for_composite_key_async()
         {
             return base.Throws_for_wrong_number_of_values_for_composite_key_async();
         }
 
-        [ActianTodo]
+
         public override Task Throws_for_bad_type_for_simple_key_async()
         {
             return base.Throws_for_bad_type_for_simple_key_async();
         }
 
-        [ActianTodo]
+
         public override Task Throws_for_bad_type_for_composite_key_async()
         {
             return base.Throws_for_bad_type_for_composite_key_async();
         }
 
-        [ActianTodo]
+
         public override Task Throws_for_bad_entity_type_async()
         {
             return base.Throws_for_bad_entity_type_async();
