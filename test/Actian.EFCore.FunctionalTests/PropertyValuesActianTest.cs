@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -9,7 +10,7 @@ using Xunit.Abstractions;
 #pragma warning disable xUnit1024 // Test methods cannot have overloads
 namespace Actian.EFCore
 {
-    public class PropertyValuesActianTest : PropertyValuesTestBase<PropertyValuesActianTest.PropertyValuesActianFixture>
+    public class PropertyValuesActianTest : PropertyValuesTestBase<PropertyValuesActianTest.PropertyValuesActianFixture>, IDisposable
     {
         public PropertyValuesActianTest(PropertyValuesActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -20,7 +21,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         [ActianTodo]
         public override Task Scalar_current_values_can_be_accessed_as_a_property_dictionary()
@@ -831,6 +832,9 @@ namespace Actian.EFCore
 
                 modelBuilder.Entity<Building>()
                     .Property(b => b.Value).HasColumnType("decimal(18,2)");
+
+                modelBuilder.Entity<Office>()
+                    .Property(b => b.Number).HasMaxLength(20);
 
                 modelBuilder.Entity<CurrentEmployee>()
                     .Property(ce => ce.LeaveBalance).HasColumnType("decimal(18,2)");

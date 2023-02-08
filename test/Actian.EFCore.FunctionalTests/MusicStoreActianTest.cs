@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -8,7 +9,7 @@ using Xunit.Abstractions;
 #pragma warning disable xUnit1024 // Test methods cannot have overloads
 namespace Actian.EFCore
 {
-    public class MusicStoreActianTest : MusicStoreTestBase<MusicStoreActianTest.MusicStoreActianFixture>
+    public class MusicStoreActianTest : MusicStoreTestBase<MusicStoreActianTest.MusicStoreActianFixture>, IDisposable
     {
         public MusicStoreActianTest(MusicStoreActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -19,7 +20,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         [ActianTodo]
         [ConditionalFact]

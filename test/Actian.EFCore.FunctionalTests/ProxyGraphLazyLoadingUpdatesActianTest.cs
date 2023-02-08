@@ -1,4 +1,5 @@
-﻿using Actian.EFCore.TestUtilities;
+﻿using System;
+using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -9,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public class ProxyGraphLazyLoadingUpdatesActianTest : ProxyGraphUpdatesTestBase<ProxyGraphLazyLoadingUpdatesActianTest.ProxyGraphLazyLoadingUpdatesActianFixture>
+    public class ProxyGraphLazyLoadingUpdatesActianTest : ProxyGraphUpdatesTestBase<ProxyGraphLazyLoadingUpdatesActianTest.ProxyGraphLazyLoadingUpdatesActianFixture>, IDisposable
     {
         public ProxyGraphLazyLoadingUpdatesActianTest(ProxyGraphLazyLoadingUpdatesActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -20,7 +21,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         [ActianTodo]
         public override void Optional_one_to_one_relationships_are_one_to_one()

@@ -75,7 +75,7 @@ namespace Actian.EFCore.Metadata.Conventions
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkActian()
                 .AddDbContext<DbContext>(
-                    (p, o) => o.UseActian("").UseInternalServiceProvider(p))
+                    (p, o) => o.UseActian("Server=Dummy").UseInternalServiceProvider(p))
                 .BuildServiceProvider();
 
             using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())

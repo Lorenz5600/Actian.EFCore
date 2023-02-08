@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -7,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public class OptimisticConcurrencyActianTest : OptimisticConcurrencyTestBase<F1ActianFixture>
+    public class OptimisticConcurrencyActianTest : OptimisticConcurrencyTestBase<F1ActianFixture>, IDisposable
     {
         public OptimisticConcurrencyActianTest(F1ActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -18,7 +19,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         [ActianTodo]
         public override void External_model_builder_uses_validation()

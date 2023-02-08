@@ -1,4 +1,5 @@
-﻿using Actian.EFCore.TestUtilities;
+﻿using System;
+using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
@@ -16,162 +17,82 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public override void Dispose()
+        {
+            Helpers.LogSql();
+            base.Dispose();
+        }
 
         [ActianTodo]
         public override void Can_build_monster_model_and_seed_data_using_FKs()
         {
-            try
-            {
-                base.Can_build_monster_model_and_seed_data_using_FKs();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Can_build_monster_model_and_seed_data_using_FKs();
         }
 
         [ActianTodo]
         public override void Can_build_monster_model_and_seed_data_using_all_navigations()
         {
-            try
-            {
-                base.Can_build_monster_model_and_seed_data_using_all_navigations();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Can_build_monster_model_and_seed_data_using_all_navigations();
         }
 
         [ActianTodo]
         public override void Can_build_monster_model_and_seed_data_using_dependent_navigations()
         {
-            try
-            {
-                base.Can_build_monster_model_and_seed_data_using_dependent_navigations();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Can_build_monster_model_and_seed_data_using_dependent_navigations();
         }
 
         [ActianTodo]
         public override void Can_build_monster_model_and_seed_data_using_principal_navigations()
         {
-            try
-            {
-                base.Can_build_monster_model_and_seed_data_using_principal_navigations();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Can_build_monster_model_and_seed_data_using_principal_navigations();
         }
 
         [ActianTodo]
         public override void Can_build_monster_model_and_seed_data_using_navigations_with_deferred_add()
         {
-            try
-            {
-                base.Can_build_monster_model_and_seed_data_using_navigations_with_deferred_add();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Can_build_monster_model_and_seed_data_using_navigations_with_deferred_add();
         }
 
         [ActianTodo]
         public override void One_to_many_fixup_happens_when_FKs_change_test()
         {
-            try
-            {
-                base.One_to_many_fixup_happens_when_FKs_change_test();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.One_to_many_fixup_happens_when_FKs_change_test();
         }
 
         [ActianTodo]
         public override void One_to_many_fixup_happens_when_reference_changes()
         {
-            try
-            {
-                base.One_to_many_fixup_happens_when_reference_changes();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.One_to_many_fixup_happens_when_reference_changes();
         }
 
         [ActianTodo]
         public override void One_to_many_fixup_happens_when_collection_changes()
         {
-            try
-            {
-                base.One_to_many_fixup_happens_when_collection_changes();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.One_to_many_fixup_happens_when_collection_changes();
         }
 
         [ActianTodo]
         public override void One_to_one_fixup_happens_when_FKs_change_test()
         {
-            try
-            {
-                base.One_to_one_fixup_happens_when_FKs_change_test();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.One_to_one_fixup_happens_when_FKs_change_test();
         }
 
         [ActianTodo]
         public override void One_to_one_fixup_happens_when_reference_change_test()
         {
-            try
-            {
-                base.One_to_one_fixup_happens_when_reference_change_test();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.One_to_one_fixup_happens_when_reference_change_test();
         }
 
         [ActianTodo]
         public override void Composite_fixup_happens_when_FKs_change_test()
         {
-            try
-            {
-                base.Composite_fixup_happens_when_FKs_change_test();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Composite_fixup_happens_when_FKs_change_test();
         }
 
         [ActianTodo]
         public override void Fixup_with_binary_keys_happens_when_FKs_or_navigations_change_test()
         {
-            try
-            {
-                base.Fixup_with_binary_keys_happens_when_FKs_or_navigations_change_test();
-            }
-            finally
-            {
-                LogSql();
-            }
+            base.Fixup_with_binary_keys_happens_when_FKs_or_navigations_change_test();
         }
 
         public class MonsterFixupChangedChangingActianFixture : MonsterFixupChangedChangingFixtureBase

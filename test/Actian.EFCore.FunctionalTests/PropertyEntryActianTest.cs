@@ -1,10 +1,11 @@
-﻿using Actian.EFCore.TestUtilities;
+﻿using System;
+using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public class PropertyEntryActianTest : PropertyEntryTestBase<F1ActianFixture>
+    public class PropertyEntryActianTest : PropertyEntryTestBase<F1ActianFixture>, IDisposable
     {
         public PropertyEntryActianTest(F1ActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -15,7 +16,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         [ActianTodo]
         public override void Property_entry_original_value_is_set()

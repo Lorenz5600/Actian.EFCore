@@ -1,11 +1,12 @@
-﻿using Actian.EFCore.TestUtilities;
+﻿using System;
+using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public class NotificationEntitiesActianTest : NotificationEntitiesTestBase<NotificationEntitiesActianTest.NotificationEntitiesActianFixture>
+    public class NotificationEntitiesActianTest : NotificationEntitiesTestBase<NotificationEntitiesActianTest.NotificationEntitiesActianFixture>, IDisposable
     {
         public NotificationEntitiesActianTest(NotificationEntitiesActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -16,7 +17,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         public override void Include_brings_entities_referenced_from_already_tracked_notification_entities_as_Unchanged()
         {
