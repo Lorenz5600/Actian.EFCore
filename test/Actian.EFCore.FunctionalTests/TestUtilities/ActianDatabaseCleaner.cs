@@ -12,7 +12,8 @@ namespace Actian.EFCore.TestUtilities
     public class ActianDatabaseCleaner : RelationalDatabaseCleaner
     {
         protected override IDatabaseModelFactory CreateDatabaseModelFactory(ILoggerFactory loggerFactory)
-            => new ActianDatabaseModelFactory(
+        {
+            var model = new ActianDatabaseModelFactory(
                 new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
                     loggerFactory,
                     new LoggingOptions(),
@@ -20,5 +21,8 @@ namespace Actian.EFCore.TestUtilities
                     new ActianLoggingDefinitions()
                 )
             );
+
+            return model;
+        }
     }
 }

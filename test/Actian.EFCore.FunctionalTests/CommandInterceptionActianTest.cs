@@ -20,7 +20,6 @@ namespace Actian.EFCore
         {
             TestEnvironment.Log(this, testOutputHelper);
             Helpers = new ActianSqlFixtureHelpers(fixture.ListLoggerFactory, testOutputHelper);
-            fixture.SetOutput(testOutputHelper);
         }
 
         public ActianSqlFixtureHelpers Helpers { get; }
@@ -213,14 +212,6 @@ namespace Actian.EFCore
         {
             protected override string StoreName => "CommandInterception";
             protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
-
-            public void SetOutput(ITestOutputHelper output)
-            {
-                if (TestStore is ActianTestStore actianTestStore)
-                {
-                    actianTestStore.SetOutput(output);
-                }
-            }
 
             protected override IServiceCollection InjectInterceptors(
                 IServiceCollection serviceCollection,

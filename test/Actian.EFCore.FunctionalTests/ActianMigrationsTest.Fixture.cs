@@ -7,15 +7,8 @@ namespace Microsoft.EntityFrameworkCore
     {
         protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
 
-        //protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
-        //{
-        //    serviceCollection = base.AddServices(serviceCollection);
 
-        //    new EntityFrameworkRelationalServicesBuilder(serviceCollection)
-        //        .TryAdd<IDatabaseCreator, TestActianDatabaseCreator>();
 
-        //    return serviceCollection;
-        //}
 
         public override MigrationsContext CreateContext()
         {

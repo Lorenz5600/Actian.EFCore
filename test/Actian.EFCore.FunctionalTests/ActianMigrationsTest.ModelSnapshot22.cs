@@ -46,14 +46,14 @@ namespace ModelSnapshot22
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("Actian:ValueGenerationStrategy", ActianValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("Actian:ValueGenerationStrategy", ActianValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity(
                 "ModelSnapshot22.Blog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasAnnotation("Actian:ValueGenerationStrategy", ActianValueGenerationStrategy.IdentityColumn);
+                        .HasAnnotation("Actian:ValueGenerationStrategy", ActianValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Name");
 
@@ -70,7 +70,7 @@ namespace ModelSnapshot22
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasAnnotation("Actian:ValueGenerationStrategy", ActianValueGenerationStrategy.IdentityColumn);
+                        .HasAnnotation("Actian:ValueGenerationStrategy", ActianValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int?>("BlogId");
 

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using Actian.EFCore.Metadata.Internal;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -10,10 +9,6 @@ namespace Actian.EFCore.Migrations.Internal
 {
     public class ActianMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {
-        /// <summary>
-        /// Initializes a new instance of this class.
-        /// </summary>
-        /// <param name="dependencies"> Parameter object containing dependencies for this service. </param>
         public ActianMigrationsAnnotationProvider(
             [NotNull] MigrationsAnnotationProviderDependencies dependencies
             )
@@ -23,14 +18,18 @@ namespace Actian.EFCore.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            if (property.GetValueGenerationStrategy() == ActianValueGenerationStrategy.IdentityColumn)
+            var valueGenerationStrategy = property.GetValueGenerationStrategy();
+            if (valueGenerationStrategy != ActianValueGenerationStrategy.None)
             {
-                var seed = property.GetIdentitySeed();
-                var increment = property.GetIdentityIncrement();
+                yield return new Annotation(ActianAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
 
-                yield return new Annotation(
-                    ActianAnnotationNames.Identity,
-                    string.Format(CultureInfo.InvariantCulture, "{0}, {1}", seed ?? 1, increment ?? 1));
+                if (valueGenerationStrategy.IsIdentity())
+                {
+                    if (property[ActianAnnotationNames.IdentityOptions] is string identityOptions)
+                    {
+                        yield return new Annotation(ActianAnnotationNames.IdentityOptions, identityOptions);
+                    }
+                }
             }
         }
     }

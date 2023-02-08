@@ -12,8 +12,7 @@ namespace Actian.EFCore.TestUtilities
 
         private static readonly int[] _additionalErrorNumbers =
         {
-            // TODO: determine _additionalErrorNumbers
-        };
+            };
 
         private static DbContext CreateDbContext(string database)
         {

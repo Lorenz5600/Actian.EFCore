@@ -44,7 +44,6 @@ namespace Actian.EFCore.Storage.Internal
 
         public override IDbContextTransaction UseTransaction(DbTransaction transaction)
         {
-
             return base.UseTransaction(transaction);
         }
     }

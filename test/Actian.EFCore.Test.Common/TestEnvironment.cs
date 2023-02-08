@@ -14,6 +14,7 @@ namespace Actian.EFCore.TestUtilities
     {
         public static void Log(object testObject, ITestOutputHelper testOutputHelper)
         {
+            SetOutput(testObject, testOutputHelper);
             LogInternal(GetImplementedClass(testObject?.GetType()), GetTestDatabaseFromTestObject(testObject), testOutputHelper);
         }
 
@@ -54,7 +55,7 @@ namespace Actian.EFCore.TestUtilities
         private static TestDatabase GetTestDatabaseFromTestObject(object testObject)
             => GetTestDatabaseFromFixture(testObject);
 
-        private static TestDatabase GetTestDatabaseFromFixture(object testObject)
+        public static TestStore GetTestStoreFromObject(object testObject)
         {
             var fixture = testObject?.GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
@@ -64,14 +65,27 @@ namespace Actian.EFCore.TestUtilities
                 .OfType<FixtureBase>()
                 .FirstOrDefault();
 
-            var storeName = fixture?.GetType()
+            return fixture?.GetType()
                 .GetProperties(BindingFlags.Instance| BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(p => p.CanRead && p.Name == "TestStore" && p.GetIndexParameters().Length == 0)
                 .Where(p => p.PropertyType.IsSubclassOf(typeof(TestStore)))
                 .Select(p => p.GetValue(fixture))
                 .OfType<TestStore>()
-                .FirstOrDefault()?.Name;
+                .FirstOrDefault();
+        }
 
+        private static void SetOutput(object testObject, ITestOutputHelper testOutputHelper)
+        {
+            var store = GetTestStoreFromObject(testObject);
+            var setOutput = store?.GetType()
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .FirstOrDefault(m => m.Name == "SetOutput" && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(ITestOutputHelper));
+            setOutput?.Invoke(store, new[] { testOutputHelper });
+        }
+
+        private static TestDatabase GetTestDatabaseFromFixture(object testObject)
+        {
+            var storeName = GetTestStoreFromObject(testObject)?.Name;
             return TestDatabases.GetTestDatabase(storeName, strict: false);
         }
 

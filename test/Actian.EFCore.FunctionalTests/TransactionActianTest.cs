@@ -274,8 +274,10 @@ namespace Actian.EFCore
 
         protected override DbContext CreateContextWithConnectionString()
         {
+            var store = Fixture.TestStore as ActianTestStore;
             var options = Fixture.AddOptions(
                     new DbContextOptionsBuilder()
+                        .ConfigureActianTestWarnings()
                         .UseActian(
                             TestStore.ConnectionString,
                             b => b.ApplyConfiguration().ExecutionStrategy(c => new ActianExecutionStrategy(c))))

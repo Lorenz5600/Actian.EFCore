@@ -23,8 +23,24 @@
         SequenceHiLo,
 
         /// <summary>
-        /// A pattern that uses a normal Actian <c>Identity</c> column in the same way as EF6 and earlier.
+        /// <para>Selects the always-identity column strategy (a value cannot be provided).</para>
         /// </summary>
-        IdentityColumn
+        IdentityAlwaysColumn,
+
+        /// <summary>
+        /// <para>Selects the by-default-identity column strategy (a value can be provided to override the identity mechanism).</para>
+        /// </summary>
+        IdentityByDefaultColumn,
+    }
+
+    public static class ActianValueGenerationStrategyExtensions
+    {
+        public static bool IsIdentity(this ActianValueGenerationStrategy strategy)
+            => strategy == ActianValueGenerationStrategy.IdentityByDefaultColumn ||
+               strategy == ActianValueGenerationStrategy.IdentityAlwaysColumn;
+
+        public static bool IsIdentity(this ActianValueGenerationStrategy? strategy)
+            => strategy == ActianValueGenerationStrategy.IdentityByDefaultColumn ||
+               strategy == ActianValueGenerationStrategy.IdentityAlwaysColumn;
     }
 }

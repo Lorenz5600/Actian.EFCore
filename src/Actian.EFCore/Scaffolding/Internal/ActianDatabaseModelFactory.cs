@@ -603,8 +603,20 @@ namespace Actian.EFCore.Scaffolding.Internal
             ActianCasing dbNameCase,
             ActianCasing dbDelimitedCase)
         {
+            DatabaseSequence ReadDatabaseSequence(DbDataReader reader) => new DatabaseSequence
+            {
+                Name = reader.GetTrimmedChar("seq_name", dbNameCase),
+                Schema = reader.GetTrimmedChar("seq_owner", dbNameCase),
+                StoreType = GetSequenceStoreType(reader.GetTrimmedChar("data_type", dbNameCase), reader.GetValueOrDefault<int?>("seq_precision", dbNameCase)),
+                StartValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("start_value", dbNameCase)),
+                IncrementBy = Convert.ToInt32(reader.GetValueOrDefault<decimal>("increment_value", dbNameCase)),
+                MinValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("min_value", dbNameCase)),
+                MaxValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("max_value", dbNameCase)),
+                IsCyclic = reader.GetTrimmedChar("cycle_flag", dbNameCase) == "Y"
+            };
+
             var filter = schemaFilter != null ? $"where {schemaFilter("seq_owner")}" : null;
-            connection.Select($@"
+            var sequences = connection.Select($@"
                 select seq_owner,
                        seq_name,
                        data_type,
@@ -617,17 +629,12 @@ namespace Actian.EFCore.Scaffolding.Internal
                   from $ingres.iisequences
                   {filter}
                  order by seq_owner, seq_name
-            ", reader => new DatabaseSequence
-            {
-                Name = reader.GetTrimmedChar("seq_name", dbNameCase),
-                Schema = reader.GetTrimmedChar("seq_owner", dbNameCase),
-                StoreType = GetSequenceStoreType(reader.GetTrimmedChar("data_type", dbNameCase), reader.GetValueOrDefault<int?>("seq_precision", dbNameCase)),
-                StartValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("start_value", dbNameCase)),
-                IncrementBy = Convert.ToInt32(reader.GetValueOrDefault<decimal>("increment_value", dbNameCase)),
-                MinValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("min_value", dbNameCase)),
-                MaxValue = Convert.ToInt64(reader.GetValueOrDefault<decimal>("max_value", dbNameCase)),
-                IsCyclic = reader.GetTrimmedChar("cycle_flag", dbNameCase) == "Y"
-            }.WithDefaultValues().WithDatabase(database)).ToList();
+            ", ReadDatabaseSequence);
+
+            sequences = sequences
+                .Where(sequence => !sequence.Name.StartsWith("$iiidentity", StringComparison.InvariantCultureIgnoreCase))
+                .Select(sequence => sequence.WithDefaultValues().WithDatabase(database))
+                .ToList();
         }
 
         /// <summary>

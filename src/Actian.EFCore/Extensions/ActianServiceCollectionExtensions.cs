@@ -14,6 +14,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
@@ -30,23 +31,6 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public static class ActianServiceCollectionExtensions
     {
-        /// <summary>
-        /// <para>
-        ///     Adds the services required by the Actian database provider for Entity Framework
-        ///     to an <see cref="IServiceCollection" />.
-        /// </para>
-        /// <para>
-        ///     Calling this method is no longer necessary when building most applications, including those that
-        ///     use dependency injection in ASP.NET or elsewhere.
-        ///     It is only needed when building the internal service provider for use with
-        ///     the <see cref="DbContextOptionsBuilder.UseInternalServiceProvider" /> method.
-        ///     This is not recommend other than for some advanced scenarios.
-        /// </para>
-        /// </summary>
-        /// <param name="serviceCollection"> The <see cref="IServiceCollection" /> to add services to. </param>
-        /// <returns>
-        /// The same service collection so that multiple calls can be chained.
-        /// </returns>
         public static IServiceCollection AddEntityFrameworkActian([NotNull] this IServiceCollection serviceCollection)
         {
             Check.NotNull(serviceCollection, nameof(serviceCollection));

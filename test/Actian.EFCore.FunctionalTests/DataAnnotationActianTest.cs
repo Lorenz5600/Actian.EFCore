@@ -209,7 +209,7 @@ namespace Actian.EFCore
         {
             var modelBuilder = base.DatabaseGeneratedOption_configures_the_property_correctly();
             var identity = modelBuilder.Model.FindEntityType(typeof(GeneratedEntity)).FindProperty(nameof(GeneratedEntity.Identity));
-            Assert.Equal(ActianValueGenerationStrategy.IdentityColumn, identity.GetValueGenerationStrategy());
+            Assert.Equal(ActianValueGenerationStrategy.IdentityByDefaultColumn, identity.GetValueGenerationStrategy());
             return modelBuilder;
         }
 
