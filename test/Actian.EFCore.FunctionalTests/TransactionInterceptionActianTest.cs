@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public abstract class TransactionInterceptionActianTest : TransactionInterceptionTestBase
+    public abstract class TransactionInterceptionActianTest : TransactionInterceptionTestBase, IDisposable
     {
         protected TransactionInterceptionActianTest(InterceptionActianFixtureBase fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -21,7 +22,7 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
         public override Task BeginTransaction_without_interceptor(bool async)
         {

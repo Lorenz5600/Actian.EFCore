@@ -18,7 +18,9 @@ namespace Microsoft.EntityFrameworkCore
         public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
         protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
 
-        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder) => base.AddOptions(builder)
-            .ConfigureWarnings(w => w.Log(ActianEventId.ByteIdentityColumnWarning));
+        //public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder) => base.AddOptions(builder)
+        //    .ConfigureWarnings(w => w.Log(ActianEventId.ByteIdentityColumnWarning));
+
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder) => base.AddOptions(builder);
     }
 }

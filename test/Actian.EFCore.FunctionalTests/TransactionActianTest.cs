@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Actian.EFCore.Infrastructure;
 using Actian.EFCore.Storage.Internal;
 using Actian.EFCore.TestUtilities;
@@ -8,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
-    public class TransactionActianTest : TransactionTestBase<TransactionActianTest.TransactionActianFixture>
+    public class TransactionActianTest : TransactionTestBase<TransactionActianTest.TransactionActianFixture>, IDisposable
     {
         public TransactionActianTest(TransactionActianFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -19,27 +20,27 @@ namespace Actian.EFCore
 
         public ActianSqlFixtureHelpers Helpers { get; }
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
-        public void LogSql() => Helpers.LogSql();
+        public void Dispose() => Helpers.LogSql();
 
-        [ActianTodo]
+
         public override void SaveChanges_can_be_used_with_no_transaction()
         {
             base.SaveChanges_can_be_used_with_no_transaction();
         }
 
-        [ActianTodo]
+
         public override Task SaveChangesAsync_can_be_used_with_no_transaction()
         {
             return base.SaveChangesAsync_can_be_used_with_no_transaction();
         }
 
-        [ActianTodo]
+
         public override void SaveChanges_implicitly_starts_transaction()
         {
             base.SaveChanges_implicitly_starts_transaction();
         }
 
-        [ActianTodo]
+
         public override Task SaveChangesAsync_implicitly_starts_transaction()
         {
             return base.SaveChangesAsync_implicitly_starts_transaction();
@@ -69,7 +70,7 @@ namespace Actian.EFCore
             return base.SaveChanges_uses_ambient_transaction(async, autoTransactionsEnabled);
         }
 
-        [ActianTodo]
+
         public override Task SaveChanges_uses_ambient_transaction_with_connectionString(bool async, bool autoTransactionsEnabled)
         {
             return base.SaveChanges_uses_ambient_transaction_with_connectionString(async, autoTransactionsEnabled);
@@ -87,74 +88,74 @@ namespace Actian.EFCore
             base.SaveChanges_uses_enlisted_transaction_after_ambient_transaction();
         }
 
-        [ActianTodo]
+
         public override void SaveChanges_does_not_close_connection_opened_by_user()
         {
             base.SaveChanges_does_not_close_connection_opened_by_user();
         }
 
-        [ActianTodo]
+
         public override Task SaveChangesAsync_does_not_close_connection_opened_by_user()
         {
             return base.SaveChangesAsync_does_not_close_connection_opened_by_user();
         }
 
-        [ActianTodo]
+
         public override void SaveChanges_uses_explicit_transaction_without_committing(bool autoTransaction)
         {
             base.SaveChanges_uses_explicit_transaction_without_committing(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override void SaveChanges_false_uses_explicit_transaction_without_committing_or_accepting_changes(bool autoTransaction)
         {
             base.SaveChanges_false_uses_explicit_transaction_without_committing_or_accepting_changes(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task SaveChangesAsync_uses_explicit_transaction_without_committing(bool autoTransaction)
         {
             return base.SaveChangesAsync_uses_explicit_transaction_without_committing(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task SaveChangesAsync_false_uses_explicit_transaction_without_committing_or_accepting_changes(
             bool autoTransaction)
         {
             return base.SaveChangesAsync_false_uses_explicit_transaction_without_committing_or_accepting_changes(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override void SaveChanges_uses_explicit_transaction_and_does_not_rollback_on_failure(bool autoTransaction)
         {
             base.SaveChanges_uses_explicit_transaction_and_does_not_rollback_on_failure(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task SaveChangesAsync_uses_explicit_transaction_and_does_not_rollback_on_failure(bool autoTransaction)
         {
             return base.SaveChangesAsync_uses_explicit_transaction_and_does_not_rollback_on_failure(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task RelationalTransaction_can_be_committed(bool autoTransaction)
         {
             return base.RelationalTransaction_can_be_committed(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task RelationalTransaction_can_be_committed_from_context(bool autoTransaction)
         {
             return base.RelationalTransaction_can_be_committed_from_context(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task RelationalTransaction_can_be_rolled_back(bool autoTransaction)
         {
             return base.RelationalTransaction_can_be_rolled_back(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task RelationalTransaction_can_be_rolled_back_from_context(bool autoTransaction)
         {
             return base.RelationalTransaction_can_be_rolled_back_from_context(autoTransaction);
@@ -172,7 +173,7 @@ namespace Actian.EFCore
             return base.QueryAsync_uses_explicit_transaction(autoTransaction);
         }
 
-        [ActianTodo]
+
         public override Task Can_use_open_connection_with_started_transaction(bool autoTransaction)
         {
             return base.Can_use_open_connection_with_started_transaction(autoTransaction);
@@ -190,7 +191,7 @@ namespace Actian.EFCore
             base.UseTransaction_throws_if_another_transaction_started();
         }
 
-        [ActianTodo]
+
         public override void UseTransaction_will_not_dispose_external_transaction()
         {
             base.UseTransaction_will_not_dispose_external_transaction();
@@ -294,8 +295,8 @@ namespace Actian.EFCore
             {
                 base.Seed(context);
 
-                context.Database.ExecuteSqlRaw("ALTER DATABASE [" + StoreName + "] SET ALLOW_SNAPSHOT_ISOLATION ON");
-                context.Database.ExecuteSqlRaw("ALTER DATABASE [" + StoreName + "] SET READ_COMMITTED_SNAPSHOT ON");
+                //context.Database.ExecuteSqlRaw("ALTER DATABASE [" + StoreName + "] SET ALLOW_SNAPSHOT_ISOLATION ON");
+                //context.Database.ExecuteSqlRaw("ALTER DATABASE [" + StoreName + "] SET READ_COMMITTED_SNAPSHOT ON");
             }
 
             public override void Reseed()
