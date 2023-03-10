@@ -413,6 +413,11 @@ namespace Actian.EFCore
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
 
+            //protected override void Seed(DbContext context)
+            //{
+            //    base.Seed(context);
+            //}
+
             protected override void Seed(DbContext context)
             {
                 context.Add(

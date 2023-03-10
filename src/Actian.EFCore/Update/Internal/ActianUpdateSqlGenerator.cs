@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Update;
@@ -38,15 +39,14 @@ namespace Actian.EFCore.Update.Internal
             SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, columnModification.ColumnName);
             commandStringBuilder
                 .Append(" = ")
-                .Append("LAST_IDENTITY");
+                .Append("LAST_IDENTITY()");
         }
 
         protected override void AppendRowsAffectedWhereCondition([NotNull] StringBuilder commandStringBuilder, int expectedRowsAffected)
         {
-            commandStringBuilder.Append("1 = 1");
-            //commandStringBuilder
-            //    .Append("ROW_COUNT() = ")
-            //    .Append(expectedRowsAffected.ToString(CultureInfo.InvariantCulture));
+            commandStringBuilder
+                .Append("@@ROW_COUNT = ")
+                .Append(expectedRowsAffected.ToString(CultureInfo.InvariantCulture));
         }
     }
 }
