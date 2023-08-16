@@ -38,7 +38,7 @@ namespace Actian.EFCore.Update.Internal
             SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, columnModification.ColumnName);
             commandStringBuilder
                 .Append(" = ")
-                .Append("LAST_IDENTITY");
+                .Append("LAST_IDENTITY()");
         }
 
         protected override void AppendRowsAffectedWhereCondition([NotNull] StringBuilder commandStringBuilder, int expectedRowsAffected)

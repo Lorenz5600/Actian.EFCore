@@ -12,7 +12,7 @@ namespace Actian.EFCore.Storage.Internal
         }
 
         /// <inheritdoc />
-        public override string StatementTerminator => "";
+        public override string StatementTerminator => ";";
 
         /// <inheritdoc />
         public override string BatchTerminator => "";
