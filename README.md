@@ -1,6 +1,8 @@
 # Actian.EFCore
 
-Entity Framework Core provider for Actian
+Entity Framework Core provider for Actian X, Ingres, and Vector.
+
+Also see previous https://github.com/ActianCorp/EntityFramework6.Ingres/
 
 ## Installing Actian.EFCore
 
