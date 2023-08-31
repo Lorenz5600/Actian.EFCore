@@ -104,7 +104,7 @@ namespace Actian.EFCore
                     @p0='New Category'
                     
                     UPDATE ""Categories"" SET ""Name"" = @p0
-                    WHERE ""Id"" = @p1
+                    WHERE ""Id"" = @p1;
                 ",
                 @"
                     SELECT FIRST 2 ""c"".""Id"", ""c"".""Name"", ""c"".""PrincipalId""

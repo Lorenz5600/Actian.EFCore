@@ -80,7 +80,7 @@ namespace Actian.EFCore
                     ""MigrationId"" nvarchar(150) NOT NULL,
                     ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
                     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                )
+                );
             ");
         }
 
@@ -95,7 +95,7 @@ namespace Actian.EFCore
                     ""MigrationId"" nvarchar(150) NOT NULL,
                     ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
                     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                )
+                );
             ");
         }
 
@@ -110,26 +110,26 @@ namespace Actian.EFCore
                     ""MigrationId"" nvarchar(150) NOT NULL,
                     ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
                     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                )
+                );
 
                 CREATE TABLE ""Table1"" (
                     ""Id"" integer NOT NULL,
                     ""Foo"" integer NOT NULL,
                     CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
-                )
+                );
 
                 INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000001_Migration1', N'7.0.0-test')
+                VALUES (N'00000000000001_Migration1', N'7.0.0-test');
 
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar""
+                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
 
-                MODIFY ""Table1"" TO RECONSTRUCT
-
-                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000002_Migration2', N'7.0.0-test')
+                MODIFY ""Table1"" TO RECONSTRUCT;
 
                 INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000003_Migration3', N'7.0.0-test')
+                VALUES (N'00000000000002_Migration2', N'7.0.0-test');
+
+                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+                VALUES (N'00000000000003_Migration3', N'7.0.0-test');
             ");
         }
 
@@ -140,12 +140,12 @@ namespace Actian.EFCore
             base.Can_generate_one_up_script();
 
             Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar""
+                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
 
-                MODIFY ""Table1"" TO RECONSTRUCT
+                MODIFY ""Table1"" TO RECONSTRUCT;
 
                 INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000002_Migration2', N'7.0.0-test')
+                VALUES (N'00000000000002_Migration2', N'7.0.0-test');
             ");
         }
 
@@ -156,12 +156,12 @@ namespace Actian.EFCore
             base.Can_generate_up_script_using_names();
 
             Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar""
+                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
 
-                MODIFY ""Table1"" TO RECONSTRUCT
+                MODIFY ""Table1"" TO RECONSTRUCT;
 
                 INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000002_Migration2', N'7.0.0-test')
+                VALUES (N'00000000000002_Migration2', N'7.0.0-test');
             ");
         }
 
@@ -221,17 +221,17 @@ namespace Actian.EFCore
             base.Can_generate_down_scripts();
 
             Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo""
+                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
 
-                MODIFY ""Table1"" TO RECONSTRUCT
-
-                DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000002_Migration2'
-
-                DROP ""Table1""
+                MODIFY ""Table1"" TO RECONSTRUCT;
 
                 DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000001_Migration1'
+                WHERE ""MigrationId"" = N'00000000000002_Migration2';
+
+                DROP ""Table1"";
+
+                DELETE FROM ""__EFMigrationsHistory""
+                WHERE ""MigrationId"" = N'00000000000001_Migration1';
             ");
         }
 
@@ -242,12 +242,12 @@ namespace Actian.EFCore
             base.Can_generate_one_down_script();
 
             Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo""
+                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
 
-                MODIFY ""Table1"" TO RECONSTRUCT
+                MODIFY ""Table1"" TO RECONSTRUCT;
 
                 DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000002_Migration2'
+                WHERE ""MigrationId"" = N'00000000000002_Migration2';
             ");
         }
 
@@ -258,12 +258,12 @@ namespace Actian.EFCore
             base.Can_generate_down_script_using_names();
 
             Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo""
+                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
 
-                MODIFY ""Table1"" TO RECONSTRUCT
+                MODIFY ""Table1"" TO RECONSTRUCT;
 
                 DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000002_Migration2'
+                WHERE ""MigrationId"" = N'00000000000002_Migration2';
             ");
         }
 

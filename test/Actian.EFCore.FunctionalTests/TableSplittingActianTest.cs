@@ -291,7 +291,7 @@ namespace Actian.EFCore
                 @p2='Repair'
                 
                 UPDATE ""Vehicles"" SET ""Operator_Discriminator"" = @p0, ""Operator_Name"" = @p1, ""LicenseType"" = @p2
-                WHERE ""Name"" = @p3
+                WHERE ""Name"" = @p3;
             ");
         }
 
@@ -304,7 +304,7 @@ namespace Actian.EFCore
                 @p0='2'
                 
                 UPDATE ""Vehicles"" SET ""SeatingCapacity"" = @p0
-                WHERE ""Name"" = @p1
+                WHERE ""Name"" = @p1;
             ");
         }
 

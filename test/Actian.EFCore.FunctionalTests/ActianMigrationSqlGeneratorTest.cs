@@ -45,10 +45,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_without_column_type();
             AssertSql(@"
-                ALTER TABLE ""People"" ADD ""Alias"" long nvarchar NOT NULL
+                ALTER TABLE ""People"" ADD ""Alias"" long nvarchar NOT NULL;
                 GO
 
-                MODIFY ""People"" TO RECONSTRUCT
+                MODIFY ""People"" TO RECONSTRUCT;
             ");
         }
 
@@ -56,10 +56,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_ansi();
             AssertSql(@"
-                ALTER TABLE ""Person"" ADD ""Name"" long varchar WITH NULL
+                ALTER TABLE ""Person"" ADD ""Name"" long varchar WITH NULL;
                 GO
 
-                MODIFY ""Person"" TO RECONSTRUCT
+                MODIFY ""Person"" TO RECONSTRUCT;
             ");
         }
 
@@ -67,10 +67,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_unicode_overridden();
             AssertSql(@"
-                ALTER TABLE ""Person"" ADD ""Name"" long nvarchar WITH NULL
+                ALTER TABLE ""Person"" ADD ""Name"" long nvarchar WITH NULL;
                 GO
 
-                MODIFY ""Person"" TO RECONSTRUCT
+                MODIFY ""Person"" TO RECONSTRUCT;
             ");
         }
 
@@ -78,10 +78,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_unicode_no_model();
             AssertSql(@"
-                ALTER TABLE ""Person"" ADD ""Name"" long varchar WITH NULL
+                ALTER TABLE ""Person"" ADD ""Name"" long varchar WITH NULL;
                 GO
 
-                MODIFY ""Person"" TO RECONSTRUCT
+                MODIFY ""Person"" TO RECONSTRUCT;
             ");
         }
 
@@ -99,10 +99,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_maxLength();
             AssertSql(@"
-                ALTER TABLE ""Person"" ADD ""Name"" nvarchar(30) WITH NULL
+                ALTER TABLE ""Person"" ADD ""Name"" nvarchar(30) WITH NULL;
                 GO
 
-                MODIFY ""Person"" TO RECONSTRUCT
+                MODIFY ""Person"" TO RECONSTRUCT;
             ");
         }
 
@@ -110,10 +110,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_maxLength_overridden();
             AssertSql(@"
-                ALTER TABLE ""Person"" ADD ""Name"" nvarchar(32) WITH NULL
+                ALTER TABLE ""Person"" ADD ""Name"" nvarchar(32) WITH NULL;
                 GO
 
-                MODIFY ""Person"" TO RECONSTRUCT
+                MODIFY ""Person"" TO RECONSTRUCT;
             ");
         }
 
@@ -126,10 +126,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_maxLength_on_derived();
             AssertSql(@"
-                ALTER TABLE ""Person"" ADD ""Name"" nvarchar(30) WITH NULL
+                ALTER TABLE ""Person"" ADD ""Name"" nvarchar(30) WITH NULL;
                 GO
 
-                MODIFY ""Person"" TO RECONSTRUCT
+                MODIFY ""Person"" TO RECONSTRUCT;
             ");
         }
 
@@ -137,10 +137,10 @@ namespace Actian.EFCore
         {
             base.AddColumnOperation_with_shared_column();
             AssertSql(@"
-                ALTER TABLE ""Base"" ADD ""Foo"" long nvarchar WITH NULL
+                ALTER TABLE ""Base"" ADD ""Foo"" long nvarchar WITH NULL;
                 GO
 
-                MODIFY ""Base"" TO RECONSTRUCT
+                MODIFY ""Base"" TO RECONSTRUCT;
             ");
         }
 
@@ -188,16 +188,16 @@ namespace Actian.EFCore
         {
             base.AlterColumnOperation();
             AssertSql(@"
-                ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" int NOT NULL WITH DEFAULT 7
+                ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" int NOT NULL WITH DEFAULT 7;
                 GO
 
-                set session authorization ""dbo""
+                set session authorization ""dbo"";
                 GO
 
-                MODIFY ""dbo"".""People"" TO RECONSTRUCT
+                MODIFY ""dbo"".""People"" TO RECONSTRUCT;
                 GO
 
-                set session authorization initial_user
+                set session authorization initial_user;
             ");
         }
 
@@ -205,10 +205,10 @@ namespace Actian.EFCore
         {
             base.AlterColumnOperation_without_column_type();
             AssertSql(@"
-                ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" integer NOT NULL
+                ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" integer NOT NULL;
                 GO
 
-                MODIFY ""People"" TO RECONSTRUCT
+                MODIFY ""People"" TO RECONSTRUCT;
             ");
         }
 
@@ -226,16 +226,16 @@ namespace Actian.EFCore
         {
             base.RenameTableOperation_legacy();
             AssertSql(@"
-                set session authorization ""dbo""
+                set session authorization ""dbo"";
                 GO
                 
-                ALTER TABLE ""dbo"".""People"" RENAME TO ""Person""
+                ALTER TABLE ""dbo"".""People"" RENAME TO ""Person"";
                 GO
                 
-                MODIFY ""dbo"".""Person"" TO RECONSTRUCT
+                MODIFY ""dbo"".""Person"" TO RECONSTRUCT;
                 GO
                 
-                set session authorization initial_user
+                set session authorization initial_user;
             ");
         }
 
@@ -243,16 +243,16 @@ namespace Actian.EFCore
         {
             base.RenameTableOperation();
             AssertSql(@"
-                set session authorization ""dbo""
+                set session authorization ""dbo"";
                 GO
                 
-                ALTER TABLE ""dbo"".""People"" RENAME TO ""Person""
+                ALTER TABLE ""dbo"".""People"" RENAME TO ""Person"";
                 GO
                 
-                MODIFY ""dbo"".""Person"" TO RECONSTRUCT
+                MODIFY ""dbo"".""Person"" TO RECONSTRUCT;
                 GO
                 
-                set session authorization initial_user
+                set session authorization initial_user;
             ");
         }
 
@@ -275,7 +275,7 @@ namespace Actian.EFCore
         {
             base.CreateIndexOperation_nonunique();
             AssertSql(@"
-                CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"")
+                CREATE INDEX ""IX_People_Name"" ON ""People"" (""Name"");
             ");
         }
 
@@ -325,7 +325,7 @@ namespace Actian.EFCore
             AssertSql(@"
                 CREATE TABLE ""Anonymous"" (
                     ""Value"" integer NOT NULL
-                )
+                );
             ");
         }
 
@@ -333,16 +333,16 @@ namespace Actian.EFCore
         {
             base.DropColumnOperation();
             AssertSql(@"
-                set session authorization ""dbo""
+                set session authorization ""dbo"";
                 GO
                 
-                ALTER TABLE ""dbo"".""People"" DROP COLUMN ""LuckyNumber"" RESTRICT
+                ALTER TABLE ""dbo"".""People"" DROP COLUMN ""LuckyNumber"" RESTRICT;
                 GO
                 
-                MODIFY ""dbo"".""People"" TO RECONSTRUCT
+                MODIFY ""dbo"".""People"" TO RECONSTRUCT;
                 GO
                 
-                set session authorization initial_user
+                set session authorization initial_user;
             ");
         }
 
@@ -355,13 +355,13 @@ namespace Actian.EFCore
         {
             base.DropIndexOperation();
             AssertSql(@"
-                set session authorization ""dbo""
+                set session authorization ""dbo"";
                 GO
                 
-                DROP INDEX ""dbo"".""IX_People_Name""
+                DROP INDEX ""dbo"".""IX_People_Name"";
                 GO
                 
-                set session authorization initial_user
+                set session authorization initial_user;
             ");
         }
 
@@ -400,15 +400,15 @@ namespace Actian.EFCore
             base.InsertDataOperation();
             AssertSql(@"
                 INSERT INTO ""People"" (""Id"", ""Full Name"")
-                VALUES (0, NULL)
+                VALUES (0, NULL);
                 INSERT INTO ""People"" (""Id"", ""Full Name"")
-                VALUES (1, N'Daenerys Targaryen')
+                VALUES (1, N'Daenerys Targaryen');
                 INSERT INTO ""People"" (""Id"", ""Full Name"")
-                VALUES (2, N'John Snow')
+                VALUES (2, N'John Snow');
                 INSERT INTO ""People"" (""Id"", ""Full Name"")
-                VALUES (3, N'Arya Stark')
+                VALUES (3, N'Arya Stark');
                 INSERT INTO ""People"" (""Id"", ""Full Name"")
-                VALUES (4, N'Harry Strickland')
+                VALUES (4, N'Harry Strickland');
             ");
         }
 
@@ -417,9 +417,9 @@ namespace Actian.EFCore
             base.DeleteDataOperation_simple_key();
             AssertSql(@"
                 DELETE FROM ""People""
-                WHERE ""Id"" = 2
+                WHERE ""Id"" = 2;
                 DELETE FROM ""People""
-                WHERE ""Id"" = 4
+                WHERE ""Id"" = 4;
             ");
         }
 
@@ -428,9 +428,9 @@ namespace Actian.EFCore
             base.DeleteDataOperation_composite_key();
             AssertSql(@"
                 DELETE FROM ""People""
-                WHERE ""First Name"" = N'Hodor' AND ""Last Name"" IS NULL
+                WHERE ""First Name"" = N'Hodor' AND ""Last Name"" IS NULL;
                 DELETE FROM ""People""
-                WHERE ""First Name"" = N'Daenerys' AND ""Last Name"" = N'Targaryen'
+                WHERE ""First Name"" = N'Daenerys' AND ""Last Name"" = N'Targaryen';
             ");
         }
 
@@ -439,9 +439,9 @@ namespace Actian.EFCore
             base.UpdateDataOperation_simple_key();
             AssertSql(@"
                 UPDATE ""People"" SET ""Full Name"" = N'Daenerys Stormborn'
-                WHERE ""Id"" = 1
+                WHERE ""Id"" = 1;
                 UPDATE ""People"" SET ""Full Name"" = N'Homeless Harry Strickland'
-                WHERE ""Id"" = 4
+                WHERE ""Id"" = 4;
             ");
         }
 
@@ -450,9 +450,9 @@ namespace Actian.EFCore
             base.UpdateDataOperation_composite_key();
             AssertSql(@"
                 UPDATE ""People"" SET ""First Name"" = N'Hodor'
-                WHERE ""Id"" = 0 AND ""Last Name"" IS NULL
+                WHERE ""Id"" = 0 AND ""Last Name"" IS NULL;
                 UPDATE ""People"" SET ""First Name"" = N'Harry'
-                WHERE ""Id"" = 4 AND ""Last Name"" = N'Strickland'
+                WHERE ""Id"" = 4 AND ""Last Name"" = N'Strickland';
             ");
         }
 
@@ -461,9 +461,9 @@ namespace Actian.EFCore
             base.UpdateDataOperation_multiple_columns();
             AssertSql(@"
                 UPDATE ""People"" SET ""First Name"" = N'Daenerys', ""Nickname"" = N'Dany'
-                WHERE ""Id"" = 1
+                WHERE ""Id"" = 1;
                 UPDATE ""People"" SET ""First Name"" = N'Harry', ""Nickname"" = N'Homeless'
-                WHERE ""Id"" = 4
+                WHERE ""Id"" = 4;
             ");
         }
 
