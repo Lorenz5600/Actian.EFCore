@@ -2,17 +2,15 @@
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Actian.EFCore.Query
 {
     public class FromSqlSprocQueryActianTest : FromSqlSprocQueryTestBase<NorthwindQueryActianFixture<NoopModelCustomizer>>
     {
-        public FromSqlSprocQueryActianTest(NorthwindQueryActianFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        public FromSqlSprocQueryActianTest(NorthwindQueryActianFixture<NoopModelCustomizer> fixture)
             : base(fixture)
         {
-            TestEnvironment.Log(this, testOutputHelper);
-            Helpers = new ActianSqlFixtureHelpers(fixture, testOutputHelper);
+            fixture.TestSqlLoggerFactory.Clear();
         }
 
         public ActianSqlFixtureHelpers Helpers { get; }
@@ -30,6 +28,17 @@ namespace Actian.EFCore.Query
         public override async Task From_sql_queryable_stored_procedure_with_tag(bool async)
         {
             await base.From_sql_queryable_stored_procedure_with_tag(async);
+            AssertSql(@"
+                -- Stored Procedure
+                
+                ""dbo"".""Ten Most Expensive Products""
+            ");
+        }
+
+        [ActianTodo]
+        public override async Task From_sql_queryable_stored_procedure_with_tags(bool async)
+        {
+            await base.From_sql_queryable_stored_procedure_with_tags(async);
             AssertSql(@"
                 -- Stored Procedure
                 
@@ -104,6 +113,20 @@ namespace Actian.EFCore.Query
         public override async Task From_sql_queryable_stored_procedure_take_on_client(bool async)
         {
             await base.From_sql_queryable_stored_procedure_take_on_client(async);
+            AssertSql(@"dbo"".""Ten Most Expensive Products""");
+        }
+
+        [ActianTodo]
+        public override async Task From_sql_queryable_stored_procedure_with_caller_info_tag(bool async)
+        {
+            await base.From_sql_queryable_stored_procedure_with_caller_info_tag(async);
+            AssertSql(@"dbo"".""Ten Most Expensive Products""");
+        }
+
+        [ActianTodo]
+        public override async Task From_sql_queryable_stored_procedure_with_caller_info_tag_and_other_tags(bool async)
+        {
+            await base.From_sql_queryable_stored_procedure_with_caller_info_tag_and_other_tags(async);
             AssertSql(@"dbo"".""Ten Most Expensive Products""");
         }
 

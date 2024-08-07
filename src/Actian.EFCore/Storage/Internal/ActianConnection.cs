@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System.Collections.Concurrent;
+using System.Data.Common;
 using Ingres.Client;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ namespace Actian.EFCore.Storage.Internal
     {
         // Compensate for slow Actian database creation (when and if database creation is implemented)
         private const int DefaultIIDbDbConnectionCommandTimeout = 60 * 5;
+
+        private static readonly ConcurrentDictionary<string, bool> MultipleActiveResultSetsEnabledMap = new();
 
         public ActianConnection([NotNull] RelationalConnectionDependencies dependencies)
             : base(dependencies)
@@ -25,26 +28,32 @@ namespace Actian.EFCore.Storage.Internal
             var connectionString = new IngresConnectionStringBuilder(ConnectionString)
             {
                 Database = "iidbdb",
+                DbmsUser = "ingres",
                 Pooling = false
             }.ToString();
 
-            return new ActianConnection(Dependencies.With(new DbContextOptionsBuilder()
+            var contextOptions = new DbContextOptionsBuilder()
                 .UseActian(
                     connectionString,
-                    b => b.CommandTimeout(CommandTimeout ?? DefaultIIDbDbConnectionCommandTimeout)
-                ).Options
-            ));
+                    b => b.CommandTimeout(CommandTimeout ?? DefaultIIDbDbConnectionCommandTimeout))
+                .Options;
+
+            return new ActianConnection(Dependencies with { ContextOptions = contextOptions });
         }
 
-        /// <inheritdoc />
-        public override bool IsMultipleActiveResultSetsEnabled => false;
-
-        /// <inheritdoc />
         protected override bool SupportsAmbientTransactions => true;
 
         public override IDbContextTransaction UseTransaction(DbTransaction transaction)
         {
             return base.UseTransaction(transaction);
+        }
+
+        public virtual bool IsMultipleActiveResultSetsEnabled
+        {
+            get
+            {
+                return false;
+            }
         }
     }
 }

@@ -1,25 +1,22 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.Query;
 
 namespace Actian.EFCore.Query.Internal
 {
     public class ActianSqlTranslatingExpressionVisitorFactory : IRelationalSqlTranslatingExpressionVisitorFactory
     {
-        private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
-
         public ActianSqlTranslatingExpressionVisitorFactory(
-            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
+            RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
         {
-            _dependencies = dependencies;
+            Dependencies = dependencies;
         }
+        protected virtual RelationalSqlTranslatingExpressionVisitorDependencies Dependencies { get; }
 
         public virtual RelationalSqlTranslatingExpressionVisitor Create(
-            IModel model,
+            QueryCompilationContext queryCompilationContext,
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             => new ActianSqlTranslatingExpressionVisitor(
-                _dependencies,
-                model,
+                Dependencies,
+                (ActianQueryCompilationContext)queryCompilationContext,
                 queryableMethodTranslatingExpressionVisitor);
     }
 }

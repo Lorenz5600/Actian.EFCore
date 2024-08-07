@@ -1,40 +1,32 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
 
+#nullable enable
 namespace Actian.EFCore.Internal
 {
     public static class ActianLoggerExtensions
     {
         public static void DecimalTypeDefaultWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Model.Validation> diagnostics,
-            [NotNull] IProperty property)
+            this IDiagnosticsLogger<DbLoggerCategory.Model.Validation> diagnostics,
+            IProperty property)
         {
             var definition = ActianResources.LogDefaultDecimalTypeColumn(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    property.Name,
-                    property.DeclaringEntityType.DisplayName()
-                );
+                definition.Log(diagnostics, property.Name, property.DeclaringType.DisplayName());
             }
 
-            if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
+            if (diagnostics.NeedsEventData(definition, out var diagnosticSourceEnabled, out var simpleLogEnabled))
             {
-                diagnostics.DiagnosticSource.Write(
-                    definition.EventId.Name,
-                    new PropertyEventData(
-                        definition,
-                        DecimalTypeDefaultWarning,
-                        property
-                    )
-                );
+                var eventData = new PropertyEventData(
+                    definition,
+                    DecimalTypeDefaultWarning,
+                    property);
+
+                diagnostics.DispatchEventData(definition, eventData, diagnosticSourceEnabled, simpleLogEnabled);
             }
         }
 
@@ -44,36 +36,28 @@ namespace Actian.EFCore.Internal
             var p = (PropertyEventData)payload;
             return d.GenerateMessage(
                 p.Property.Name,
-                p.Property.DeclaringEntityType.DisplayName()
-            );
+                p.Property.DeclaringType.DisplayName());
         }
 
         public static void ByteIdentityColumnWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Model.Validation> diagnostics,
-            [NotNull] IProperty property)
+            this IDiagnosticsLogger<DbLoggerCategory.Model.Validation> diagnostics,
+            IProperty property)
         {
             var definition = ActianResources.LogByteIdentityColumn(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    property.Name, property.DeclaringEntityType.DisplayName()
-                );
+                definition.Log(diagnostics, property.Name, property.DeclaringType.DisplayName());
             }
 
-            if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
+            if (diagnostics.NeedsEventData(definition, out var diagnosticSourceEnabled, out var simpleLogEnabled))
             {
-                diagnostics.DiagnosticSource.Write(
-                    definition.EventId.Name,
-                    new PropertyEventData(
-                        definition,
-                        ByteIdentityColumnWarning,
-                        property
-                    )
-                );
+                var eventData = new PropertyEventData(
+                    definition,
+                    ByteIdentityColumnWarning,
+                    property);
+
+                diagnostics.DispatchEventData(definition, eventData, diagnosticSourceEnabled, simpleLogEnabled);
             }
         }
 
@@ -83,32 +67,30 @@ namespace Actian.EFCore.Internal
             var p = (PropertyEventData)payload;
             return d.GenerateMessage(
                 p.Property.Name,
-                p.Property.DeclaringEntityType.DisplayName()
-            );
+                p.Property.DeclaringType.DisplayName());
         }
 
         public static void ColumnFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string tableName,
-            [NotNull] string columnName,
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string tableName,
+            string columnName,
             int ordinal,
-            [NotNull] string dataTypeName,
+            string dataTypeName,
             int maxLength,
             int precision,
             int scale,
             bool nullable,
             bool identity,
-            [CanBeNull] string defaultValue,
-            [CanBeNull] string computedValue)
+            string? defaultValue,
+            string? computedValue,
+            bool? stored)
         {
             var definition = ActianResources.LogFoundColumn(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
                 definition.Log(
                     diagnostics,
-                    warningBehavior,
                     l => l.LogDebug(
                         definition.EventId,
                         null,
@@ -123,224 +105,215 @@ namespace Actian.EFCore.Internal
                         nullable,
                         identity,
                         defaultValue,
-                        computedValue));
+                        computedValue,
+                        stored));
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void ForeignKeyFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string foreignKeyName,
-            [NotNull] string tableName,
-            [NotNull] string principalTableName,
-            [NotNull] string onDeleteAction)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string foreignKeyName,
+            string tableName,
+            string principalTableName,
+            string onDeleteAction)
         {
             var definition = ActianResources.LogFoundForeignKey(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    foreignKeyName, tableName, principalTableName, onDeleteAction);
+                definition.Log(diagnostics, foreignKeyName, tableName, principalTableName, onDeleteAction);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void DefaultSchemaFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string schemaName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string schemaName)
         {
             var definition = ActianResources.LogFoundDefaultSchema(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    schemaName);
+                definition.Log(diagnostics, schemaName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void TypeAliasFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string typeAliasName,
-            [NotNull] string systemTypeName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string typeAliasName,
+            string systemTypeName)
         {
             var definition = ActianResources.LogFoundTypeAlias(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    typeAliasName, systemTypeName);
+                definition.Log(diagnostics, typeAliasName, systemTypeName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void PrimaryKeyFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string primaryKeyName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string primaryKeyName,
+            string tableName)
         {
             var definition = ActianResources.LogFoundPrimaryKey(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    primaryKeyName, tableName);
+                definition.Log(diagnostics, primaryKeyName, tableName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void UniqueConstraintFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string uniqueConstraintName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string uniqueConstraintName,
+            string tableName)
         {
             var definition = ActianResources.LogFoundUniqueConstraint(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    uniqueConstraintName, tableName);
+                definition.Log(diagnostics, uniqueConstraintName, tableName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void IndexFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string indexName,
-            [NotNull] string tableName,
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string indexName,
+            string tableName,
             bool unique)
         {
             var definition = ActianResources.LogFoundIndex(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    indexName, tableName, unique);
+                definition.Log(diagnostics, indexName, tableName, unique);
+            }
+
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
+
+        public static void ForeignKeyReferencesUnknownPrincipalTableWarning(
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? foreignKeyName,
+            string? tableName)
+        {
+            var definition = ActianResources.LogPrincipalTableInformationNotFound(diagnostics);
+
+            if (diagnostics.ShouldLog(definition))
+            {
+                definition.Log(diagnostics, foreignKeyName, tableName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void ForeignKeyReferencesMissingPrincipalTableWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string foreignKeyName,
-            [CanBeNull] string tableName,
-            [CanBeNull] string principalTableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? foreignKeyName,
+            string? tableName,
+            string? principalTableName)
         {
             var definition = ActianResources.LogPrincipalTableNotInSelectionSet(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    foreignKeyName, tableName, principalTableName);
+                definition.Log(diagnostics, foreignKeyName, tableName, principalTableName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void ForeignKeyPrincipalColumnMissingWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string foreignKeyName,
-            [NotNull] string tableName,
-            [NotNull] string principalColumnName,
-            [NotNull] string principalTableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string foreignKeyName,
+            string tableName,
+            string principalColumnName,
+            string principalTableName)
         {
             var definition = ActianResources.LogPrincipalColumnNotFound(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    foreignKeyName, tableName, principalColumnName, principalTableName);
+                definition.Log(diagnostics, foreignKeyName, tableName, principalColumnName, principalTableName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void MissingSchemaWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string schemaName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? schemaName)
         {
             var definition = ActianResources.LogMissingSchema(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    schemaName);
+                definition.Log(diagnostics, schemaName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void MissingTableWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? tableName)
         {
             var definition = ActianResources.LogMissingTable(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    tableName);
+                definition.Log(diagnostics, tableName);
+            }
+
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
+
+        public static void ColumnWithoutTypeWarning(
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string tableName,
+            string columnName)
+        {
+            var definition = ActianResources.LogColumnWithoutType(diagnostics);
+
+            if (diagnostics.ShouldLog(definition))
+            {
+                definition.Log(diagnostics, tableName, columnName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void SequenceFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string sequenceName,
-            [NotNull] string sequenceTypeName,
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string sequenceName,
+            string sequenceTypeName,
             bool cyclic,
             int increment,
             long start,
             long min,
-            long max)
+            long max,
+            bool cached,
+            int? cacheSize)
         {
             // No DiagnosticsSource events because these are purely design-time messages
             var definition = ActianResources.LogFoundSequence(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
                 definition.Log(
                     diagnostics,
-                    warningBehavior,
                     l => l.LogDebug(
                         definition.EventId,
                         null,
@@ -351,42 +324,65 @@ namespace Actian.EFCore.Internal
                         increment,
                         start,
                         min,
-                        max));
+                        max,
+                        cached,
+                        cacheSize));
             }
         }
 
         public static void TableFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string tableName)
         {
             var definition = ActianResources.LogFoundTable(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    tableName);
+                definition.Log(diagnostics, tableName);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void ReflexiveConstraintIgnored(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string foreignKeyName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string foreignKeyName,
+            string tableName)
         {
             var definition = ActianResources.LogReflexiveConstraintIgnored(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    foreignKeyName, tableName);
+                definition.Log(diagnostics, foreignKeyName, tableName);
+            }
+
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
+
+        public static void DuplicateForeignKeyConstraintIgnored(
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string foreignKeyName,
+            string tableName,
+            string duplicateForeignKeyName)
+        {
+            var definition = ActianResources.LogDuplicateForeignKeyConstraintIgnored(diagnostics);
+
+            if (diagnostics.ShouldLog(definition))
+            {
+                definition.Log(diagnostics, foreignKeyName, tableName, duplicateForeignKeyName);
+            }
+
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
+
+        public static void MissingViewDefinitionRightsWarning(
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics)
+        {
+            var definition = ActianResources.LogMissingViewDefinitionRights(diagnostics);
+
+            if (diagnostics.ShouldLog(definition))
+            {
+                definition.Log(diagnostics);
             }
 
             // No DiagnosticsSource events because these are purely design-time messages

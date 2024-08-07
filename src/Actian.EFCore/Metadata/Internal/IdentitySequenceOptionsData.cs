@@ -63,7 +63,7 @@ namespace Actian.EFCore.Metadata.Internal
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(RelationalStrings.BadSequenceString, ex);
+                throw new ArgumentException(ex.Message);
             }
         }
 

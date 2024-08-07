@@ -17,14 +17,14 @@ namespace Actian.EFCore.ValueGeneration.Internal
         private readonly IActianUpdateSqlGenerator _sqlGenerator;
         private readonly IActianConnection _connection;
         private readonly ISequence _sequence;
-        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
+        private readonly IRelationalCommandDiagnosticsLogger _commandLogger;
 
         public ActianSequenceHiLoValueGenerator(
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IActianUpdateSqlGenerator sqlGenerator,
-            [NotNull] ActianSequenceValueGeneratorState generatorState,
-            [NotNull] IActianConnection connection,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IActianUpdateSqlGenerator sqlGenerator,
+            ActianSequenceValueGeneratorState generatorState,
+            IActianConnection connection,
+            IRelationalCommandDiagnosticsLogger commandLogger)
             : base(generatorState)
         {
             _sequence = generatorState.Sequence;

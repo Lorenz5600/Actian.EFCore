@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Ingres.Client;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
 namespace Actian.EFCore.TestUtilities
@@ -8,17 +8,84 @@ namespace Actian.EFCore.TestUtilities
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public sealed class ActianConditionAttribute : Attribute, ITestCondition
     {
-        public IEnumerable<ActianCondition> Conditions { get; set; }
+        public ActianCondition Conditions { get; set; }
 
-        public ActianConditionAttribute(params ActianCondition[] conditions)
+        public ActianConditionAttribute(ActianCondition conditions)
         {
             Conditions = conditions;
         }
 
         public ValueTask<bool> IsMetAsync()
         {
-            var (isMet, _) = IsMetInternal();
-            return new ValueTask<bool>(isMet);
+            var isMet = true;
+
+            if (Conditions.HasFlag(ActianCondition.SupportsHiddenColumns))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsMemoryOptimized))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.IsSqlAzure))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.IsNotSqlAzure))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsAttach))
+            {
+                var defaultConnection = new IngresConnectionStringBuilder(TestEnvironment.DefaultConnection);
+                isMet &= defaultConnection.Server.Contains("(localdb)", StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (Conditions.HasFlag(ActianCondition.IsNotCI))
+            {
+                isMet &= !TestEnvironment.IsCI;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsFullTextSearch))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsOnlineIndexes))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsTemporalTablesCascadeDelete))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsUtf8))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsFunctions2019))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsFunctions2017))
+            {
+                isMet = false;
+            }
+
+            if (Conditions.HasFlag(ActianCondition.SupportsJsonPathExpressions))
+            {
+                isMet = false;
+            }
+
+            return ValueTask.FromResult(isMet);
         }
 
         public string SkipReason
@@ -32,15 +99,10 @@ namespace Actian.EFCore.TestUtilities
 
         private (bool isMet, string reason) IsMetInternal()
         {
-            foreach (var condition in Conditions)
+            if (Conditions.HasFlag(ActianCondition.Todo))
             {
-                switch (condition)
-                {
-                    case ActianCondition.Todo:
-                        return (false, "Todo");
-                }
+                return (false, "Todo");
             }
-
             return (true, "");
         }
     }

@@ -14,8 +14,11 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Sprache;
 using static Sprache.Parse;
+
+#nullable enable
 
 namespace Actian.EFCore.Scaffolding.Internal
 {
@@ -24,19 +27,15 @@ namespace Actian.EFCore.Scaffolding.Internal
     /// </summary>
     public class ActianDatabaseModelFactory : DatabaseModelFactory
     {
-        /// <summary>
-        /// The diagnostic logger instance.
-        /// </summary>
-        [NotNull] private readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+        private readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
 
-        /// <summary>
-        /// Constructs an instance of the <see cref="ActianDatabaseModelFactory"/> class.
-        /// </summary>
-        /// <param name="logger">The diagnostic logger instance.</param>
         public ActianDatabaseModelFactory(
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger,
+        IRelationalTypeMappingSource typeMappingSource)
         {
-            _logger = Check.NotNull(logger, nameof(logger));
+            _logger = logger;
+            _typeMappingSource = typeMappingSource;
         }
 
         /// <inheritdoc />
@@ -133,7 +132,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                 _logger.DefaultSchemaFound(defaultSchema);
                 return defaultSchema;
             }
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -269,7 +268,8 @@ namespace Actian.EFCore.Scaffolding.Internal
                     Name = column.ColumnName,
                     IsNullable = column.IsNullable,
                     StoreType = column.StoreType,
-                    DefaultValueSql = FilterClrDefaults(column.DataTypeName, column.IsNullable, column.DefaultValueSql),
+                    DefaultValue = TryParseClrDefault(column.DataTypeName, column.DefaultValueSql!),
+                    DefaultValueSql = column.DefaultValueSql,
                     ComputedColumnSql = null,
                     ValueGenerated = column.ValueGenerated
                 });
@@ -289,8 +289,8 @@ namespace Actian.EFCore.Scaffolding.Internal
                     .WithAnnotation(ActianAnnotationNames.Duplicates, table.DuplicateRows == "D");
             }).ToList();
 
-            GetConstraints(connection, tables, tableFilter, dbNameCase, dbDelimitedCase);
-            GetIndexes(connection, tables, tableFilter, dbNameCase, dbDelimitedCase);
+            GetConstraints(connection, tables, tableFilter!, dbNameCase, dbDelimitedCase);
+            GetIndexes(connection, tables, tableFilter!, dbNameCase, dbDelimitedCase);
             GetComments(connection, tables, dbNameCase, dbDelimitedCase);
             return tables;
         }
@@ -305,7 +305,7 @@ namespace Actian.EFCore.Scaffolding.Internal
             RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
         );
 
-        private static string FilterClrDefaults(string dataTypeName, bool nullable, string defaultValue)
+        private static string? FilterClrDefaults(string dataTypeName, bool nullable, string defaultValue)
         {
             if (defaultValue == null || defaultValue == "NULL")
                 return null;
@@ -338,6 +338,129 @@ namespace Actian.EFCore.Scaffolding.Internal
             }
 
             return defaultValue;
+        }
+
+        private object? TryParseClrDefault(string dataTypeName, string? defaultValueSql)
+        {
+            defaultValueSql = defaultValueSql?.Trim();
+            if (string.IsNullOrEmpty(defaultValueSql))
+            {
+                return null;
+            }
+
+            var mapping = _typeMappingSource.FindMapping(dataTypeName);
+            if (mapping == null)
+            {
+                return null;
+            }
+
+            Unwrap();
+            if (defaultValueSql.StartsWith("CONVERT", StringComparison.OrdinalIgnoreCase))
+            {
+                defaultValueSql = defaultValueSql.Substring(defaultValueSql.IndexOf(',') + 1);
+                defaultValueSql = defaultValueSql.Substring(0, defaultValueSql.LastIndexOf(')'));
+                Unwrap();
+            }
+
+            if (defaultValueSql.Equals("NULL", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var type = mapping.ClrType;
+            if (type == typeof(bool)
+                && int.TryParse(defaultValueSql, out var intValue))
+            {
+                return intValue != 0;
+            }
+
+            if (type == typeof(bool)
+                && bool.TryParse(defaultValueSql, out var stringValue))
+            {
+                return stringValue;
+            }
+
+            if (type.IsNumeric())
+            {
+                try
+                {
+                    return Convert.ChangeType(defaultValueSql, type);
+                }
+                catch
+                {
+                    // Ignored
+                    return null;
+                }
+            }
+
+            if (type == typeof(Guid)
+                && Guid.TryParse(defaultValueSql, out var uuid))
+            {
+                return uuid;
+            }
+
+            if ((defaultValueSql.StartsWith('\'') || defaultValueSql.StartsWith("N'", StringComparison.OrdinalIgnoreCase))
+                && defaultValueSql.EndsWith('\''))
+            {
+                var startIndex = defaultValueSql.IndexOf('\'');
+                defaultValueSql = defaultValueSql.Substring(startIndex + 1, defaultValueSql.Length - (startIndex + 2));
+
+                if (type == typeof(string))
+                {
+                    return defaultValueSql;
+                }
+
+                if (type == typeof(bool)
+                    && bool.TryParse(defaultValueSql, out var boolValue))
+                {
+                    return boolValue;
+                }
+
+                if (type == typeof(Guid)
+                    && Guid.TryParse(defaultValueSql, out var guid))
+                {
+                    return guid;
+                }
+
+                if (type == typeof(DateTime)
+                    && DateTime.TryParse(defaultValueSql, out var dateTime))
+                {
+                    return dateTime;
+                }
+
+                if (type == typeof(DateOnly)
+                    && DateOnly.TryParse(defaultValueSql, out var dateOnly))
+                {
+                    return dateOnly;
+                }
+
+                if ((type == typeof(TimeOnly) || type == typeof(TimeSpan))
+                    && TimeOnly.TryParse(defaultValueSql, out var timeOnly))
+                {
+                    return timeOnly;
+                }
+
+                if (type == typeof(DateTimeOffset)
+                    && DateTimeOffset.TryParse(defaultValueSql, out var dateTimeOffset))
+                {
+                    return dateTimeOffset;
+                }
+
+                if (type == typeof(float))
+                {
+                    return defaultValueSql;
+                }
+            }
+
+            return null;
+
+            void Unwrap()
+            {
+                while (defaultValueSql.StartsWith('(') && defaultValueSql.EndsWith(')'))
+                {
+                    defaultValueSql = (defaultValueSql.Substring(1, defaultValueSql.Length - 2)).Trim();
+                }
+            }
         }
 
         /// <summary>
@@ -494,7 +617,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                             break;
                         }
 
-                        foreignKey.Columns.Add(column);
+                        foreignKey.Columns.Add(column!);
                         foreignKey.PrincipalColumns.Add(principalColumn);
                     }
 
@@ -509,8 +632,24 @@ namespace Actian.EFCore.Scaffolding.Internal
                         );
                         continue;
                     }
+                    else
+                    {
+                        var duplicated = table.ForeignKeys
+                            .FirstOrDefault(
+                                k => k.Columns.SequenceEqual(foreignKey.Columns)
+                                    && k.PrincipalColumns.SequenceEqual(foreignKey.PrincipalColumns)
+                                    && k.PrincipalTable.Equals(foreignKey.PrincipalTable));
+                        if (duplicated != null)
+                        {
+                            _logger.DuplicateForeignKeyConstraintIgnored(
+                                foreignKey.Name!,
+                                DisplayName(table.Schema!, table.Name),
+                                duplicated.Name!);
+                            continue;
+                        }
+                    }
 
-                    table.ForeignKeys.Add(foreignKey);
+                        table.ForeignKeys.Add(foreignKey);
                 }
             }
         }
@@ -698,7 +837,7 @@ namespace Actian.EFCore.Scaffolding.Internal
         private static readonly Regex DecimalRe = new Regex(@"^\s*DECIMAL(?:\s*\(\s*(\d+)\s*(?:,\s*(\d+)\s*)?\))?\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         private static string GetSequenceStoreType(string typeName, int? precision) => typeName?.ToUpperInvariant() switch
         {
-            null => GetStoreType(typeName),
+            null => GetStoreType(typeName!),
             "INTEGER" => GetStoreType("INTEGER", 4),
             "INTEGER4" => GetStoreType("INTEGER", 4),
             "INTEGER8" => GetStoreType("INTEGER", 8),
@@ -774,7 +913,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                     return $"decimal";
 
                 default:
-                    return typeName?.ToLowerInvariant();
+                    return typeName?.ToLowerInvariant()!;
             };
         }
 
@@ -871,7 +1010,7 @@ namespace Actian.EFCore.Scaffolding.Internal
                     return $"decimal({length},{scale})";
 
                 default:
-                    return typeName?.ToLowerInvariant();
+                    return typeName?.ToLowerInvariant()!;
             };
         }
 
@@ -900,7 +1039,7 @@ namespace Actian.EFCore.Scaffolding.Internal
             if (!string.IsNullOrWhiteSpace(shortRemark))
                 return shortRemark;
 
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -915,7 +1054,7 @@ namespace Actian.EFCore.Scaffolding.Internal
             [NotNull] IEnumerable<string> schemas)
         {
             if (!schemas.Any())
-                return null;
+                return null!;
 
             return schema => $"{schema} in ({string.Join(", ", schemas.Select(EscapeLiteral))})";
         }
@@ -934,7 +1073,7 @@ namespace Actian.EFCore.Scaffolding.Internal
             [CanBeNull] Func<string, string> schemaFilter)
         {
             if (schemaFilter == null && !tables.Any())
-                return null;
+                return null!;
 
             return (schema, table) =>
             {

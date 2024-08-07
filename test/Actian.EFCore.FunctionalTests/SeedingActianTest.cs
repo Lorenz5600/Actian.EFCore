@@ -1,32 +1,23 @@
-﻿using System.Threading.Tasks;
-using Actian.EFCore.TestUtilities;
+﻿using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
-using Xunit.Abstractions;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Actian.EFCore
 {
     public class SeedingActianTest : SeedingTestBase
     {
-        public SeedingActianTest(ITestOutputHelper testOutputHelper)
-        {
-            TestEnvironment.Log(this, testOutputHelper);
-        }
-
-        public override Task Seeding_does_not_leave_context_contaminated(bool async)
-        {
-            return base.Seeding_does_not_leave_context_contaminated(async);
-        }
+        protected override TestStore TestStore
+            => ActianTestStore.Create("SeedingTest");
 
         protected override SeedingContext CreateContextWithEmptyDatabase(string testId)
-        {
-            var context = new SeedingActianContext(testId);
-            context.Database.EnsureClean();
-            return context;
-        }
+            => new SeedingActianContext(testId);
 
         protected class SeedingActianContext : SeedingContext
         {
-            public SeedingActianContext(string testId) : base(testId) { }
+            public SeedingActianContext(string testId)
+                : base(testId)
+            {
+            }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseActian(TestEnvironment.GetConnectionString($"Seeds{TestId}"));

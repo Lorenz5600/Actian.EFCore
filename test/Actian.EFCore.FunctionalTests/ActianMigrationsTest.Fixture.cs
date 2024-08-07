@@ -1,9 +1,10 @@
 ﻿using Actian.EFCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore
 {
-    public class ActianMigrationsFixture : MigrationsFixtureBase
+    public class ActianMigrationsFixture : MigrationsInfrastructureFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
 

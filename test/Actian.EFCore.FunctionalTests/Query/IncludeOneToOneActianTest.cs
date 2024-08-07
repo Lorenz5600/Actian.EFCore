@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
+using TestEnvironment = Actian.EFCore.TestUtilities.TestEnvironment;
 
 namespace Actian.EFCore.Query
 {
@@ -19,7 +20,6 @@ namespace Actian.EFCore.Query
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
         public void LogSql() => Helpers.LogSql();
 
-        [ActianTodo]
         public override void Include_address()
         {
             base.Include_address();
@@ -30,7 +30,6 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianTodo]
         public override void Include_address_shadow()
         {
             base.Include_address_shadow();
@@ -41,13 +40,11 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianTodo]
         public override void Include_address_no_tracking()
         {
             base.Include_address_no_tracking();
         }
 
-        [ActianTodo]
         public override void Include_person()
         {
             base.Include_person();
@@ -58,7 +55,6 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianTodo]
         public override void Include_person_shadow()
         {
             base.Include_person_shadow();
@@ -69,19 +65,16 @@ namespace Actian.EFCore.Query
             ");
         }
 
-        [ActianTodo]
         public override void Include_person_no_tracking()
         {
             base.Include_person_no_tracking();
         }
 
-        [ActianTodo]
         public override void Include_address_when_person_already_tracked()
         {
             base.Include_address_when_person_already_tracked();
         }
 
-        [ActianTodo]
         public override void Include_person_when_address_already_tracked()
         {
             base.Include_person_when_address_already_tracked();

@@ -29,7 +29,7 @@ namespace Actian.EFCore.TestUtilities
             DbTransaction transaction,
             IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
             bool transactionOwned)
-            : base(connection, transaction, new Guid(), logger, transactionOwned)
+            : base(connection, transaction, new Guid(), logger, transactionOwned, null)
         {
             _testConnection = (TestActianConnection)connection;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 using Ingres.Client;
 using JetBrains.Annotations;
@@ -48,7 +49,7 @@ namespace Actian.EFCore.Storage.Internal
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new ActianTimestampTypeMapping(parameters, WithTimeZone);
 
-        public override DbParameter CreateParameter(DbCommand command, string name, object value, bool? nullable = null)
+        public override DbParameter CreateParameter(DbCommand command, string name, object value, bool? nullable = null, ParameterDirection direction = ParameterDirection.Input)
         {
             if (value is DateTimeOffset dateTimeOffset)
             {
