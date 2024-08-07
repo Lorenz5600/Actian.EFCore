@@ -1,15 +1,27 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Actian.EFCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Actian.EFCore.Query.Internal
 {
     public class ActianQuerySqlGenerator : QuerySqlGenerator
     {
-        public ActianQuerySqlGenerator(QuerySqlGeneratorDependencies dependencies)
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly int _actianCompatibilityLevel;
+
+        public ActianQuerySqlGenerator(
+            QuerySqlGeneratorDependencies dependencies,
+            IRelationalTypeMappingSource typeMappingSource,
+            IActianSingletonOptions actianSingletonOptions)
             : base(dependencies)
         {
+            _typeMappingSource = typeMappingSource;
+            _sqlGenerationHelper = dependencies.SqlGenerationHelper;
+            _actianCompatibilityLevel = actianSingletonOptions.CompatibilityLevel;
         }
 
         protected override void GenerateTop(SelectExpression selectExpression)
@@ -137,10 +149,11 @@ namespace Actian.EFCore.Query.Internal
             if (!sqlFunctionExpression.IsBuiltIn
                 && string.IsNullOrEmpty(sqlFunctionExpression.Schema))
             {
-                sqlFunctionExpression = SqlFunctionExpression.Create(
-                    schema: "dbo",
+                sqlFunctionExpression = new SqlFunctionExpression(
                     sqlFunctionExpression.Name,
                     sqlFunctionExpression.Arguments,
+                    true,
+                    new[] {true, true },
                     sqlFunctionExpression.Type,
                     sqlFunctionExpression.TypeMapping);
             }

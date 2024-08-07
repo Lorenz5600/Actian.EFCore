@@ -31,6 +31,16 @@
         /// <para>Selects the by-default-identity column strategy (a value can be provided to override the identity mechanism).</para>
         /// </summary>
         IdentityByDefaultColumn,
+
+        /// <summary>
+        ///     A pattern that uses a normal <c>Identity</c> column in the same way as EF6 and earlier.
+        /// </summary>
+        IdentityColumn,
+
+        /// <summary>
+        ///     A pattern that uses a database sequence to generate values for the column.
+        /// </summary>
+        Sequence
     }
 
     public static class ActianValueGenerationStrategyExtensions

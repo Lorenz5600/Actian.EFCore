@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Actian.EFCore.Metadata.Internal;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -9,14 +8,14 @@ namespace Actian.EFCore.Migrations.Internal
 {
     public class ActianMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {
-        public ActianMigrationsAnnotationProvider(
-            [NotNull] MigrationsAnnotationProviderDependencies dependencies
-            )
+#pragma warning disable EF1001 // Internal EF Core API usage.
+        public ActianMigrationsAnnotationProvider(MigrationsAnnotationProviderDependencies dependencies)
+#pragma warning restore EF1001 // Internal EF Core API usage.
             : base(dependencies)
         {
         }
 
-        public override IEnumerable<IAnnotation> For(IProperty property)
+        public IEnumerable<IAnnotation> For(IProperty property)
         {
             var valueGenerationStrategy = property.GetValueGenerationStrategy();
             if (valueGenerationStrategy != ActianValueGenerationStrategy.None)

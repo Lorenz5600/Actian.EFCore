@@ -7,6 +7,8 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
+#nullable enable
+
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
@@ -23,9 +25,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="actianOptionsAction">An optional action to allow additional Actian specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseActian(
-            [NotNull] this DbContextOptionsBuilder optionsBuilder,
-            [NotNull] string connectionString,
-            [CanBeNull] Action<ActianDbContextOptionsBuilder> actianOptionsAction = null)
+            this DbContextOptionsBuilder optionsBuilder,
+            string? connectionString,
+            Action<ActianDbContextOptionsBuilder>? actianOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotEmpty(connectionString, nameof(connectionString));
@@ -55,7 +57,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder UseActian(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] DbConnection connection,
-            [CanBeNull] Action<ActianDbContextOptionsBuilder> actianOptionsAction = null)
+            [CanBeNull] Action<ActianDbContextOptionsBuilder>? actianOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotNull(connection, nameof(connection));
@@ -81,7 +83,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder<TContext> UseActian<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] string connectionString,
-            [CanBeNull] Action<ActianDbContextOptionsBuilder> actianOptionsAction = null)
+            [CanBeNull] Action<ActianDbContextOptionsBuilder>? actianOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseActian(
                 (DbContextOptionsBuilder)optionsBuilder, connectionString, actianOptionsAction);
@@ -102,7 +104,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder<TContext> UseActian<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] DbConnection connection,
-            [CanBeNull] Action<ActianDbContextOptionsBuilder> actianOptionsAction = null)
+            [CanBeNull] Action<ActianDbContextOptionsBuilder>? actianOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseActian(
                 (DbContextOptionsBuilder)optionsBuilder, connection, actianOptionsAction);

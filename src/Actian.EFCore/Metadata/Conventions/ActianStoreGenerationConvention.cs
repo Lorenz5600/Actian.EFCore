@@ -97,34 +97,37 @@ namespace Actian.EFCore.Metadata.Conventions
             base.ProcessPropertyAnnotationChanged(propertyBuilder, name, annotation, oldAnnotation, context);
         }
 
-        protected override void Validate(IConventionProperty property)
+        protected override void Validate ([NotNull] IConventionProperty property, in StoreObjectIdentifier storeObject)
         {
-            if (property.GetValueGenerationStrategyConfigurationSource() != null
-                && property.GetValueGenerationStrategy() != ActianValueGenerationStrategy.None)
+            var generationStrategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
+            if (generationStrategy == ActianValueGenerationStrategy.None)
             {
-                if (property.GetDefaultValue() != null)
-                {
-                    throw new InvalidOperationException(
-                        RelationalStrings.ConflictingColumnServerGeneration(
-                            "ActianValueGenerationStrategy", property.Name, "DefaultValue"));
-                }
-
-                if (property.GetDefaultValueSql() != null)
-                {
-                    throw new InvalidOperationException(
-                        RelationalStrings.ConflictingColumnServerGeneration(
-                            "ActianValueGenerationStrategy", property.Name, "DefaultValueSql"));
-                }
-
-                if (property.GetComputedColumnSql() != null)
-                {
-                    throw new InvalidOperationException(
-                        RelationalStrings.ConflictingColumnServerGeneration(
-                            "ActianValueGenerationStrategy", property.Name, "ComputedColumnSql"));
-                }
+                base.Validate(property, storeObject);
+                return;
             }
 
-            base.Validate(property);
+            if (property.GetDefaultValue() != null)
+            {
+                throw new InvalidOperationException(
+                    RelationalStrings.ConflictingColumnServerGeneration(
+                        "ActianValueGenerationStrategy", property.Name, "DefaultValue"));
+            }
+
+            if (property.GetDefaultValueSql() != null)
+            {
+                throw new InvalidOperationException(
+                    RelationalStrings.ConflictingColumnServerGeneration(
+                        "ActianValueGenerationStrategy", property.Name, "DefaultValueSql"));
+            }
+
+            if (property.GetComputedColumnSql() != null)
+            {
+                throw new InvalidOperationException(
+                    RelationalStrings.ConflictingColumnServerGeneration(
+                        "ActianValueGenerationStrategy", property.Name, "ComputedColumnSql"));
+            }
+
+            base.Validate(property, storeObject);
         }
     }
 }

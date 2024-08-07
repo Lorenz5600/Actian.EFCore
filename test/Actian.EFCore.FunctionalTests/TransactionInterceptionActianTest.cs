@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
+using TestEnvironment = Actian.EFCore.TestUtilities.TestEnvironment;
 
 namespace Actian.EFCore
 {
@@ -87,6 +88,12 @@ namespace Actian.EFCore
         public override Task Intercept_error_on_commit_or_rollback(bool async, bool commit)
         {
             return base.Intercept_error_on_commit_or_rollback(async, commit);
+        }
+
+        [ActianTodo]
+        public override Task Intercept_ReleaseSavepoint(bool async)
+        {
+            return base.Intercept_ReleaseSavepoint(async);
         }
 
         public override Task Intercept_connection_with_multiple_interceptors(bool async)

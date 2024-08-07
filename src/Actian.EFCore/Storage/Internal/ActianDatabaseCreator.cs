@@ -19,6 +19,9 @@ namespace Actian.EFCore.Storage.Internal
             RawSqlCommandBuilder = rawSqlCommandBuilder;
         }
 
+        public virtual TimeSpan RetryDelay { get; set; } = TimeSpan.FromMilliseconds(500);
+        public virtual TimeSpan RetryTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
         public IActianConnection Connection { get; }
         public IActianConnection IIDbDbConnection { get; }
         public IRawSqlCommandBuilder RawSqlCommandBuilder { get; }
@@ -42,7 +45,7 @@ namespace Actian.EFCore.Storage.Internal
         private string DatabaseExistsSql => @$"
             select 1
               from $ingres.iidatabase_info
-             where database_name = '{Connection.DbConnection.Database}'
+             where database_name = 'iidbdb'
         ";
 
         /// <inheritdoc />

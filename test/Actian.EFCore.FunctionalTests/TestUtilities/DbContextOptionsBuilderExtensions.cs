@@ -27,7 +27,6 @@ namespace Actian.EFCore.TestUtilities
             (RelationalEventId.MigrationsNotFound, LogLevel.Information),
             (RelationalEventId.MigrationAttributeMissingWarning, LogLevel.Information),
             (RelationalEventId.QueryPossibleUnintendedUseOfEqualsWarning, LogLevel.Information),
-            (RelationalEventId.QueryPossibleExceptionWithAggregateOperatorWarning, LogLevel.Information),
             (RelationalEventId.ModelValidationKeyDefaultValueWarning, LogLevel.Information),
             (RelationalEventId.BoolWithDefaultWarning, LogLevel.Information),
             (RelationalEventId.AmbientTransactionEnlisted, LogLevel.Information),

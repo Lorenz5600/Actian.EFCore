@@ -44,13 +44,6 @@ namespace Actian.EFCore.Query
                 : base(dependencies, relationalDependencies)
             {
             }
-
-            protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
-                => mappingInfo.ClrType == typeof(GeoPoint)
-                    ? ((RelationalTypeMapping)base.FindMapping(typeof(Point))
-                        .Clone(new GeoPointConverter(CreateGeometryServices().CreateGeometryFactory())))
-                    .Clone("geography", null)
-                    : base.FindMapping(mappingInfo);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Actian.EFCore.Query.SqlExpressions
         public SqlExpression TrimChar { get; }
         public TrimWhere? Where { get; }
 
-        public override void Print(ExpressionPrinter expressionPrinter)
+        protected override void Print(ExpressionPrinter expressionPrinter)
         {
             expressionPrinter.Append("TRIM(");
 

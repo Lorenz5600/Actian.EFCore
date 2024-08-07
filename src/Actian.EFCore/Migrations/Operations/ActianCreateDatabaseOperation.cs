@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
+#nullable enable
 namespace Actian.EFCore.Migrations.Operations
 {
     /// <summary>
@@ -11,6 +12,6 @@ namespace Actian.EFCore.Migrations.Operations
         /// <summary>
         /// The name of the database.
         /// </summary>
-        public virtual string Name { get; [param: NotNull] set; }
+        public virtual string? Name { get; [param: NotNull] set; }
     }
 }

@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -21,7 +25,7 @@ namespace Actian.EFCore.TestUtilities
 
         private class TestRelationalCommandBuilder : IRelationalCommandBuilder
         {
-            private readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
+            private readonly List<IRelationalParameter> _parameters = new();
 
             public TestRelationalCommandBuilder(
                 RelationalCommandBuilderDependencies dependencies)
@@ -29,11 +33,12 @@ namespace Actian.EFCore.TestUtilities
                 Dependencies = dependencies;
             }
 
-            public IndentedStringBuilder Instance { get; } = new IndentedStringBuilder();
+            public IndentedStringBuilder Instance { get; } = new();
 
             public RelationalCommandBuilderDependencies Dependencies { get; }
 
-            public IReadOnlyList<IRelationalParameter> Parameters => _parameters;
+            public IReadOnlyList<IRelationalParameter> Parameters
+                => _parameters;
 
             public IRelationalCommandBuilder AddParameter(IRelationalParameter parameter)
             {
@@ -42,7 +47,16 @@ namespace Actian.EFCore.TestUtilities
                 return this;
             }
 
-            public IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
+            public IRelationalCommandBuilder RemoveParameterAt(int index)
+            {
+                _parameters.RemoveAt(index);
+
+                return this;
+            }
+
+            [Obsolete("Code trying to add parameter should add type mapped parameter using TypeMappingSource directly.")]
+            public IRelationalTypeMappingSource TypeMappingSource
+                => Dependencies.TypeMappingSource;
 
             public IRelationalCommand Build()
                 => new TestRelationalCommand(
@@ -50,7 +64,7 @@ namespace Actian.EFCore.TestUtilities
                     Instance.ToString(),
                     Parameters);
 
-            public IRelationalCommandBuilder Append(object value)
+            public IRelationalCommandBuilder Append(string value)
             {
                 Instance.Append(value);
 
@@ -78,7 +92,8 @@ namespace Actian.EFCore.TestUtilities
                 return this;
             }
 
-            public int CommandTextLength => Instance.Length;
+            public int CommandTextLength
+                => Instance.Length;
         }
 
         private class TestRelationalCommand : IRelationalCommand
@@ -93,9 +108,11 @@ namespace Actian.EFCore.TestUtilities
                 _realRelationalCommand = new RelationalCommand(dependencies, commandText, parameters);
             }
 
-            public string CommandText => _realRelationalCommand.CommandText;
+            public string CommandText
+                => _realRelationalCommand.CommandText;
 
-            public IReadOnlyList<IRelationalParameter> Parameters => _realRelationalCommand.Parameters;
+            public IReadOnlyList<IRelationalParameter> Parameters
+                => _realRelationalCommand.Parameters;
 
             public int ExecuteNonQuery(RelationalCommandParameterObject parameterObject)
             {
@@ -114,7 +131,7 @@ namespace Actian.EFCore.TestUtilities
 
             public Task<int> ExecuteNonQueryAsync(
                 RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -146,7 +163,7 @@ namespace Actian.EFCore.TestUtilities
 
             public async Task<object> ExecuteScalarAsync(
                 RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -179,12 +196,12 @@ namespace Actian.EFCore.TestUtilities
 
             public async Task<RelationalDataReader> ExecuteReaderAsync(
                 RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = await _realRelationalCommand.ExecuteReaderAsync(parameterObject, cancellationToken);
+                var result = await _realRelationalCommand.ExecuteReaderAsync(parameterObject);
                 if (errorNumber.HasValue)
                 {
                     connection.DbConnection.Close();
@@ -194,6 +211,15 @@ namespace Actian.EFCore.TestUtilities
 
                 return result;
             }
+
+            public DbCommand CreateDbCommand(
+                RelationalCommandParameterObject parameterObject,
+                Guid commandId,
+                DbCommandMethod commandMethod)
+                => _realRelationalCommand.CreateDbCommand(parameterObject, commandId, commandMethod);
+
+            public void PopulateFrom(IRelationalCommandTemplate commandTemplate)
+                => _realRelationalCommand.PopulateFrom(commandTemplate);
 
             private int? PreExecution(IRelationalConnection connection)
             {

@@ -1,24 +1,33 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Actian.EFCore.Query.Internal
 {
     public class ActianQueryTranslationPostprocessorFactory : IQueryTranslationPostprocessorFactory
     {
-        private readonly QueryTranslationPostprocessorDependencies _dependencies;
-        private readonly RelationalQueryTranslationPostprocessorDependencies _relationalDependencies;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
 
         public ActianQueryTranslationPostprocessorFactory(
             QueryTranslationPostprocessorDependencies dependencies,
-            RelationalQueryTranslationPostprocessorDependencies relationalDependencies)
+            RelationalQueryTranslationPostprocessorDependencies relationalDependencies,
+            IRelationalTypeMappingSource typeMappingSource)
         {
-            _dependencies = dependencies;
-            _relationalDependencies = relationalDependencies;
+            Dependencies = dependencies;
+            RelationalDependencies = relationalDependencies;
+            _typeMappingSource = typeMappingSource;
         }
 
+        /// <summary>
+        ///     Dependencies for this service.
+        /// </summary>
+        protected virtual QueryTranslationPostprocessorDependencies Dependencies { get; }
+
+        /// <summary>
+        ///     Relational provider-specific dependencies for this service.
+        /// </summary>
+        protected virtual RelationalQueryTranslationPostprocessorDependencies RelationalDependencies { get; }
+
         public virtual QueryTranslationPostprocessor Create(QueryCompilationContext queryCompilationContext)
-            => new ActianQueryTranslationPostprocessor(
-                _dependencies,
-                _relationalDependencies,
-                queryCompilationContext);
+            => new ActianQueryTranslationPostprocessor(Dependencies, RelationalDependencies, queryCompilationContext, _typeMappingSource);
     }
 }

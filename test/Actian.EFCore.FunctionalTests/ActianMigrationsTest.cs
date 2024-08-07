@@ -1,368 +1,4326 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Actian.EFCore.Internal;
+using Actian.EFCore.Metadata.Internal;
+using Actian.EFCore.Scaffolding.Internal;
 using Actian.EFCore.TestUtilities;
-using FluentAssertions;
-//using Identity30.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Scaffolding;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+#nullable enable
 
 namespace Actian.EFCore
 {
-    public partial class ActianMigrationsTest : MigrationsTestBase<ActianMigrationsFixture>
+    public class ActianMigrationsTest : MigrationsTestBase<ActianMigrationsTest.ActianMigrationsFixture>
     {
-        public ActianMigrationsTest(ActianMigrationsFixture fixture, ITestOutputHelper output)
+        public ActianMigrationsTest(ActianMigrationsFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
-            Output = output;
-            TestEnvironment.Log(this, output);
+            Fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        protected override void GiveMeSomeTime(DbContext db)
-        {
-        }
 
-        protected override Task GiveMeSomeTimeAsync(DbContext db)
+        public override async Task Create_table()
         {
-            return Task.CompletedTask;
-        }
-
-        private ITestOutputHelper Output { get; }
-        protected new string Sql
-        {
-            get
+            await Test(
+            builder => { },
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id").ValueGeneratedOnAdd();
+                    e.Property<string>("Name");
+                    e.HasKey("Id");
+                }),
+            model =>
             {
-                var sql = base.Sql;
-                Output.WriteLine(sql);
-                return sql;
-            }
-        }
-
-
-        public override void Can_apply_all_migrations()
-        {
-            base.Can_apply_all_migrations();
-        }
-
-        public override void Can_apply_one_migration()
-        {
-            base.Can_apply_one_migration();
-        }
-
-        public override void Can_revert_all_migrations()
-        {
-            base.Can_apply_one_migration();
-        }
-
-        public override void Can_revert_one_migrations()
-        {
-            base.Can_revert_one_migrations();
-        }
-
-        public override Task Can_apply_all_migrations_async()
-        {
-            return base.Can_apply_all_migrations_async();
-        }
-
-        public override void Can_generate_no_migration_script()
-        {
-            Clean();
-
-            base.Can_generate_no_migration_script();
-
-            Sql.Should().NotDifferFrom(@"
-                CREATE TABLE ""__EFMigrationsHistory"" (
-                    ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
-                    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                );
-            ");
-        }
-
-        public override void Can_generate_migration_from_initial_database_to_initial()
-        {
-            Clean();
-
-            base.Can_generate_migration_from_initial_database_to_initial();
-
-            Sql.Should().NotDifferFrom(@"
-                CREATE TABLE ""__EFMigrationsHistory"" (
-                    ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
-                    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                );
-            ");
-        }
-
-        public override void Can_generate_up_scripts()
-        {
-            Clean();
-
-            base.Can_generate_up_scripts();
-
-            Sql.Should().NotDifferFrom(@"
-                CREATE TABLE ""__EFMigrationsHistory"" (
-                    ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL WITH DEFAULT '',
-                    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                );
-
-                CREATE TABLE ""Table1"" (
-                    ""Id"" integer NOT NULL,
-                    ""Foo"" integer NOT NULL,
-                    CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
-                );
-
-                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000001_Migration1', N'7.0.0-test');
-
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
-
-                MODIFY ""Table1"" TO RECONSTRUCT;
-
-                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000002_Migration2', N'7.0.0-test');
-
-                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000003_Migration3', N'7.0.0-test');
-            ");
-        }
-
-        public override void Can_generate_one_up_script()
-        {
-            Clean();
-
-            base.Can_generate_one_up_script();
-
-            Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
-
-                MODIFY ""Table1"" TO RECONSTRUCT;
-
-                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000002_Migration2', N'7.0.0-test');
-            ");
-        }
-
-        public override void Can_generate_up_script_using_names()
-        {
-            Clean();
-
-            base.Can_generate_up_script_using_names();
-
-            Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
-
-                MODIFY ""Table1"" TO RECONSTRUCT;
-
-                INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                VALUES (N'00000000000002_Migration2', N'7.0.0-test');
-            ");
-        }
-
-        [ActianTodo("Idempotent not supported (yet)")]
-        public override void Can_generate_idempotent_up_scripts()
-        {
-            Clean();
-
-            base.Can_generate_idempotent_up_scripts();
-
-            Sql.Should().NotDifferFrom(@"
-                CREATE TABLE ""__EFMigrationsHistory"" (
-                    ""MigrationId"" nvarchar(150) NOT NULL,
-                    ""ProductVersion"" nvarchar(32) NOT NULL,
-                    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-                );
-
-                IF NOT EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000001_Migration1')
-                BEGIN
-                    CREATE TABLE ""Table1"" (
-                        ""Id"" integer NOT NULL,
-                        ""Foo"" integer NOT NULL,
-                        CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
-                    );
-                END;
-
-                IF NOT EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000001_Migration1')
-                BEGIN
-                    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                    VALUES (N'00000000000001_Migration1', N'7.0.0-test');
-                END;
-
-                IF NOT EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000002_Migration2')
-                BEGIN
-                    ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
-                    MODIFY ""Table1"" TO RECONSTRUCT;
-                END;
-
-                IF NOT EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000002_Migration2')
-                BEGIN
-                    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                    VALUES (N'00000000000002_Migration2', N'7.0.0-test');
-                END;
-
-                IF NOT EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000003_Migration3')
-                BEGIN
-                    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                    VALUES (N'00000000000003_Migration3', N'7.0.0-test');
-                END;
-            ");
-        }
-
-        public override void Can_generate_down_scripts()
-        {
-            Clean();
-
-            base.Can_generate_down_scripts();
-
-            Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
-
-                MODIFY ""Table1"" TO RECONSTRUCT;
-
-                DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000002_Migration2';
-
-                DROP ""Table1"";
-
-                DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000001_Migration1';
-            ");
-        }
-
-        public override void Can_generate_one_down_script()
-        {
-            Clean();
-
-            base.Can_generate_one_down_script();
-
-            Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
-
-                MODIFY ""Table1"" TO RECONSTRUCT;
-
-                DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000002_Migration2';
-            ");
-        }
-
-        public override void Can_generate_down_script_using_names()
-        {
-            Clean();
-
-            base.Can_generate_down_script_using_names();
-
-            Sql.Should().NotDifferFrom(@"
-                ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
-
-                MODIFY ""Table1"" TO RECONSTRUCT;
-
-                DELETE FROM ""__EFMigrationsHistory""
-                WHERE ""MigrationId"" = N'00000000000002_Migration2';
-            ");
-        }
-
-        [ActianTodo("Idempotent not supported (yet)")]
-        public override void Can_generate_idempotent_down_scripts()
-        {
-            Clean();
-
-            base.Can_generate_idempotent_down_scripts();
-
-            Sql.Should().NotDifferFrom(@"
-                IF EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000002_Migration2')
-                BEGIN
-                    ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
-                    MODIFY ""Table1"" TO RECONSTRUCT;
-                END;
-
-                IF EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000002_Migration2')
-                BEGIN
-                    DELETE FROM ""__EFMigrationsHistory""
-                    WHERE ""MigrationId"" = N'00000000000002_Migration2';
-                END;
-
-                IF EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000001_Migration1')
-                BEGIN
-                    DROP ""Table1"";
-                END;
-
-                IF EXISTS (SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = N'00000000000001_Migration1')
-                BEGIN
-                    DELETE FROM ""__EFMigrationsHistory""
-                    WHERE ""MigrationId"" = N'00000000000001_Migration1';
-                END;
-            ");
-        }
-
-        public override void Can_get_active_provider()
-        {
-            base.Can_get_active_provider();
-        }
-
-        /// <summary>
-        ///     Creating databases and executing DDL is slow. This oddly-structured test allows us to get the most amount of
-        ///     coverage using the least amount of database operations.
-        /// </summary>
-        public override Task Can_execute_operations()
-        {
-            return base.Can_execute_operations();
+                var table = Assert.Single(model.Tables);
+                Assert.Collection(
+                    table.Columns.OrderBy(c => c.Name),
+                    c => Assert.Equal("id", c.Name),
+                    c => Assert.Equal("name", c.Name));
+                Assert.Same(
+                    table.Columns.Single(c => c.Name == "id"),
+                    Assert.Single(table.PrimaryKey!.Columns));
+            });
+
+            AssertSql(
+                """
+CREATE TABLE "People" (
+    "Id" integer NOT NULL GENERATED BY DEFAULT AS IDENTITY,
+    "Name" long nvarchar WITH NULL,
+    CONSTRAINT "PK_People" PRIMARY KEY ("Id")
+);
+""");
         }
 
         [ActianTodo]
-        public override void Can_diff_against_2_2_model()
+        public override async Task Create_table_all_settings()
         {
-            using (var context = new ModelSnapshot22.BloggingContext())
+            await base.Create_table_all_settings();
+
+            AssertSql(
+                """
+IF SCHEMA_ID(N'dbo2') IS NULL EXEC(N'CREATE SCHEMA "dbo2";');
+""",
+                //
+                """
+CREATE TABLE "dbo2"."People" (
+    "CustomId" int NOT NULL IDENTITY,
+    "EmployerId" int NOT NULL,
+    "SSN" nvarchar(11) COLLATE German_PhoneBook_CI_AS NOT NULL,
+    CONSTRAINT "PK_People" PRIMARY KEY ("CustomId"),
+    CONSTRAINT "AK_People_SSN" UNIQUE ("SSN"),
+    CONSTRAINT "CK_People_EmployerId" CHECK ("EmployerId" > 0),
+    CONSTRAINT "FK_People_Employers_EmployerId" FOREIGN KEY ("EmployerId") REFERENCES "Employers" ("Id") ON DELETE CASCADE
+);
+DECLARE @description AS sql_variant;
+SET @description = N'Table comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', N'dbo2', 'TABLE', N'People';
+SET @description = N'Employer ID comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', N'dbo2', 'TABLE', N'People', 'COLUMN', N'EmployerId';
+""",
+                //
+                """
+CREATE INDEX "IX_People_EmployerId" ON "dbo2"."People" ("EmployerId");
+""");
+        }
+
+        public override async Task Create_table_no_key()
+        {
+            await base.Create_table_no_key();
+
+            AssertSql(
+                """
+CREATE TABLE "Anonymous" (
+    "SomeColumn" integer NOT NULL WITH DEFAULT 0
+);
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_table_with_comments()
+        {
+            await base.Create_table_with_comments();
+
+            AssertSql(
+                """
+CREATE TABLE "People" (
+    "Id" int NOT NULL IDENTITY,
+    "Name" nvarchar(max) NULL,
+    CONSTRAINT "PK_People" PRIMARY KEY ("Id")
+);
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'Table comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People';
+SET @description = N'Column comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Name';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_table_with_multiline_comments()
+        {
+            await base.Create_table_with_multiline_comments();
+
+            AssertSql(
+                """
+CREATE TABLE "People" (
+    "Id" int NOT NULL IDENTITY,
+    "Name" nvarchar(max) NULL,
+    CONSTRAINT "PK_People" PRIMARY KEY ("Id")
+);
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = CONCAT(N'This is a multi-line', NCHAR(13), NCHAR(10), N'table comment.', NCHAR(13), NCHAR(10), N'More information can', NCHAR(13), NCHAR(10), N'be found in the docs.');
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People';
+SET @description = CONCAT(N'This is a multi-line', NCHAR(10), N'column comment.', NCHAR(10), N'More information can', NCHAR(10), N'be found in the docs.');
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Name';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_table_with_computed_column(bool? stored)
+        {
+            await base.Create_table_with_computed_column(stored);
+
+            var storedSql = stored == true ? " PERSISTED" : "";
+
+            AssertSql(
+                $"""
+CREATE TABLE "People" (
+    "Id" int NOT NULL IDENTITY,
+    "Sum" AS "X" + "Y"{storedSql},
+    "X" int NOT NULL,
+    "Y" int NOT NULL,
+    CONSTRAINT "PK_People" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        //[ConditionalFact]
+        //public virtual async Task Create_table_with_sparse_column()
+        //{
+//            await Test(
+//                _ => { },
+//                builder => builder.Entity("People", e => e.Property<string>("SomeProperty").IsSparse()),
+//                model =>
+//                {
+//                    var table = Assert.Single(model.Tables);
+//                    var column = Assert.Single(table.Columns, c => c.Name == "SomeProperty");
+//                    Assert.True((bool?)column"ActianAnnotationNames.Sparse");
+//                });
+
+//            AssertSql(
+//                """
+//CREATE TABLE "People" (
+//    "SomeProperty" nvarchar(max) SPARSE NULL
+//);
+//""");
+        //}
+
+        [ConditionalFact]
+        public virtual async Task Create_table_with_identity_column_value_converter()
+        {
+            await Test(
+                _ => { },
+                builder => builder.UseIdentityColumns()
+                    .Entity("People").Property<int>("IdentityColumn").HasConversion<short>().ValueGeneratedOnAdd(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "identitycolumn");
+                    Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                });
+
+//            AssertSql(
+//                """
+//CREATE TABLE "People" (
+//    "IdentityColumn" smallint NOT NULL IDENTITY
+//);
+//""");
+        }
+
+        //        [ConditionalFact]
+        //        "ActianCondition(ActianCondition.SupportsMemoryOptimized)"
+        //        public virtual async Task Create_memory_optimized_table()
+        //        {
+        //            await Test(
+        //                _ => { },
+        //                builder => builder.UseIdentityColumns().Entity(
+        //                    "People", b =>
+        //                    {
+        //                        b.ToTable(tb => tb.IsMemoryOptimized());
+        //                        b.Property<int>("Id");
+        //                    }),
+        //                model =>
+        //                {
+        //                    var table = Assert.Single(model.Tables);
+        //                    Assert.True((bool)table"ActianAnnotationNames.MemoryOptimized"!);
+        //                });
+
+        //            AssertSql(
+        //                """
+        //IF SERVERPROPERTY('IsXTPSupported') = 1 AND SERVERPROPERTY('EngineEdition') <> 5
+        //    BEGIN
+        //    IF NOT EXISTS (
+        //        SELECT 1 FROM "sys"."filegroups" "FG" JOIN "sys"."database_files" "F" ON "FG"."data_space_id" = "F"."data_space_id" WHERE "FG"."type" = N'FX' AND "F"."type" = 2)
+        //        BEGIN
+        //        ALTER DATABASE CURRENT SET AUTO_CLOSE OFF;
+        //        DECLARE @db_name nvarchar(max) = DB_NAME();
+        //        DECLARE @fg_name nvarchar(max);
+        //        SELECT TOP(1) @fg_name = "name" FROM "sys"."filegroups" WHERE "type" = N'FX';
+
+        //        IF @fg_name IS NULL
+        //            BEGIN
+        //            SET @fg_name = @db_name + N'_MODFG';
+        //            EXEC(N'ALTER DATABASE CURRENT ADD FILEGROUP "' + @fg_name + '" CONTAINS MEMORY_OPTIMIZED_DATA;');
+        //            END
+
+        //        DECLARE @path nvarchar(max);
+        //        SELECT TOP(1) @path = "physical_name" FROM "sys"."database_files" WHERE charindex('\', "physical_name") > 0 ORDER BY "file_id";
+        //        IF (@path IS NULL)
+        //            SET @path = '\' + @db_name;
+
+        //        DECLARE @filename nvarchar(max) = right(@path, charindex('\', reverse(@path)) - 1);
+        //        SET @filename = REPLACE(left(@filename, len(@filename) - charindex('.', reverse(@filename))), '''', '''''') + N'_MOD';
+        //        DECLARE @new_path nvarchar(max) = REPLACE(CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS nvarchar(max)), '''', '''''') + @filename;
+
+        //        EXEC(N'
+        //            ALTER DATABASE CURRENT
+        //            ADD FILE (NAME=''' + @filename + ''', filename=''' + @new_path + ''')
+        //            TO FILEGROUP "' + @fg_name + '";')
+        //        END
+        //    END
+
+        //IF SERVERPROPERTY('IsXTPSupported') = 1
+        //EXEC(N'
+        //    ALTER DATABASE CURRENT
+        //    SET MEMORY_OPTIMIZED_ELEVATE_TO_SNAPSHOT ON;')
+        //""",
+        //                //
+        //                """
+        //CREATE TABLE "People" (
+        //    "Id" int NOT NULL IDENTITY,
+        //    CONSTRAINT "PK_People" PRIMARY KEY NONCLUSTERED ("Id")
+        //) WITH (MEMORY_OPTIMIZED = ON);
+        //""");
+        //        }
+
+        //        [ConditionalFact]
+        //        "ActianCondition(ActianCondition.SupportsMemoryOptimized)"
+        //        public virtual async Task Create_memory_optimized_temporal_table()
+        //        {
+        //            await Test(
+        //                _ => { },
+        //                builder => builder.UseIdentityColumns().Entity(
+        //                    "People", b =>
+        //                    {
+        //                        b.ToTable("Customers", tb => tb.IsMemoryOptimized().IsTemporal());
+        //                        b.Property<int>("Id");
+        //                    }),
+        //                model =>
+        //                {
+        //                    var table = Assert.Single(model.Tables);
+        //                    Assert.True((bool)table"ActianAnnotationNames.MemoryOptimized"!);
+        //                });
+
+        //            AssertSql(
+        //                """
+        //IF SERVERPROPERTY('IsXTPSupported') = 1 AND SERVERPROPERTY('EngineEdition') <> 5
+        //    BEGIN
+        //    IF NOT EXISTS (
+        //        SELECT 1 FROM "sys"."filegroups" "FG" JOIN "sys"."database_files" "F" ON "FG"."data_space_id" = "F"."data_space_id" WHERE "FG"."type" = N'FX' AND "F"."type" = 2)
+        //        BEGIN
+        //        ALTER DATABASE CURRENT SET AUTO_CLOSE OFF;
+        //        DECLARE @db_name nvarchar(max) = DB_NAME();
+        //        DECLARE @fg_name nvarchar(max);
+        //        SELECT TOP(1) @fg_name = "name" FROM "sys"."filegroups" WHERE "type" = N'FX';
+
+        //        IF @fg_name IS NULL
+        //            BEGIN
+        //            SET @fg_name = @db_name + N'_MODFG';
+        //            EXEC(N'ALTER DATABASE CURRENT ADD FILEGROUP "' + @fg_name + '" CONTAINS MEMORY_OPTIMIZED_DATA;');
+        //            END
+
+        //        DECLARE @path nvarchar(max);
+        //        SELECT TOP(1) @path = "physical_name" FROM "sys"."database_files" WHERE charindex('\', "physical_name") > 0 ORDER BY "file_id";
+        //        IF (@path IS NULL)
+        //            SET @path = '\' + @db_name;
+
+        //        DECLARE @filename nvarchar(max) = right(@path, charindex('\', reverse(@path)) - 1);
+        //        SET @filename = REPLACE(left(@filename, len(@filename) - charindex('.', reverse(@filename))), '''', '''''') + N'_MOD';
+        //        DECLARE @new_path nvarchar(max) = REPLACE(CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS nvarchar(max)), '''', '''''') + @filename;
+
+        //        EXEC(N'
+        //            ALTER DATABASE CURRENT
+        //            ADD FILE (NAME=''' + @filename + ''', filename=''' + @new_path + ''')
+        //            TO FILEGROUP "' + @fg_name + '";')
+        //        END
+        //    END
+
+        //IF SERVERPROPERTY('IsXTPSupported') = 1
+        //EXEC(N'
+        //    ALTER DATABASE CURRENT
+        //    SET MEMORY_OPTIMIZED_ELEVATE_TO_SNAPSHOT ON;')
+        //""",
+        //                //
+        //                """
+        //DECLARE @historyTableSchema sysname = SCHEMA_NAME()
+        //EXEC(N'CREATE TABLE "Customers" (
+        //    "Id" int NOT NULL IDENTITY,
+        //    "PeriodEnd" datetime2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL,
+        //    "PeriodStart" datetime2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL,
+        //    CONSTRAINT "PK_Customers" PRIMARY KEY NONCLUSTERED ("Id"),
+        //    PERIOD FOR SYSTEM_TIME("PeriodStart", "PeriodEnd")
+        //) WITH (
+        //    SYSTEM_VERSIONING = ON (HISTORY_TABLE = "' + @historyTableSchema + N'"."CustomersHistory"),
+        //    MEMORY_OPTIMIZED = ON
+        //)');
+        //""");
+        //        }
+
+        //        public override async Task Drop_table()
+        //        {
+        //            await base.Drop_table();
+
+        //            AssertSql(
+        //                """
+        //DROP TABLE "People";
+        //""");
+        //        }
+
+        [ActianTodo]
+        public override async Task Alter_table_add_comment()
+        {
+            await base.Alter_table_add_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'Table comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_table_add_comment_non_default_schema()
+        {
+            await base.Alter_table_add_comment_non_default_schema();
+
+            AssertSql(
+                """
+DECLARE @description AS sql_variant;
+SET @description = N'Table comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', N'SomeOtherSchema', 'TABLE', N'People';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_table_change_comment()
+        {
+            await base.Alter_table_change_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+EXEC sp_dropextendedproperty 'MS_Description', 'SCHEMA', @defaultSchema, 'TABLE', N'People';
+SET @description = N'Table comment2';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_table_remove_comment()
+        {
+            await base.Alter_table_remove_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+EXEC sp_dropextendedproperty 'MS_Description', 'SCHEMA', @defaultSchema, 'TABLE', N'People';
+""");
+        }
+
+        public override async Task Rename_table()
+        {
+            await Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            builder => builder.Entity("People").ToTable("Persons").Property<int>("Id"),
+            model =>
             {
-                DiffSnapshot(new ModelSnapshot22.BloggingContextModelSnapshot22(), context);
-            }
+                var table = Assert.Single(model.Tables);
+                Assert.Equal("persons", table.Name);
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "PK_People" RESTRICT;
+""",
+                //
+                """
+ALTER TABLE "People" RENAME TO "Persons";
+""",
+                //
+                """
+MODIFY "Persons" TO RECONSTRUCT;
+""",
+                //
+                """
+ALTER TABLE "Persons" ADD CONSTRAINT "PK_Persons" PRIMARY KEY ("Id");
+""");
         }
 
-        [ActianTodo]
-        public override void Can_diff_against_3_0_ASP_NET_Identity_model()
+        public override async Task Rename_table_with_primary_key()
         {
-            throw new NotImplementedException();
-        }
-
-        [ActianTodo]
-        public override void Can_diff_against_2_2_ASP_NET_Identity_model()
-        {
-            throw new NotImplementedException();
-        }
-
-        [ActianTodo]
-        public override void Can_diff_against_2_1_ASP_NET_Identity_model()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task ExecuteAsync(IServiceProvider services, Action<MigrationBuilder> buildMigration)
-        {
-            var generator = services.GetRequiredService<IMigrationsSqlGenerator>();
-            var executor = new TestMigrationCommandExecutor(Output);
-            var connection = services.GetRequiredService<IRelationalConnection>();
-            var databaseProvider = services.GetRequiredService<IDatabaseProvider>();
-
-            var migrationBuilder = new MigrationBuilder(databaseProvider.Name);
-            buildMigration(migrationBuilder);
-            var operations = migrationBuilder.Operations.ToList();
-
-            var commandList = generator.Generate(operations);
-
-            return executor.ExecuteNonQueryAsync(commandList, connection);
-        }
-
-        private void Clean()
-        {
-            using (var db = Fixture.CreateContext())
+            await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.HasKey("Id");
+                }),
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.ToTable("Persons");
+                    e.Property<int>("Id");
+                    e.HasKey("Id");
+                }),
+            model =>
             {
-                db.Database.EnsureClean();
-            }
+                var table = Assert.Single(model.Tables);
+                Assert.Equal("persons", table.Name);
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "PK_People" RESTRICT;
+""",
+                //
+                """
+ALTER TABLE "People" RENAME TO "Persons";
+""",
+                //
+                """
+MODIFY "Persons" TO RECONSTRUCT;
+""",
+                //
+                """
+ALTER TABLE "Persons" ADD CONSTRAINT "PK_Persons" PRIMARY KEY ("Id");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Move_table()
+        {
+            await base.Move_table();
+
+            AssertSql(
+                """
+IF SCHEMA_ID(N'TestTableSchema') IS NULL EXEC(N'CREATE SCHEMA "TestTableSchema";');
+""",
+                //
+                """
+ALTER SCHEMA "TestTableSchema" TRANSFER "TestTable";
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Move_table_into_default_schema()
+        {
+            await Test(
+                builder => builder.Entity("TestTable")
+                    .ToTable("TestTable", "dbo2")
+                    .Property<int>("Id"),
+                builder => builder.Entity("TestTable")
+                    .Property<int>("Id"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("dbo", table.Schema);
+                    Assert.Equal("TestTable", table.Name);
+                });
+
+            AssertSql(
+                """
+DECLARE @defaultSchema sysname = SCHEMA_NAME();
+EXEC(N'ALTER SCHEMA "' + @defaultSchema + N'" TRANSFER "TestTableSchema"."TestTable";');
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_schema()
+        {
+            await base.Create_schema();
+
+            AssertSql(
+                """
+IF SCHEMA_ID(N'SomeOtherSchema') IS NULL EXEC(N'CREATE SCHEMA "SomeOtherSchema";');
+""",
+                //
+                """
+CREATE TABLE "SomeOtherSchema"."People" (
+    "Id" int NOT NULL IDENTITY,
+    CONSTRAINT "PK_People" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Create_schema_dbo_is_ignored()
+        {
+            await Test(
+                builder => { },
+                builder => builder.Entity("People")
+                    .ToTable("People", "dbo")
+                    .Property<int>("Id"),
+                model => Assert.Equal("dbo", Assert.Single(model.Tables).Schema));
+
+            AssertSql(
+                """
+CREATE TABLE "People" (
+    "Id" int NOT NULL IDENTITY,
+    CONSTRAINT "PK_People" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        public override async Task Add_column_with_defaultValue_string()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .IsRequired()
+                    .HasDefaultValue("John Doe"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "name");
+                    Assert.False(nameColumn.IsNullable);
+                    Assert.Contains("John Doe", nameColumn.DefaultValueSql);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Name" long nvarchar NOT NULL WITH DEFAULT N'John Doe';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        //[ActianTodo]
+        public override async Task Add_column_with_defaultValue_datetime()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<DateTime>("Birthday")
+                    .HasDefaultValue(new DateTime(2015, 4, 12, 17, 5, 0)),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var birthdayColumn = Assert.Single(table.Columns, c => c.Name == "birthday");
+                    Assert.False(birthdayColumn.IsNullable);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Birthday" timestamp NOT NULL WITH DEFAULT TIMESTAMP '2015-04-12 17:05:00';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        //[ActianTodo]
+        [ConditionalTheory]
+        [InlineData(0, "", 0)]
+        [InlineData(1, ".0000001", 1)]
+        [InlineData(2, ".0000012", 12)]
+        [InlineData(3, ".0000123", 123)]
+        [InlineData(4, ".0001234", 1234)]
+        [InlineData(5, ".0012345", 12345)]
+        [InlineData(6, ".0123456", 123456)]
+        [InlineData(7, ".1234567", 1234567)]
+        public async Task Add_column_with_defaultValue_datetime_with_explicit_precision(int precision, string fractionalSeconds, int ticksToAdd)
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<DateTime>("Birthday").HasPrecision(precision)
+                    .HasDefaultValue(new DateTime(2015, 4, 12, 17, 5, 0).AddTicks(ticksToAdd)),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var birthdayColumn = Assert.Single(table.Columns, c => c.Name == "birthday");
+                    Assert.False(birthdayColumn.IsNullable);
+                });
+
+            AssertSql(
+                $"""
+ALTER TABLE "People" ADD "Birthday" timestamp({precision}) NOT NULL WITH DEFAULT TIMESTAMP '2015-04-12 17:05:00{fractionalSeconds}';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ActianTodo]
+        [ConditionalTheory]
+        [InlineData(0, "", 0)]
+        [InlineData(1, ".0000001", 1)]
+        [InlineData(2, ".0000012", 12)]
+        [InlineData(3, ".0000123", 123)]
+        [InlineData(4, ".0001234", 1234)]
+        [InlineData(5, ".0012345", 12345)]
+        [InlineData(6, ".0123456", 123456)]
+        [InlineData(7, ".1234567", 1234567)]
+        public async Task Add_column_with_defaultValue_datetimeoffset_with_explicit_precision(
+            int precision,
+            string fractionalSeconds,
+            int ticksToAdd)
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<DateTimeOffset>("Birthday").HasPrecision(precision)
+                    .HasDefaultValue(new DateTimeOffset(new DateTime(2015, 4, 12, 17, 5, 0).AddTicks(ticksToAdd), TimeSpan.FromHours(10))),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var birthdayColumn = Assert.Single(table.Columns, c => c.Name == "Birthday");
+                    Assert.False(birthdayColumn.IsNullable);
+                });
+
+            AssertSql(
+                $"""
+ALTER TABLE "People" ADD "Birthday" datetimeoffset({precision}) NOT NULL DEFAULT TIME '2015-04-12 17:05:00{fractionalSeconds}+10:00';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        //[ActianTodo]
+        [ConditionalTheory]
+        [InlineData(1, ".0000001", 1)]
+        [InlineData(2, ".0000012", 12)]
+        [InlineData(3, ".0000123", 123)]
+        [InlineData(4, ".0001234", 1234)]
+        [InlineData(5, ".0012345", 12345)]
+        [InlineData(6, ".0123456", 123456)]
+        [InlineData(7, ".1234567", 1234567)]
+        public async Task Add_column_with_defaultValue_time_with_explicit_precision(int precision, string fractionalSeconds, int ticksToAdd)
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<TimeSpan>("Age").HasPrecision(precision)
+                    .HasDefaultValue(
+                        TimeSpan.Parse("12:34:56", CultureInfo.InvariantCulture).Add(TimeSpan.FromTicks(ticksToAdd))),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var birthdayColumn = Assert.Single(table.Columns, c => c.Name == "age");
+                    Assert.False(birthdayColumn.IsNullable);
+                });
+
+            AssertSql(
+                $"""
+ALTER TABLE "People" ADD "Age" time({precision}) NOT NULL WITH DEFAULT TIME '12:34:56{fractionalSeconds}';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ConditionalFact]
+        public virtual async Task Add_column_with_defaultValue_datetime_store_type()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<DateTime>("Birthday")
+                    .HasColumnType("date")
+                    .HasDefaultValue(new DateTime(2019, 1, 1)),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "birthday");
+                    Assert.Contains("2019", column.DefaultValueSql);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Birthday" date NOT NULL WITH DEFAULT TIMESTAMP '2019-01-01 00:00:00';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_with_defaultValue_smalldatetime_store_type()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<DateTime>("Birthday")
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValue(new DateTime(2019, 1, 1)),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "birthday");
+                    Assert.Contains("2019", column.DefaultValueSql);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Birthday" smalldatetime NOT NULL DEFAULT '2019-01-01T00:00:00';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_with_rowversion()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<byte[]>("RowVersion").IsRowVersion(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "RowVersion");
+                    Assert.Equal("rowversion", column.StoreType);
+                    Assert.True(column.IsRowVersion());
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "RowVersion" rowversion NULL;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Add_column_with_unbounded_max_length()
+        {
+            await base.Add_column_with_unbounded_max_length();
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_with_rowversion_and_value_conversion()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<ulong>("RowVersion")
+                    .IsRowVersion()
+                    .HasConversion<byte[]>(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "RowVersion");
+                    Assert.Equal("rowversion", column.StoreType);
+                    Assert.True(column.IsRowVersion());
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "RowVersion" rowversion NOT NULL;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ActianTodo]
+        public override async Task Add_column_with_defaultValueSql()
+        {
+            await base.Add_column_with_defaultValueSql();
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Sum" int NOT NULL DEFAULT (1 + 2);
+"""
+);
+        }
+
+        [ActianTodo]
+        public override async Task Add_column_with_computedSql(bool? stored)
+        {
+            await base.Add_column_with_computedSql(stored);
+
+            var computedColumnTypeSql = stored == true ? " PERSISTED" : "";
+
+            AssertSql(
+                $"""
+ALTER TABLE "People" ADD "Sum" AS "X" + "Y"{computedColumnTypeSql};
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_generates_exec_when_computed_and_idempotent()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("IdPlusOne").HasComputedColumnSql("[Id] + 1"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var column = Assert.Single(table.Columns, c => c.Name == "IdPlusOne");
+                    Assert.Equal("([Id]+(1))", column.ComputedColumnSql);
+                },
+                migrationsSqlGenerationOptions: MigrationsSqlGenerationOptions.Idempotent);
+
+            AssertSql(
+                """
+EXEC(N'ALTER TABLE "People" ADD "IdPlusOne" AS "Id" + 1');
+""");
+        }
+
+        public override async Task Add_column_with_required()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name").IsRequired(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "name");
+                    Assert.Equal(TypeMappingSource.FindMapping(typeof(string))!.StoreType, column.StoreType);
+                    Assert.False(column.IsNullable);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Name" long nvarchar NOT NULL WITH DEFAULT N'';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        public override async Task Add_column_with_ansi()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name").IsUnicode(false),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "name");
+                    Assert.Equal(
+                        TypeMappingSource
+                            .FindMapping(typeof(string), storeTypeName: null, unicode: false)!
+                            .StoreType, column.StoreType);
+                    Assert.True(column.IsNullable);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Name" long varchar WITH NULL;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        public override async Task Add_column_with_max_length()
+        {
+            await Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            builder => { },
+            builder => builder.Entity("People").Property<string>("Name").HasMaxLength(30),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "name");
+                Assert.Equal(
+                    TypeMappingSource
+                        .FindMapping(typeof(string), storeTypeName: null, size: 30)!
+                        .StoreType,
+                    column.StoreType);
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Name" nvarchar(30) WITH NULL;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        public override async Task Add_column_with_max_length_on_derived()
+        {
+            await Test(
+            builder =>
+            {
+                builder.Entity("Person");
+                builder.Entity(
+                    "SpecialPerson", e =>
+                    {
+                        e.HasBaseType("Person");
+                        e.Property<string>("Name").HasMaxLength(30);
+                    });
+
+                builder.Entity("MoreSpecialPerson").HasBaseType("SpecialPerson");
+            },
+            builder => { },
+            builder => builder.Entity("Person").Property<string>("Name").HasMaxLength(30),
+            model =>
+            {
+                var table = Assert.Single(model.Tables, t => t.Name == "person");
+                var column = Assert.Single(table.Columns, c => c.Name == "name");
+                Assert.Equal(
+                    TypeMappingSource
+                        .FindMapping(typeof(string), storeTypeName: null, size: 30)!
+                        .StoreType,
+                    column.StoreType);
+            });
+
+            Assert.Empty(Fixture.TestSqlLoggerFactory.SqlStatements);
+        }
+
+        public override async Task Add_column_with_fixed_length()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .IsFixedLength()
+                    .HasMaxLength(100),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "name");
+                    Assert.Equal(
+                        TypeMappingSource
+                            .FindMapping(typeof(string), storeTypeName: null, fixedLength: true, size: 100)!
+                            .StoreType,
+                        column.StoreType);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Name" nchar(100) WITH NULL;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ActianTodo]
+        public override async Task Add_column_with_comment()
+        {
+            await base.Add_column_with_comment();
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "FullName" nvarchar(max) NULL;
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'My comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'FullName';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Add_column_with_collation()
+        {
+            await base.Add_column_with_collation();
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "Name" nvarchar(max) COLLATE German_PhoneBook_CI_AS NULL;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Add_column_computed_with_collation(bool stored)
+        {
+            await base.Add_column_computed_with_collation(stored);
+
+            AssertSql(
+                stored
+                    ? """ALTER TABLE "People" ADD "Name" AS 'hello' COLLATE German_PhoneBook_CI_AS PERSISTED;"""
+                    : """ALTER TABLE "People" ADD "Name" AS 'hello' COLLATE German_PhoneBook_CI_AS;""");
+        }
+
+        public override async Task Add_column_shared()
+        {
+            await Test(
+            builder =>
+            {
+                builder.Entity("Base").Property<int>("Id");
+                builder.Entity("Derived1").HasBaseType("Base").Property<string>("Foo");
+                builder.Entity("Derived2").HasBaseType("Base").Property<string>("Foo");
+            },
+            builder => { },
+            builder => builder.Entity("Base").Property<string>("Foo"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "foo");
+            });
+
+            AssertSql();
+        }
+
+        public override async Task Add_column_with_check_constraint()
+        {
+            await Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            builder => { },
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("DriverLicense");
+                    e.ToTable(tb => tb.HasCheckConstraint("CK_People_Foo", $"{DelimitIdentifier("DriverLicense")} > 0"));
+                }),
+            model =>
+            {
+                // TODO: no scaffolding support for check constraints
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "DriverLicense" integer NOT NULL WITH DEFAULT 0;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+""",
+                //
+                """
+ALTER TABLE "People" ADD CONSTRAINT "CK_People_Foo" CHECK ("DriverLicense" > 0);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_identity()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("IdentityColumn").UseIdentityColumn(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "IdentityColumn");
+                    Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "IdentityColumn" int NOT NULL IDENTITY;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_identity_seed_increment()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("IdentityColumn").UseIdentityColumn(100, 5),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "IdentityColumn");
+                    Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                    // TODO: Do we not reverse-engineer identity facets?
+                    // Assert.Equal(100, column"ActianAnnotationNames.IdentitySeed");
+                    // Assert.Equal(5, column"ActianAnnotationNames.IdentityIncrement");
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD "IdentityColumn" int NOT NULL IDENTITY(100, 5);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_identity_seed_increment_for_TPC()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity("Animal").UseTpcMappingStrategy().Property<string>("Id");
+                    builder.Entity("Cat").HasBaseType("Animal").ToTable("Cats");
+                    builder.Entity("Dog").HasBaseType("Animal").ToTable("Dogs");
+                },
+                builder => { },
+                builder =>
+                {
+                    builder.Entity("Animal")
+                        .Property<int>("IdentityColumn");
+                    builder.Entity("Cat").ToTable("Cats", tb => tb.Property("IdentityColumn").UseIdentityColumn(1, 2));
+                    builder.Entity("Dog").ToTable("Dogs", tb => tb.Property("IdentityColumn").UseIdentityColumn(2, 2));
+                },
+                model =>
+                {
+                    Assert.Collection(
+                        model.Tables,
+                        t =>
+                        {
+                            Assert.Equal("Animal", t.Name);
+                            var column = Assert.Single(t.Columns, c => c.Name == "identitycolumn");
+                            Assert.Null(column.ValueGenerated);
+                        },
+                        t =>
+                        {
+                            Assert.Equal("Cats", t.Name);
+                            var column = Assert.Single(t.Columns, c => c.Name == "identitycolumn");
+                            Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                            // TODO: Do we not reverse-engineer identity facets?
+                            // Assert.Equal(100, column"ActianAnnotationNames.IdentitySeed");
+                            // Assert.Equal(5, column"ActianAnnotationNames.IdentityIncrement");
+                        },
+                        t =>
+                        {
+                            Assert.Equal("Dogs", t.Name);
+                            var column = Assert.Single(t.Columns, c => c.Name == "IdentityColumn");
+                            Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                            // TODO: Do we not reverse-engineer identity facets?
+                            // Assert.Equal(100, column"ActianAnnotationNames.IdentitySeed");
+                            // Assert.Equal(5, column"ActianAnnotationNames.IdentityIncrement");
+                        });
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "Dogs" ADD "IdentityColumn" int NOT NULL IDENTITY(2, 2);
+""",
+                //
+                """
+ALTER TABLE "Cats" ADD "IdentityColumn" int NOT NULL IDENTITY(1, 2);
+""",
+                //
+                """
+ALTER TABLE "Animal" ADD "IdentityColumn" int NOT NULL DEFAULT 0;
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Add_column_sequence()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("SequenceColumn").UseSequence(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "sequencecolumn");
+
+                    Assert.Equal("0", column.DefaultValueSql);
+                });
+
+            AssertSql(
+                """
+CREATE SEQUENCE "PeopleSequence" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""",
+                //
+                """
+ALTER TABLE "People" ADD "SequenceColumn" integer NOT NULL WITH DEFAULT 0;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_column_hilo()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("SequenceColumn").UseHiLo(),
+                _ =>
+                {
+                    // Reverse-engineering of hilo columns isn't supported
+                });
+
+            AssertSql(
+                """
+CREATE SEQUENCE "EntityFrameworkHiLoSequence" START WITH 1 INCREMENT BY 10 NO MINVALUE NO MAXVALUE NO CYCLE;
+""",
+                //
+                """
+ALTER TABLE "People" ADD "SequenceColumn" int NOT NULL DEFAULT 0;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_change_type()
+        {
+            await base.Alter_column_change_type();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeColumn');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "SomeColumn" bigint NOT NULL;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_make_required()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("SomeColumn");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("SomeColumn").IsRequired(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name != "id");
+                    Assert.False(column.IsNullable);
+                });
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeColumn');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+UPDATE "People" SET "SomeColumn" = N'' WHERE "SomeColumn" IS NULL;
+ALTER TABLE "People" ALTER COLUMN "SomeColumn" nvarchar(max) NOT NULL;
+ALTER TABLE "People" ADD DEFAULT N'' FOR "SomeColumn";
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_make_required_with_null_data()
+        {
+            await base.Alter_column_make_required_with_null_data();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeColumn');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+UPDATE "People" SET "SomeColumn" = N'' WHERE "SomeColumn" IS NULL;
+ALTER TABLE "People" ALTER COLUMN "SomeColumn" nvarchar(max) NOT NULL;
+ALTER TABLE "People" ADD DEFAULT N'' FOR "SomeColumn";
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_make_required_with_index()
+        {
+            await base.Alter_column_make_required_with_index();
+
+            AssertSql(
+                """
+DROP INDEX "IX_People_SomeColumn" ON "People";
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeColumn');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+UPDATE "People" SET "SomeColumn" = N'' WHERE "SomeColumn" IS NULL;
+ALTER TABLE "People" ALTER COLUMN "SomeColumn" nvarchar(450) NOT NULL;
+ALTER TABLE "People" ADD DEFAULT N'' FOR "SomeColumn";
+CREATE INDEX "IX_People_SomeColumn" ON "People" ("SomeColumn");
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_make_required_with_composite_index()
+        {
+            await base.Alter_column_make_required_with_composite_index();
+
+            AssertSql(
+                """
+DROP INDEX "IX_People_FirstName_LastName" ON "People";
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'FirstName');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+UPDATE "People" SET "FirstName" = N'' WHERE "FirstName" IS NULL;
+ALTER TABLE "People" ALTER COLUMN "FirstName" nvarchar(450) NOT NULL;
+ALTER TABLE "People" ADD DEFAULT N'' FOR "FirstName";
+CREATE INDEX "IX_People_FirstName_LastName" ON "People" ("FirstName", "LastName");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_make_computed(bool? stored)
+        {
+            await base.Alter_column_make_computed(stored);
+
+            var computedColumnTypeSql = stored == true ? " PERSISTED" : "";
+
+            AssertSql(
+                $"""
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Sum');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Sum";
+ALTER TABLE "People" ADD "Sum" AS "X" + "Y"{computedColumnTypeSql};
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_change_computed()
+        {
+            await base.Alter_column_change_computed();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Sum');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Sum";
+ALTER TABLE "People" ADD "Sum" AS "X" - "Y";
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_change_computed_recreates_indexes()
+        {
+            await base.Alter_column_change_computed_recreates_indexes();
+
+            AssertSql(
+                """
+DROP INDEX "IX_People_Sum" ON "People";
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Sum');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Sum";
+ALTER TABLE "People" ADD "Sum" AS "X" - "Y";
+""",
+                //
+                """
+CREATE INDEX "IX_People_Sum" ON "People" ("Sum");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_change_computed_type()
+        {
+            await base.Alter_column_change_computed_type();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Sum');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Sum";
+ALTER TABLE "People" ADD "Sum" AS "X" + "Y" PERSISTED;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_column_make_non_computed()
+        {
+            await base.Alter_column_make_non_computed();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Sum');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Sum";
+ALTER TABLE "People" ADD "Sum" int NOT NULL;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_add_comment()
+        {
+            await base.Alter_column_add_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'Some comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Id';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_computed_column_add_comment()
+        {
+            await base.Alter_computed_column_add_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'Some comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'SomeColumn';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_change_comment()
+        {
+            await base.Alter_column_change_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+EXEC sp_dropextendedproperty 'MS_Description', 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Id';
+SET @description = N'Some comment2';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Id';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_remove_comment()
+        {
+            await base.Alter_column_remove_comment();
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+EXEC sp_dropextendedproperty 'MS_Description', 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Id';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_set_collation()
+        {
+            await base.Alter_column_set_collation();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(max) COLLATE German_PhoneBook_CI_AS NULL;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Alter_column_set_collation_with_index()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<string>("Name");
+                        e.HasIndex("Name");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .UseCollation(NonDefaultCollation),
+                model =>
+                {
+                    var nameColumn = Assert.Single(Assert.Single(model.Tables).Columns);
+                    Assert.Equal(NonDefaultCollation, nameColumn.Collation);
+                });
+
+            AssertSql(
+                """
+DROP INDEX "IX_People_Name" ON "People";
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(450) COLLATE German_PhoneBook_CI_AS NULL;
+CREATE INDEX "IX_People_Name" ON "People" ("Name");
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Alter_column_reset_collation()
+        {
+            await base.Alter_column_reset_collation();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(max) NULL;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Alter_column_with_index_no_narrowing()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("Name");
+                        e.HasIndex("Name");
+                    }),
+                builder => builder.Entity("People").Property<string>("Name").IsRequired(),
+                builder => builder.Entity("People").Property<string>("Name").IsRequired(false),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.True(column.IsNullable);
+                });
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(450) NULL;
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Alter_column_add_identity()
+        {
+            var ex = await TestThrows<InvalidOperationException>(
+                builder => builder.Entity("People").Property<int>("SomeColumn"),
+                builder => builder.Entity("People").Property<int>("SomeColumn").UseIdentityColumn());
+
+            Assert.Equal(ActianStrings.AlterIdentityColumn, ex.Message);
+        }
+
+        [ConditionalFact]
+        public virtual async Task Alter_column_remove_identity()
+        {
+            var ex = await TestThrows<InvalidOperationException>(
+                builder => builder.Entity("People").Property<int>("SomeColumn").UseIdentityColumn(),
+                builder => builder.Entity("People").Property<int>("SomeColumn"));
+
+            Assert.Equal(ActianStrings.AlterIdentityColumn, ex.Message);
+        }
+
+        [ConditionalFact]
+        public virtual async Task Alter_column_change_type_with_identity()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<string>("Id");
+                        e.Property<int>("IdentityColumn").UseIdentityColumn();
+                    }),
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<string>("Id");
+                        e.Property<long>("IdentityColumn").UseIdentityColumn();
+                    }),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "identitycolumn");
+                    Assert.Equal("bigint", column.StoreType);
+                    Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ALTER COLUMN "IdentityColumn" bigint NOT NULL GENERATED BY DEFAULT AS IDENTITY;
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Alter_column_change_default()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Name"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasDefaultValue("Doe"),
+                model =>
+                {
+                    var nameColumn = Assert.Single(Assert.Single(model.Tables).Columns);
+                    Assert.Equal("'Doe'", nameColumn.DefaultValueSql);
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ALTER COLUMN "Name" long nvarchar WITH NULL WITH DEFAULT N'Doe';
+""",
+                //
+                """
+MODIFY "People" TO RECONSTRUCT;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Alter_column_change_comment_with_default()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Name").HasDefaultValue("Doe"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasComment("Some comment"),
+                model =>
+                {
+                    var nameColumn = Assert.Single(Assert.Single(model.Tables).Columns);
+                    Assert.Equal("(N'Doe')", nameColumn.DefaultValueSql);
+                    Assert.Equal("Some comment", nameColumn.Comment);
+                });
+
+            AssertSql(
+                """
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'Some comment';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'People', 'COLUMN', N'Name';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Drop_column()
+        {
+            await base.Drop_column();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeColumn');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "SomeColumn";
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Drop_column_primary_key()
+        {
+            await base.Drop_column_primary_key();
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "PK_People";
+""",
+                //
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Id');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Id";
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Drop_column_computed_and_non_computed_with_dependency()
+        {
+            await base.Drop_column_computed_and_non_computed_with_dependency();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Y');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "Y";
+""",
+                //
+                """
+DECLARE @var1 sysname;
+SELECT @var1 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'X');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var1 + '";');
+ALTER TABLE "People" DROP COLUMN "X";
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Rename_column()
+        {
+            await base.Rename_column();
+
+            AssertSql(
+                """
+EXEC sp_rename N'"People"."SomeColumn"', N'SomeOtherColumn', N'COLUMN';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Rename_index()
+        {
+            await base.Rename_index();
+        }
+
+        [ActianTodo]
+        public override async Task Create_index()
+        {
+            await base.Create_index();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'FirstName');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "FirstName" nvarchar(450) NULL;
+""",
+                //
+                """
+CREATE INDEX "IX_People_FirstName" ON "People" ("FirstName");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_index_unique()
+        {
+            await base.Create_index_unique();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'LastName');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "LastName" nvarchar(450) NULL;
+""",
+                //
+                """
+DECLARE @var1 sysname;
+SELECT @var1 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'FirstName');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var1 + '";');
+ALTER TABLE "People" ALTER COLUMN "FirstName" nvarchar(450) NULL;
+""",
+                //
+                """
+CREATE UNIQUE INDEX "IX_People_FirstName_LastName" ON "People" ("FirstName", "LastName") WHERE "FirstName" IS NOT NULL AND "LastName" IS NOT NULL;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_index_descending()
+        {
+            await base.Create_index_descending();
+
+            AssertSql(
+                """
+CREATE INDEX "IX_People_X" ON "People" ("X" DESC);
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_index_descending_mixed()
+        {
+            await base.Create_index_descending_mixed();
+
+            AssertSql(
+                """
+CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");
+""");
+        }
+
+        public override async Task Alter_index_make_unique()
+        {
+            await base.Alter_index_make_unique();
+
+            AssertSql(
+                """
+DROP INDEX "IX_People_X";
+""",
+                //
+                """
+CREATE UNIQUE INDEX "IX_People_X" ON "People" ("X");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_index_change_sort_order()
+        {
+            await base.Alter_index_change_sort_order();
+
+            AssertSql(
+                """
+DROP INDEX "IX_People_X_Y_Z" ON "People";
+""",
+                //
+                """
+CREATE INDEX "IX_People_X_Y_Z" ON "People" ("X", "Y" DESC, "Z");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_index_with_filter()
+        {
+            await base.Create_index_with_filter();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(450) NULL;
+""",
+                //
+                """
+CREATE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task CreateIndex_generates_exec_when_filter_and_idempotent()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("Name");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").HasIndex("Name").HasFilter("[Name] IS NOT NULL"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var index = Assert.Single(table.Indexes);
+                    Assert.Same(table.Columns.Single(c => c.Name == "Name"), Assert.Single(index.Columns));
+                    Assert.Contains("Name", index.Filter);
+                },
+                migrationsSqlGenerationOptions: MigrationsSqlGenerationOptions.Idempotent);
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(450) NULL;
+""",
+                //
+                """
+EXEC(N'CREATE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL');
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_unique_index_with_filter()
+        {
+            await base.Create_unique_index_with_filter();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "Name" nvarchar(450) NULL;
+""",
+                //
+                """
+CREATE UNIQUE INDEX "IX_People_Name" ON "People" ("Name") WHERE "Name" IS NOT NULL AND "Name" <> '';
+""");
+        }
+
+        public override async Task Add_primary_key_int()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => base.Add_primary_key_int());
+
+            Assert.Equal(ActianStrings.AlterIdentityColumn, exception.Message);
+        }
+
+        [ActianTodo]
+        public override async Task Add_primary_key_string()
+        {
+            await base.Add_primary_key_string();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeField');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "SomeField" nvarchar(450) NOT NULL;
+""",
+                //
+                """
+ALTER TABLE "People" ADD CONSTRAINT "PK_People" PRIMARY KEY ("SomeField");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Add_primary_key_with_name()
+        {
+            await base.Add_primary_key_with_name();
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeField');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+UPDATE "People" SET "SomeField" = N'' WHERE "SomeField" IS NULL;
+ALTER TABLE "People" ALTER COLUMN "SomeField" nvarchar(450) NOT NULL;
+ALTER TABLE "People" ADD DEFAULT N'' FOR "SomeField";
+""",
+                //
+                """
+ALTER TABLE "People" ADD CONSTRAINT "PK_Foo" PRIMARY KEY ("SomeField");
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Add_primary_key_composite_with_name()
+        {
+            await base.Add_primary_key_composite_with_name();
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD CONSTRAINT "pk_foo" PRIMARY KEY ("SomeField1", "SomeField2");
+""");
+        }
+
+        public override async Task Drop_primary_key_int()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => base.Drop_primary_key_int());
+
+            Assert.Equal(ActianStrings.AlterIdentityColumn, exception.Message);
+        }
+
+        [ActianTodo]
+        public override async Task Drop_primary_key_string()
+        {
+            await Test(
+            builder => builder.Entity("people").Property<string>("somefield").IsRequired(),
+            builder => builder.Entity("people").HasKey("somefield"),
+            builder => { },
+            model => Assert.Null(Assert.Single(model.Tables).PrimaryKey));
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "PK_People";
+""",
+                //
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SomeField');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" ALTER COLUMN "SomeField" nvarchar(max) NOT NULL;
+""");
+        }
+
+        public override async Task Add_foreign_key()
+        {
+            await Test(
+            builder =>
+            {
+                builder.Entity(
+                    "Customers", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.HasKey("Id");
+                    });
+                builder.Entity(
+                    "Orders", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("CustomerId");
+                    });
+            },
+            builder => { },
+            builder => builder.Entity("Orders").HasOne("Customers").WithMany()
+                .HasForeignKey("CustomerId"),
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables, t => t.Name == "customers");
+                var ordersTable = Assert.Single(model.Tables, t => t.Name == "orders");
+                var foreignKey = ordersTable.ForeignKeys.Single();
+                if (AssertConstraintNames)
+                {
+                    Assert.Equal("fk_orders_customers_customerid", foreignKey.Name);
+                }
+
+                Assert.Equal(ReferentialAction.Cascade, foreignKey.OnDelete);
+                Assert.Same(customersTable, foreignKey.PrincipalTable);
+                Assert.Same(customersTable.Columns.Single(), Assert.Single(foreignKey.PrincipalColumns));
+                Assert.Equal("customerid", Assert.Single(foreignKey.Columns).Name);
+            });
+        }
+
+        //[ActianTodo]
+        public override async Task Add_foreign_key_with_name()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Customers", e =>
+                        {
+                            e.Property<int>("Id");
+                            e.HasKey("Id");
+                        });
+                    builder.Entity(
+                        "Orders", e =>
+                        {
+                            e.Property<int>("Id");
+                            e.Property<int>("CustomerId");
+                        });
+                },
+                builder => { },
+                builder => builder.Entity("Orders").HasOne("Customers").WithMany()
+                    .HasForeignKey("CustomerId").HasConstraintName("FK_Foo"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables, t => t.Name == "orders");
+                    var foreignKey = table.ForeignKeys.Single();
+                    if (AssertConstraintNames)
+                    {
+                        Assert.Equal("fk_foo", foreignKey.Name);
+                    }
+                });
+
+            AssertSql(
+                """
+CREATE INDEX "IX_Orders_CustomerId" ON "Orders" ("CustomerId");
+""",
+                //
+                """
+ALTER TABLE "Orders" ADD CONSTRAINT "FK_Foo" FOREIGN KEY ("CustomerId") REFERENCES "Customers" ("Id") ON DELETE CASCADE;
+""");
+        }
+
+        public override async Task Drop_foreign_key()
+        {
+            await Test(
+            builder =>
+            {
+                builder.Entity(
+                    "Customers", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.HasKey("Id");
+                    });
+                builder.Entity(
+                    "Orders", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("CustomerId");
+                    });
+            },
+            builder => builder.Entity("Orders").HasOne("Customers").WithMany().HasForeignKey("CustomerId"),
+            builder => { },
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables, t => t.Name == "customers");
+                Assert.Empty(customersTable.ForeignKeys);
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "Orders" DROP CONSTRAINT "FK_Orders_Customers_CustomerId" RESTRICT;
+""",
+                //
+                """
+DROP INDEX "IX_Orders_CustomerId";
+""");
+        }
+
+        //[ActianTodo]
+        public override async Task Add_unique_constraint()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("AlternateKeyColumn");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").HasAlternateKey("AlternateKeyColumn"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var uniqueConstraint = table.UniqueConstraints.Single();
+                    Assert.Same(table, uniqueConstraint.Table);
+                    Assert.Same(table.Columns.Single(c => c.Name == "alternatekeycolumn"), Assert.Single(uniqueConstraint.Columns));
+                    if (AssertConstraintNames)
+                    {
+                        Assert.Equal("ak_people_alternatekeycolumn", uniqueConstraint.Name);
+                    }
+                });
+
+//            AssertSql(
+//                """
+//ALTER TABLE "People" ADD CONSTRAINT "AK_People_AlternateKeyColumn" UNIQUE ("AlternateKeyColumn");
+//""",
+//                //
+//                """
+//MODIFY "People" TO RECONSTRUCT;
+//"""
+//);
+        }
+
+        //[ActianTodo]
+        public override async Task Add_unique_constraint_composite_with_name()
+        {
+            await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("AlternateKeyColumn1");
+                    e.Property<int>("AlternateKeyColumn2");
+                }),
+            builder => { },
+            builder => builder.Entity("People").HasAlternateKey("AlternateKeyColumn1", "AlternateKeyColumn2").HasName("AK_Foo"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var uniqueConstraint = table.UniqueConstraints.Single();
+                Assert.Same(table, uniqueConstraint.Table);
+                Assert.Collection(
+                    uniqueConstraint.Columns.OrderBy(c => c.Name),
+                    c => Assert.Same(table.Columns.Single(c => c.Name == "alternatekeycolumn1"), c),
+                    c => Assert.Same(table.Columns.Single(c => c.Name == "alternatekeycolumn2"), c));
+                if (AssertConstraintNames)
+                {
+                    Assert.Equal("ak_foo", uniqueConstraint.Name);
+                }
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD CONSTRAINT "AK_Foo" UNIQUE ("AlternateKeyColumn1", "AlternateKeyColumn2");
+""");
+        }
+
+        public override async Task Drop_unique_constraint()
+        {
+            await Test(
+            builder => builder.Entity(
+                "People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<int>("AlternateKeyColumn");
+                }),
+            builder => builder.Entity("People").HasAlternateKey("AlternateKeyColumn"),
+            builder => { },
+            model =>
+            {
+                Assert.Empty(Assert.Single(model.Tables).UniqueConstraints);
+            });
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "AK_People_AlternateKeyColumn" RESTRICT;
+""");
+        }
+
+        public override async Task Add_check_constraint_with_name()
+        {
+            await base.Add_check_constraint_with_name();
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD CONSTRAINT "CK_People_Foo" CHECK ("DriverLicense" > 0);
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task Add_check_constraint_generates_exec_when_idempotent()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("DriverLicense");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").ToTable(tb => tb.HasCheckConstraint("CK_People_Foo", "DriverLicense > 0")),
+                model =>
+                {
+                    // TODO: no scaffolding support for check constraints, https://github.com/aspnet/EntityFrameworkCore/issues/15408
+                },
+                migrationsSqlGenerationOptions: MigrationsSqlGenerationOptions.Idempotent);
+
+            AssertSql(
+                """
+ALTER TABLE "People" ADD CONSTRAINT "CK_People_Foo" CHECK (DriverLicense > 0);
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_check_constraint()
+        {
+            await base.Alter_check_constraint();
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "CK_People_Foo";
+""",
+                //
+                """
+ALTER TABLE "People" ADD CONSTRAINT "CK_People_Foo" CHECK (DriverLicense > 1);
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Drop_check_constraint()
+        {
+            await base.Drop_check_constraint();
+
+            AssertSql(
+                """
+ALTER TABLE "People" DROP CONSTRAINT "CK_People_Foo";
+""");
+        }
+
+        public override async Task Create_sequence()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasSequence<int>("TestSequence"),
+                model =>
+                {
+                    var sequence = Assert.Single(model.Sequences);
+                    Assert.Equal("testsequence", sequence.Name);
+                });
+
+        AssertSql(
+                """
+CREATE SEQUENCE "TestSequence" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public async Task Create_sequence_byte()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasSequence<byte>("TestSequence"),
+                model =>
+                {
+                    var sequence = Assert.Single(model.Sequences);
+                    Assert.Equal("TestSequence", sequence.Name);
+                });
+            AssertSql(
+                """
+CREATE SEQUENCE "TestSequence" AS tinyint START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public async Task Create_sequence_decimal()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasSequence<decimal>("TestSequence"),
+                model =>
+                {
+                    var sequence = Assert.Single(model.Sequences);
+                    Assert.Equal("testsequence", sequence.Name);
+                });
+
+            AssertSql(
+                """
+CREATE SEQUENCE "TestSequence" AS decimal START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
+        }
+
+        public override async Task Create_sequence_long()
+        {
+            await Test(
+            builder => { },
+            builder => builder.HasSequence<long>("TestSequence"),
+            model =>
+            {
+                var sequence = Assert.Single(model.Sequences);
+                Assert.Equal("testsequence", sequence.Name);
+            });
+
+            AssertSql(
+                """
+CREATE SEQUENCE "TestSequence" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_sequence_short()
+        {
+            await base.Create_sequence_short();
+
+            AssertSql(
+                """
+CREATE SEQUENCE "TestSequence" AS smallint START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
+        }
+
+        public override async Task Create_sequence_all_settings()
+        {
+            await Test(
+            builder => { },
+            builder => builder.HasSequence<long>("TestSequence", "dbo2")
+                .StartsAt(3)
+                .IncrementsBy(2)
+                .HasMin(2)
+                .HasMax(916)
+                .IsCyclic(),
+            model =>
+            {
+                var sequence = Assert.Single(model.Sequences);
+                Assert.Equal("testsequence", sequence.Name);
+                Assert.Equal("dbo2", sequence.Schema);
+                Assert.Equal(3, sequence.StartValue);
+                Assert.Equal(2, sequence.IncrementBy);
+                Assert.Equal(2, sequence.MinValue);
+                Assert.Equal(916, sequence.MaxValue);
+                Assert.True(sequence.IsCyclic);
+            });
+
+            AssertSql(
+                """
+set session authorization "dbo2";
+""",
+                """
+CREATE SEQUENCE "dbo2"."TestSequence" START WITH 3 INCREMENT BY 2 MINVALUE 2 MAXVALUE 916 CYCLE;
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Alter_sequence_all_settings()
+        {
+            await base.Alter_sequence_all_settings();
+
+            AssertSql(
+                """
+ALTER SEQUENCE "foo" INCREMENT BY 2 MINVALUE -5 MAXVALUE 10 CYCLE;
+""",
+                //
+                """
+ALTER SEQUENCE "foo" RESTART WITH -3;
+""");
+        }
+
+        public override async Task Alter_sequence_increment_by()
+        {
+            await base.Alter_sequence_increment_by();
+
+            AssertSql(
+                """
+ALTER SEQUENCE "foo" INCREMENT BY 2 NO MINVALUE NO MAXVALUE NO CYCLE;
+""");
+        }
+
+        public override async Task Alter_sequence_restart_with()
+        {
+            await base.Alter_sequence_restart_with();
+
+            AssertSql(
+                @"ALTER SEQUENCE ""foo"" RESTART WITH 3;");
+        }
+
+        public override async Task Drop_sequence()
+        {
+            await base.Drop_sequence();
+
+            AssertSql(
+                """
+DROP SEQUENCE "TestSequence";
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Rename_sequence()
+        {
+            await base.Rename_sequence();
+
+            AssertSql(
+                """
+EXEC sp_rename N'"TestSequence"', N'testsequence';
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Move_sequence()
+        {
+            await base.Move_sequence();
+
+            AssertSql(
+                """
+IF SCHEMA_ID(N'TestSequenceSchema') IS NULL EXEC(N'CREATE SCHEMA "TestSequenceSchema";');
+""",
+                //
+                """
+ALTER SCHEMA "TestSequenceSchema" TRANSFER "TestSequence";
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Move_sequence_into_default_schema()
+        {
+            await Test(
+                builder => builder.HasSequence<int>("TestSequence", "TestSequenceSchema"),
+                builder => builder.HasSequence<int>("TestSequence"),
+                model =>
+                {
+                    var sequence = Assert.Single(model.Sequences);
+                    Assert.Equal("dbo", sequence.Schema);
+                    Assert.Equal("TestSequence", sequence.Name);
+                });
+
+            AssertSql(
+                """
+DECLARE @defaultSchema sysname = SCHEMA_NAME();
+EXEC(N'ALTER SCHEMA "' + @defaultSchema + N'" TRANSFER "TestSequenceSchema"."TestSequence";');
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public async Task Create_sequence_and_dependent_column()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder =>
+                {
+                    builder.HasSequence<int>("TestSequence");
+                    builder.Entity("People").Property<int>("SeqProp").HasDefaultValueSql("NEXT VALUE FOR TestSequence");
+                },
+                model =>
+                {
+                    var sequence = Assert.Single(model.Sequences);
+                    Assert.Equal("TestSequence", sequence.Name);
+                });
+
+            AssertSql(
+                """
+CREATE SEQUENCE "TestSequence" AS int START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+""",
+                //
+                """
+ALTER TABLE "People" ADD "SeqProp" int NOT NULL DEFAULT (NEXT VALUE FOR TestSequence);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public async Task Drop_sequence_and_dependent_column()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder =>
+                {
+                    builder.HasSequence<int>("TestSequence");
+                    builder.Entity("People").Property<int>("SeqProp").HasDefaultValueSql("NEXT VALUE FOR TestSequence");
+                },
+                builder => { },
+                model => Assert.Empty(model.Sequences));
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"People"') AND "c"."name" = N'SeqProp');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "People" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "People" DROP COLUMN "SeqProp";
+""",
+                //
+                """
+DROP SEQUENCE "TestSequence";
+""");
+        }
+
+        public override async Task InsertDataOperation()
+        {
+            await base.InsertDataOperation();
+
+            AssertSql(
+                """
+INSERT INTO "Person" ("Id", "Name")
+VALUES (1, N'Daenerys Targaryen');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (2, N'John Snow');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (3, N'Arya Stark');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (4, N'Harry Strickland');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (5, NULL);
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        public override async Task DeleteDataOperation_simple_key()
+        {
+            await base.DeleteDataOperation_simple_key();
+
+            // TODO remove rowcount
+            AssertSql(
+                """
+DELETE FROM "Person"
+WHERE "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        public override async Task DeleteDataOperation_composite_key()
+        {
+            await base.DeleteDataOperation_composite_key();
+
+            // TODO remove rowcount
+            AssertSql(
+                """
+DELETE FROM "Person"
+WHERE "AnotherId" = 12 AND "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        public override async Task UpdateDataOperation_simple_key()
+        {
+            await base.UpdateDataOperation_simple_key();
+
+            // TODO remove rowcount
+            AssertSql(
+                """
+UPDATE "Person" SET "Name" = N'Another John Snow'
+WHERE "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        public override async Task UpdateDataOperation_composite_key()
+        {
+            await base.UpdateDataOperation_composite_key();
+
+            // TODO remove rowcount
+            AssertSql(
+                """
+UPDATE "Person" SET "Name" = N'Another John Snow'
+WHERE "AnotherId" = 11 AND "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        public override async Task UpdateDataOperation_multiple_columns()
+        {
+            await base.UpdateDataOperation_multiple_columns();
+
+            // TODO remove rowcount
+            AssertSql(
+                """
+UPDATE "Person" SET "Age" = 21, "Name" = N'Another John Snow'
+WHERE "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task InsertDataOperation_generates_exec_when_idempotent()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "Person", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("Name");
+                        e.HasKey("Id");
+                    }),
+                builder => { },
+                builder => builder.Entity("Person")
+                    .HasData(
+                        new Person { Id = 1, Name = "Daenerys Targaryen" },
+                        new Person { Id = 2, Name = "John Snow" },
+                        new Person { Id = 3, Name = "Arya Stark" },
+                        new Person { Id = 4, Name = "Harry Strickland" },
+                        new Person { Id = 5, Name = null }),
+                model => { },
+                migrationsSqlGenerationOptions: MigrationsSqlGenerationOptions.Idempotent);
+
+            AssertSql(
+                """
+INSERT INTO "Person" ("Id", "Name")
+VALUES (1, N'Daenerys Targaryen');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (2, N'John Snow');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (3, N'Arya Stark');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (4, N'Harry Strickland');
+SELECT @@ROW_COUNT;
+
+INSERT INTO "Person" ("Id", "Name")
+VALUES (5, NULL);
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task DeleteDataOperation_generates_exec_when_idempotent()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "Person", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("Name");
+                        e.HasKey("Id");
+                        e.HasData(new Person { Id = 1, Name = "Daenerys Targaryen" });
+                    }),
+                builder => builder.Entity("Person").HasData(new Person { Id = 2, Name = "John Snow" }),
+                builder => { },
+                model => { },
+                migrationsSqlGenerationOptions: MigrationsSqlGenerationOptions.Idempotent);
+
+            AssertSql(
+                """
+DELETE FROM "Person"
+WHERE "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+
+        [ConditionalFact]
+        public virtual async Task UpdateDataOperation_generates_exec_when_idempotent()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "Person", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("Name");
+                        e.HasKey("Id");
+                        e.HasData(new Person { Id = 1, Name = "Daenerys Targaryen" });
+                    }),
+                builder => builder.Entity("Person").HasData(new Person { Id = 2, Name = "John Snow" }),
+                builder => builder.Entity("Person").HasData(new Person { Id = 2, Name = "Another John Snow" }),
+                model => { },
+                migrationsSqlGenerationOptions: MigrationsSqlGenerationOptions.Idempotent);
+
+            AssertSql(
+                """
+UPDATE "Person" SET "Name" = N'Another John Snow'
+WHERE "Id" = 2;
+SELECT @@ROW_COUNT;
+""");
+        }
+        
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Create_table_with_json_column()
+        {
+            await Test(
+                builder => { },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsOne(
+                                "Owned", "OwnedRequiredReference", o =>
+                                {
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.Navigation("OwnedRequiredReference").IsRequired();
+                        });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Entity", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name),
+                        c =>
+                        {
+                            Assert.Equal("OwnedCollection", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("OwnedReference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                            Assert.True(c.IsNullable);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("OwnedRequiredReference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                            Assert.False(c.IsNullable);
+                        });
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+CREATE TABLE "Entity" (
+    "Id" int NOT NULL IDENTITY,
+    "Name" nvarchar(max) NULL,
+    "OwnedCollection" nvarchar(max) NULL,
+    "OwnedReference" nvarchar(max) NULL,
+    "OwnedRequiredReference" nvarchar(max) NOT NULL,
+    CONSTRAINT "PK_Entity" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Create_table_with_json_column_explicit_json_column_names()
+        {
+            await Test(
+                builder => { },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                            e.OwnsOne(
+                                "Owned", "json_reference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "json_reference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "json_collection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Entity", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name),
+                        c =>
+                        {
+                            Assert.Equal("json_collection", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("json_reference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        });
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+CREATE TABLE "Entity" (
+    "Id" int NOT NULL IDENTITY,
+    "Name" nvarchar(max) NULL,
+    "json_collection" nvarchar(max) NULL,
+    "json_reference" nvarchar(max) NULL,
+    CONSTRAINT "PK_Entity" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Add_json_columns_to_existing_table()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "Entity", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                    }),
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsOne(
+                                "Owned", "OwnedRequiredReference", o =>
+                                {
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.Navigation("OwnedRequiredReference").IsRequired();
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Entity", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name),
+                        c =>
+                        {
+                            Assert.Equal("OwnedCollection", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("OwnedReference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                            Assert.True(c.IsNullable);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("OwnedRequiredReference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                            Assert.False(c.IsNullable);
+                        });
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "Entity" ADD "OwnedCollection" nvarchar(max) NULL;
+""",
+                //
+                """
+ALTER TABLE "Entity" ADD "OwnedReference" nvarchar(max) NULL;
+""",
+                //
+                """
+ALTER TABLE "Entity" ADD "OwnedRequiredReference" nvarchar(max) NOT NULL DEFAULT N'';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Remove_json_columns_from_existing_table()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                builder => builder.Entity(
+                    "Entity", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                    }),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Entity", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name));
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'OwnedCollection');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "Entity" DROP COLUMN "OwnedCollection";
+""",
+                //
+                """
+DECLARE @var1 sysname;
+SELECT @var1 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'OwnedReference');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var1 + '";');
+ALTER TABLE "Entity" DROP COLUMN "OwnedReference";
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Rename_json_column()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson("json_reference");
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson("json_collection");
+                                });
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson("new_json_reference");
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson("new_json_collection");
+                                });
+                        });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Entity", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name),
+                        c =>
+                        {
+                            Assert.Equal("new_json_collection", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("new_json_reference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        });
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+EXEC sp_rename N'"Entity"."json_reference"', N'new_json_reference', N'COLUMN';
+""",
+                //
+                """
+EXEC sp_rename N'"Entity"."json_collection"', N'new_json_collection', N'COLUMN';
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Rename_table_with_json_column()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                            e.ToTable("Entities");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                            e.ToTable("NewEntities");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("NewEntities", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name),
+                        c =>
+                        {
+                            Assert.Equal("OwnedCollection", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("OwnedReference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        });
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+ALTER TABLE "Entities" DROP CONSTRAINT "PK_Entities";
+""",
+                //
+                """
+EXEC sp_rename N'"Entities"', N'NewEntities';
+""",
+                //
+                """
+ALTER TABLE "NewEntities" ADD CONSTRAINT "PK_NewEntities" PRIMARY KEY ("Id");
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Convert_regular_owned_entities_to_json()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                });
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal("Entity", table.Name);
+
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name),
+                        c =>
+                        {
+                            Assert.Equal("OwnedCollection", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        },
+                        c =>
+                        {
+                            Assert.Equal("OwnedReference", c.Name);
+                            Assert.Equal("nvarchar(max)", c.StoreType);
+                        });
+                    Assert.Same(
+                        table.Columns.Single(c => c.Name == "Id"),
+                        Assert.Single(table.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+                """
+DROP TABLE "Entity_NestedCollection";
+""",
+                //
+                """
+DROP TABLE "Entity_OwnedCollection_NestedCollection2";
+""",
+                //
+                """
+DROP TABLE "Entity_OwnedCollection";
+""",
+                //
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'OwnedReference_Date');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "Entity" DROP COLUMN "OwnedReference_Date";
+""",
+                //
+                """
+DECLARE @var1 sysname;
+SELECT @var1 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'OwnedReference_NestedReference_Number');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var1 + '";');
+ALTER TABLE "Entity" DROP COLUMN "OwnedReference_NestedReference_Number";
+""",
+                //
+                """
+ALTER TABLE "Entity" ADD "OwnedCollection" nvarchar(max) NULL;
+""",
+                //
+                """
+ALTER TABLE "Entity" ADD "OwnedReference" nvarchar(max) NULL;
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Convert_json_entities_to_regular_owned()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                    o.ToJson();
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson();
+                                });
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                });
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                });
+                        });
+                },
+                model =>
+                {
+                    Assert.Equal(4, model.Tables.Count());
+                });
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'OwnedCollection');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var0 + '";');
+ALTER TABLE "Entity" DROP COLUMN "OwnedCollection";
+""",
+                //
+                """
+DECLARE @var1 sysname;
+SELECT @var1 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'OwnedReference');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var1 + '";');
+ALTER TABLE "Entity" DROP COLUMN "OwnedReference";
+""",
+                //
+                """
+ALTER TABLE "Entity" ADD "OwnedReference_Date" datetime2 NULL;
+""",
+                //
+                """
+ALTER TABLE "Entity" ADD "OwnedReference_NestedReference_Number" int NULL;
+""",
+                //
+                """
+CREATE TABLE "Entity_NestedCollection" (
+    "OwnedEntityId" int NOT NULL,
+    "Id" int NOT NULL IDENTITY,
+    "Number2" int NOT NULL,
+    CONSTRAINT "PK_Entity_NestedCollection" PRIMARY KEY ("OwnedEntityId", "Id"),
+    CONSTRAINT "FK_Entity_NestedCollection_Entity_OwnedEntityId" FOREIGN KEY ("OwnedEntityId") REFERENCES "Entity" ("Id") ON DELETE CASCADE
+);
+""",
+                //
+                """
+CREATE TABLE "Entity_OwnedCollection" (
+    "EntityId" int NOT NULL,
+    "Id" int NOT NULL IDENTITY,
+    "Date2" datetime2 NOT NULL,
+    "NestedReference2_Number3" int NULL,
+    CONSTRAINT "PK_Entity_OwnedCollection" PRIMARY KEY ("EntityId", "Id"),
+    CONSTRAINT "FK_Entity_OwnedCollection_Entity_EntityId" FOREIGN KEY ("EntityId") REFERENCES "Entity" ("Id") ON DELETE CASCADE
+);
+""",
+                //
+                """
+CREATE TABLE "Entity_OwnedCollection_NestedCollection2" (
+    "Owned2EntityId" int NOT NULL,
+    "Owned2Id" int NOT NULL,
+    "Id" int NOT NULL IDENTITY,
+    "Number4" int NOT NULL,
+    CONSTRAINT "PK_Entity_OwnedCollection_NestedCollection2" PRIMARY KEY ("Owned2EntityId", "Owned2Id", "Id"),
+    CONSTRAINT "FK_Entity_OwnedCollection_NestedCollection2_Entity_OwnedCollection_Owned2EntityId_Owned2Id" FOREIGN KEY ("Owned2EntityId", "Owned2Id") REFERENCES "Entity_OwnedCollection" ("EntityId", "Id") ON DELETE CASCADE
+);
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Convert_string_column_to_a_json_column_containing_reference()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.ToJson("Name");
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                });
+                        });
+                },
+                model =>
+                {
+                    //Microsoft.EntityFrameworkCore.Scaffolding.Metadata.DatabaseModel model;
+                    Microsoft.EntityFrameworkCore.Scaffolding.Metadata.DatabaseTable table = (Microsoft.EntityFrameworkCore.Scaffolding.Metadata.DatabaseTable)model.Tables.Single();
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name));
+                });
+
+            AssertSql();
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Convert_string_column_to_a_json_column_containing_required_reference()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+
+                            e.OwnsOne(
+                                "Owned", "OwnedReference", o =>
+                                {
+                                    o.ToJson("Name");
+                                    o.OwnsOne(
+                                        "Nested", "NestedReference", n =>
+                                        {
+                                            n.Property<int>("Number");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested2", "NestedCollection", n =>
+                                        {
+                                            n.Property<int>("Number2");
+                                        });
+                                    o.Property<DateTime>("Date");
+                                });
+
+                            e.Navigation("OwnedReference").IsRequired();
+                        });
+                },
+                model =>
+                {
+                    var table = model.Tables.Single();
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name));
+                });
+
+            AssertSql(
+                """
+DECLARE @var0 sysname;
+SELECT @var0 = "d"."name"
+FROM "sys"."default_constraints" "d"
+INNER JOIN "sys"."columns" "c" ON "d"."parent_column_id" = "c"."column_id" AND "d"."parent_object_id" = "c"."object_id"
+WHERE ("d"."parent_object_id" = OBJECT_ID(N'"Entity"') AND "c"."name" = N'Name');
+IF @var0 IS NOT NULL EXEC(N'ALTER TABLE "Entity" DROP CONSTRAINT "' + @var0 + '";');
+UPDATE "Entity" SET "Name" = N'' WHERE "Name" IS NULL;
+ALTER TABLE "Entity" ALTER COLUMN "Name" nvarchar(max) NOT NULL;
+ALTER TABLE "Entity" ADD DEFAULT N'' FOR "Name";
+""");
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public virtual async Task Convert_string_column_to_a_json_column_containing_collection()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                        });
+                },
+                builder =>
+                {
+                    builder.Entity(
+                        "Entity", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+
+                            e.OwnsMany(
+                                "Owned2", "OwnedCollection", o =>
+                                {
+                                    o.OwnsOne(
+                                        "Nested3", "NestedReference2", n =>
+                                        {
+                                            n.Property<int>("Number3");
+                                        });
+                                    o.OwnsMany(
+                                        "Nested4", "NestedCollection2", n =>
+                                        {
+                                            n.Property<int>("Number4");
+                                        });
+                                    o.Property<DateTime>("Date2");
+                                    o.ToJson("Name");
+                                });
+                        });
+                },
+                model =>
+                {
+                    var table = model.Tables.Single();
+                    Assert.Collection(
+                        table.Columns,
+                        c => Assert.Equal("Id", c.Name),
+                        c => Assert.Equal("Name", c.Name));
+                });
+
+            AssertSql();
+        }
+
+        [ConditionalFact]
+        public override async Task Add_required_primitve_collection_to_existing_table()
+        {
+            await Test(
+            builder => builder.Entity(
+                "Customer", e =>
+                {
+                    e.Property<int>("Id").ValueGeneratedOnAdd();
+                    e.HasKey("Id");
+                    e.Property<string>("Name");
+                    e.ToTable("Customers");
+                }),
+            builder => builder.Entity(
+                    "Customer", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                        e.Property<List<int>>("Numbers").IsRequired();
+                        e.ToTable("Customers");
+                    }),
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables.Where(t => t.Name == "customers"));
+
+                Assert.Collection(
+                    customersTable.Columns.OrderBy(c => c.Name),
+                    c => Assert.Equal("id", c.Name),
+                    c => Assert.Equal("name", c.Name),
+                    c => Assert.Equal("numbers", c.Name));
+                Assert.Same(
+                    customersTable.Columns.Single(c => c.Name == "id"),
+                    Assert.Single(customersTable.PrimaryKey!.Columns));
+            });
+
+            AssertSql(
+    """
+ALTER TABLE "Customers" ADD "Numbers" long nvarchar NOT NULL WITH DEFAULT N'[]';
+""",
+                //
+                """
+MODIFY "Customers" TO RECONSTRUCT;
+"""
+);
+        }
+
+        //[ActianTodo]
+        [ConditionalFact]
+        public override async Task Add_required_primitve_collection_with_custom_default_value_to_existing_table()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "Customer", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                        e.ToTable("Customers");
+                    }),
+                builder => builder.Entity(
+                        "Customer", e =>
+                        {
+                            e.Property<int>("Id").ValueGeneratedOnAdd();
+                            e.HasKey("Id");
+                            e.Property<string>("Name");
+                            e.Property<List<int>>("Numbers").IsRequired().HasDefaultValue(new List<int> { 1, 2, 3 });
+                            e.ToTable("Customers");
+                        }),
+                model =>
+                {
+                    var customersTable = Assert.Single(model.Tables.Where(t => t.Name == "customers"));
+
+                    Assert.Collection(
+                        customersTable.Columns.OrderBy(c => c.Name),
+                        c => Assert.Equal("id", c.Name),
+                        c => Assert.Equal("name", c.Name),
+                        c => Assert.Equal("numbers", c.Name));
+                    Assert.Same(
+                        customersTable.Columns.Single(c => c.Name == "id"),
+                        Assert.Single(customersTable.PrimaryKey!.Columns));
+                });
+
+            AssertSql(
+    """
+ALTER TABLE "Customers" ADD "Numbers" long nvarchar NOT NULL WITH DEFAULT N'[1,2,3]';
+""",
+                //
+                """
+MODIFY "Customers" TO RECONSTRUCT;
+"""
+);
+        }
+
+        //[ActianTodo]
+        [ConditionalFact]
+        public override async Task Add_required_primitve_collection_with_custom_default_value_sql_to_existing_table()
+        {
+            await Test(
+            builder => builder.Entity(
+                "Customer", e =>
+                {
+                    e.Property<int>("Id").ValueGeneratedOnAdd();
+                    e.HasKey("Id");
+                    e.Property<string>("Name");
+                    e.ToTable("Customers");
+                }),
+            builder => builder.Entity(
+                    "Customer", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                        e.Property<List<int>>("Numbers").IsRequired().HasDefaultValueSql("N'[3, 2, 1]'");
+                        e.ToTable("Customers");
+                    }),
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables.Where(t => t.Name == "customers"));
+
+                Assert.Collection(
+                    customersTable.Columns.OrderBy(c => c.Name),
+                    c => Assert.Equal("id", c.Name),
+                    c => Assert.Equal("name", c.Name),
+                    c => Assert.Equal("numbers", c.Name));
+                Assert.Same(
+                    customersTable.Columns.Single(c => c.Name == "id"),
+                    Assert.Single(customersTable.PrimaryKey!.Columns));
+            });
+
+            AssertSql(
+    """
+ALTER TABLE "Customers" ADD "Numbers" long nvarchar NOT NULL WITH DEFAULT N'[3, 2, 1]';
+""",
+                //
+                """
+MODIFY "Customers" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ConditionalFact(Skip = "issue #33038")]
+        public override async Task Add_required_primitve_collection_with_custom_converter_to_existing_table()
+        {
+            await base.Add_required_primitve_collection_with_custom_converter_to_existing_table();
+
+            AssertSql(
+    """
+ALTER TABLE "Customers" ADD "Numbers" nvarchar(max) NOT NULL DEFAULT N'nothing';
+""");
+        }
+
+        //[ActianTodo]
+        [ConditionalFact]
+        public override async Task Add_required_primitve_collection_with_custom_converter_and_custom_default_value_to_existing_table()
+        {
+            await Test(
+            builder => builder.Entity(
+                "Customer", e =>
+                {
+                    e.Property<int>("Id").ValueGeneratedOnAdd();
+                    e.HasKey("Id");
+                    e.Property<string>("Name");
+                    e.ToTable("Customers");
+                }),
+            builder => builder.Entity(
+                    "Customer", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                        e.Property<List<int>>("Numbers").HasConversion(new ValueConverter<List<int>, string>(
+                            convertToProviderExpression: x => x != null && x.Count > 0 ? "some numbers" : "nothing",
+                            convertFromProviderExpression: x => x == "nothing" ? new List<int> { } : new List<int> { 7, 8, 9 }))
+                        .HasDefaultValue(new List<int> { 42 })
+                        .IsRequired();
+                        e.ToTable("Customers");
+                    }),
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables.Where(t => t.Name == "customers"));
+
+                Assert.Collection(
+                    customersTable.Columns.OrderBy(c => c.Name),
+                    c => Assert.Equal("id", c.Name),
+                    c => Assert.Equal("name", c.Name),
+                    c => Assert.Equal("numbers", c.Name));
+                Assert.Same(
+                    customersTable.Columns.Single(c => c.Name == "id"),
+                    Assert.Single(customersTable.PrimaryKey!.Columns));
+            });
+
+            AssertSql(
+    """
+ALTER TABLE "Customers" ADD "Numbers" long nvarchar NOT NULL WITH DEFAULT N'some numbers';
+""",
+                //
+                """
+MODIFY "Customers" TO RECONSTRUCT;
+"""
+);
+        }
+
+        [ActianTodo]
+        [ConditionalFact]
+        public override async Task Add_optional_primitive_collection_to_existing_table()
+        {
+            await base.Add_optional_primitive_collection_to_existing_table();
+
+            AssertSql(
+    """
+ALTER TABLE "Customers" ADD "Numbers" nvarchar(max) NULL;
+""");
+        }
+
+        [ConditionalFact]
+        public override async Task Create_table_with_required_primitive_collection()
+        {
+            await Test(
+            builder => { },
+            builder => builder.Entity(
+                    "Customer", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                        e.Property<List<int>>("Numbers").IsRequired();
+                        e.ToTable("Customers");
+                    }),
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables.Where(t => t.Name == "customers"));
+
+                Assert.Collection(
+                    customersTable.Columns.OrderBy(c => c.Name),
+                    c => Assert.Equal("id", c.Name),
+                    c => Assert.Equal("name", c.Name),
+                    c => Assert.Equal("numbers", c.Name));
+                Assert.Same(
+                    customersTable.Columns.Single(c => c.Name == "id"),
+                    Assert.Single(customersTable.PrimaryKey!.Columns));
+            });
+
+            AssertSql(
+    """
+CREATE TABLE "Customers" (
+    "Id" integer NOT NULL GENERATED BY DEFAULT AS IDENTITY,
+    "Name" long nvarchar WITH NULL,
+    "Numbers" long nvarchar NOT NULL WITH DEFAULT '',
+    CONSTRAINT "PK_Customers" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        [ConditionalFact]
+        public override async Task Create_table_with_optional_primitive_collection()
+        {
+            await Test(
+            builder => { },
+            builder => builder.Entity(
+                    "Customer", e =>
+                    {
+                        e.Property<int>("Id").ValueGeneratedOnAdd();
+                        e.HasKey("Id");
+                        e.Property<string>("Name");
+                        e.Property<List<int>>("Numbers");
+                        e.ToTable("Customers");
+                    }),
+            model =>
+            {
+                var customersTable = Assert.Single(model.Tables.Where(t => t.Name == "customers"));
+
+                Assert.Collection(
+                    customersTable.Columns.OrderBy(c => c.Name),
+                    c => Assert.Equal("id", c.Name),
+                    c => Assert.Equal("name", c.Name),
+                    c => Assert.Equal("numbers", c.Name));
+                Assert.Same(
+                    customersTable.Columns.Single(c => c.Name == "id"),
+                    Assert.Single(customersTable.PrimaryKey!.Columns));
+            });
+
+            AssertSql(
+    """
+CREATE TABLE "Customers" (
+    "Id" integer NOT NULL GENERATED BY DEFAULT AS IDENTITY,
+    "Name" long nvarchar WITH NULL,
+    "Numbers" long nvarchar WITH NULL,
+    CONSTRAINT "PK_Customers" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        [ActianTodo]
+        public override async Task Create_table_with_complex_type_with_required_properties_on_derived_entity_in_TPH()
+        {
+            await base.Create_table_with_complex_type_with_required_properties_on_derived_entity_in_TPH();
+
+            AssertSql(
+    """
+CREATE TABLE "Contacts" (
+    "Id" int NOT NULL IDENTITY,
+    "Discriminator" nvarchar(8) NOT NULL,
+    "Name" nvarchar(max) NULL,
+    "Number" int NULL,
+    "MyComplex_Prop" nvarchar(max) NULL,
+    "MyComplex_MyNestedComplex_Bar" datetime2 NULL,
+    "MyComplex_MyNestedComplex_Foo" int NULL,
+    CONSTRAINT "PK_Contacts" PRIMARY KEY ("Id")
+);
+""");
+        }
+
+        protected override string NonDefaultCollation
+            => _nonDefaultCollation ??= GetDatabaseCollation() == "German_PhoneBook_CI_AS"
+                ? "French_CI_AS"
+                : "German_PhoneBook_CI_AS";
+
+        private string? _nonDefaultCollation;
+
+        private string? GetDatabaseCollation()
+        {
+            using var ctx = CreateContext();
+            var connection = ctx.Database.GetDbConnection();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = $@"
+SELECT collation_name
+FROM sys.databases
+WHERE name = '{connection.Database}';";
+
+            return command.ExecuteScalar() is string collation
+                ? collation
+                : null;
+        }
+
+        public class ActianMigrationsFixture : MigrationsFixtureBase
+        {
+            protected override string StoreName
+                => nameof(ActianMigrationsTest);
+
+            protected override ITestStoreFactory TestStoreFactory
+                => ActianTestStoreFactory.Instance;
+
+            public override RelationalTestHelpers TestHelpers
+                => ActianTestHelpers.Instance;
+
+            protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
+                => base.AddServices(serviceCollection)
+                    .AddScoped<IDatabaseModelFactory, ActianDatabaseModelFactory>();
         }
     }
 }

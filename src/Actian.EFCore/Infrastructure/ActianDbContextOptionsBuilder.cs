@@ -48,5 +48,17 @@ namespace Actian.EFCore.Infrastructure
             TimeSpan maxRetryDelay,
             [CanBeNull] ICollection<int> errorNumbersToAdd)
             => ExecutionStrategy(c => new ActianRetryingExecutionStrategy(c, maxRetryCount, maxRetryDelay, errorNumbersToAdd));
+
+        /// <summary>
+        ///     Sets the compatibility level that EF Core will use when interacting with the database.
+        ///     Defaults to <c>160</c>
+        /// </summary>
+        /// <remarks>
+        ///     See <see href="https://aka.ms/efcore-docs-dbcontext-options">Using DbContextOptions</see>
+        ///     for more information and examples.
+        /// </remarks>
+        /// <param name="compatibilityLevel"><see langword="false" /> to have null resource</param>
+        public virtual ActianDbContextOptionsBuilder UseCompatibilityLevel(int compatibilityLevel)
+            => WithOption(e => e.WithCompatibilityLevel(compatibilityLevel));
     }
 }
