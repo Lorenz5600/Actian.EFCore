@@ -88,12 +88,13 @@
     ]
   },
   {
-    "Name": "efc_databasemodelfactory",
+    "Name": "ActianDatabaseModelFactoryTest",
     "DbmsUser": "dbo",
     "Drop": true,
     "Create": true,
     "Aliases": [
-      "DatabaseModelFactory"
+      "DatabaseModelFactory",
+      "SimpleQueryTests"
     ]
   },
   {
@@ -111,7 +112,8 @@
     "Drop": true,
     "Create": true,
     "Aliases": [
-      "F1Test"
+      "F1Test",
+      "F1TestULong"
     ]
   },
   {
@@ -129,7 +131,8 @@
     "Drop": true,
     "Create": true,
     "Aliases": [
-      "FindTest"
+      "FindTest",
+      "ConcurrencyDetector"
     ]
   },
   {
@@ -156,7 +159,9 @@
     "Drop": true,
     "Create": true,
     "Aliases": [
-      "GraphClientCascadeUpdatesTest"
+      "GraphClientCascadeUpdatesTest",
+      "ProxyGraphChangeTrackingUpdatesTest",
+      "ProxyGraphChangeTrackingAndLazyLoadingUpdatesTest"
     ]
   },
   {
@@ -237,7 +242,8 @@
     "Drop": true,
     "Create": true,
     "Aliases": [
-      "MigrationsTest"
+      "MigrationsTest",
+      "ActianMigrationsTest"
     ]
   },
   {
@@ -345,7 +351,8 @@
     "Drop": true,
     "Create": true,
     "Aliases": [
-      "Seeds1A"
+      "Seeds1A",
+      "SeedingTest"
     ]
   },
   {
@@ -355,6 +362,15 @@
     "Create": true,
     "Aliases": [
       "Seeds1S"
+    ]
+  },
+  {
+    "Name": "efc_simplequery",
+    "DbmsUser": "dbo",
+    "Drop": true,
+    "Create": true,
+    "Aliases": [
+      "SimpleQuery"
     ]
   },
   {

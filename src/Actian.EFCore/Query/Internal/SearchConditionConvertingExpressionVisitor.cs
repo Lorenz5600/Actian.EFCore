@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
+#nullable enable
 namespace Actian.EFCore.Query.Internal
 {
     public class SearchConditionConvertingExpressionVisitor : SqlExpressionVisitor
@@ -44,7 +46,7 @@ namespace Actian.EFCore.Query.Internal
 
             var testIsCondition = caseExpression.Operand == null;
             _isSearchCondition = false;
-            var operand = (SqlExpression)Visit(caseExpression.Operand);
+            var operand = (SqlExpression)Visit(caseExpression.Operand!);
             var whenClauses = new List<CaseWhenClause>();
             foreach (var whenClause in caseExpression.WhenClauses)
             {
@@ -56,7 +58,7 @@ namespace Actian.EFCore.Query.Internal
             }
 
             _isSearchCondition = false;
-            var elseResult = (SqlExpression)Visit(caseExpression.ElseResult);
+            var elseResult = (SqlExpression)Visit(caseExpression.ElseResult!);
 
             _isSearchCondition = parentSearchCondition;
 
@@ -87,11 +89,37 @@ namespace Actian.EFCore.Query.Internal
 
             _isSearchCondition = false;
             var item = (SqlExpression)Visit(inExpression.Item);
-            var subquery = (SelectExpression)Visit(inExpression.Subquery);
-            var values = (SqlExpression)Visit(inExpression.Values);
+            var subquery = (SelectExpression?)Visit(inExpression.Subquery);
+
+            var values = inExpression.Values;
+            SqlExpression[]? newValues = null;
+            if (values is not null)
+            {
+                for (var i = 0; i < values.Count; i++)
+                {
+                    var value = values[i];
+                    var newValue = (SqlExpression)Visit(value);
+
+                    if (newValue != value && newValues is null)
+                    {
+                        newValues = new SqlExpression[values.Count];
+                        for (var j = 0; j < i; j++)
+                        {
+                            newValues[j] = values[j];
+                        }
+                    }
+
+                    if (newValues is not null)
+                    {
+                        newValues[i] = newValue;
+                    }
+                }
+            }
+
+            var valuesParameter = (SqlParameterExpression?)Visit(inExpression.ValuesParameter);
             _isSearchCondition = parentSearchCondition;
 
-            return ApplyConversion(inExpression.Update(item, values, subquery), condition: true);
+            return ApplyConversion(inExpression.Update(item, subquery, newValues ?? values, valuesParameter), condition: true);
         }
 
         protected override Expression VisitLike(LikeExpression likeExpression)
@@ -100,7 +128,7 @@ namespace Actian.EFCore.Query.Internal
             _isSearchCondition = false;
             var match = (SqlExpression)Visit(likeExpression.Match);
             var pattern = (SqlExpression)Visit(likeExpression.Pattern);
-            var escapeChar = (SqlExpression)Visit(likeExpression.EscapeChar);
+            var escapeChar = (SqlExpression)Visit(likeExpression.EscapeChar!);
             _isSearchCondition = parentSearchCondition;
 
             return ApplyConversion(likeExpression.Update(match, pattern, escapeChar), condition: true);
@@ -129,7 +157,7 @@ namespace Actian.EFCore.Query.Internal
             }
 
             _isSearchCondition = true;
-            var predicate = (SqlExpression)Visit(selectExpression.Predicate);
+            var predicate = (SqlExpression?)Visit(selectExpression.Predicate);
             changed |= predicate != selectExpression.Predicate;
 
             var groupBy = new List<SqlExpression>();
@@ -142,7 +170,7 @@ namespace Actian.EFCore.Query.Internal
             }
 
             _isSearchCondition = true;
-            var havingExpression = (SqlExpression)Visit(selectExpression.Having);
+            var havingExpression = (SqlExpression?)Visit(selectExpression.Having);
             changed |= havingExpression != selectExpression.Having;
 
             var orderings = new List<OrderingExpression>();
@@ -154,18 +182,17 @@ namespace Actian.EFCore.Query.Internal
                 orderings.Add(ordering.Update(orderingExpression));
             }
 
-            var offset = (SqlExpression)Visit(selectExpression.Offset);
+            var offset = (SqlExpression?)Visit(selectExpression.Offset);
             changed |= offset != selectExpression.Offset;
 
-            var limit = (SqlExpression)Visit(selectExpression.Limit);
+            var limit = (SqlExpression?)Visit(selectExpression.Limit);
             changed |= limit != selectExpression.Limit;
 
             _isSearchCondition = parentSearchCondition;
 
             return changed
                 ? selectExpression.Update(
-                    projections, tables, predicate, groupBy, havingExpression, orderings, limit, offset, selectExpression.IsDistinct,
-                    selectExpression.Alias)
+                    projections, tables, predicate, groupBy, havingExpression, orderings, limit, offset)
                 : selectExpression;
         }
 
@@ -248,8 +275,8 @@ namespace Actian.EFCore.Query.Internal
         {
             var parentSearchCondition = _isSearchCondition;
             _isSearchCondition = false;
-            var instance = (SqlExpression)Visit(sqlFunctionExpression.Instance);
-            var arguments = new SqlExpression[sqlFunctionExpression.Arguments.Count];
+            var instance = (SqlExpression)Visit(sqlFunctionExpression.Instance!);
+            var arguments = new SqlExpression[sqlFunctionExpression.Arguments!.Count];
             for (var i = 0; i < arguments.Length; i++)
             {
                 arguments[i] = (SqlExpression)Visit(sqlFunctionExpression.Arguments[i]);
@@ -340,7 +367,7 @@ namespace Actian.EFCore.Query.Internal
             return leftJoinExpression.Update(table, joinPredicate);
         }
 
-        protected override Expression VisitSubSelect(ScalarSubqueryExpression scalarSubqueryExpression)
+        protected Expression VisitSubSelect(ScalarSubqueryExpression scalarSubqueryExpression)
         {
             var parentSearchCondition = _isSearchCondition;
             var subquery = (SelectExpression)Visit(scalarSubqueryExpression.Subquery);
@@ -406,6 +433,103 @@ namespace Actian.EFCore.Query.Internal
             _isSearchCondition = parentSearchCondition;
 
             return unionExpression.Update(source1, source2);
+        }
+
+        protected override Expression VisitUpdate(UpdateExpression updateExpression)
+        {
+            var selectExpression = (SelectExpression)Visit(updateExpression.SelectExpression);
+            var parentSearchCondition = _isSearchCondition;
+            _isSearchCondition = false;
+            List<ColumnValueSetter>? columnValueSetters = null;
+            for (var (i, n) = (0, updateExpression.ColumnValueSetters.Count); i < n; i++)
+            {
+                var columnValueSetter = updateExpression.ColumnValueSetters[i];
+                var newValue = (SqlExpression)Visit(columnValueSetter.Value);
+                if (columnValueSetters != null)
+                {
+                    columnValueSetters.Add(new ColumnValueSetter(columnValueSetter.Column, newValue));
+                }
+                else if (!ReferenceEquals(newValue, columnValueSetter.Value))
+                {
+                    columnValueSetters = new List<ColumnValueSetter>();
+                    for (var j = 0; j < i; j++)
+                    {
+                        columnValueSetters.Add(updateExpression.ColumnValueSetters[j]);
+                    }
+
+                    columnValueSetters.Add(new ColumnValueSetter(columnValueSetter.Column, newValue));
+                }
+            }
+
+            _isSearchCondition = parentSearchCondition;
+            return updateExpression.Update(selectExpression, columnValueSetters ?? updateExpression.ColumnValueSetters);
+        }
+
+        protected override Expression VisitJsonScalar(JsonScalarExpression jsonScalarExpression)
+            => ApplyConversion(jsonScalarExpression, condition: false);
+
+        protected override Expression VisitValues(ValuesExpression valuesExpression)
+        {
+            var parentSearchCondition = _isSearchCondition;
+            _isSearchCondition = false;
+
+            var rowValues = new RowValueExpression[valuesExpression.RowValues.Count];
+            for (var i = 0; i < rowValues.Length; i++)
+            {
+                rowValues[i] = (RowValueExpression)Visit(valuesExpression.RowValues[i]);
+            }
+
+            _isSearchCondition = parentSearchCondition;
+            return valuesExpression.Update(rowValues);
+        }
+
+        protected override Expression VisitRowValue(RowValueExpression rowValueExpression)
+        {
+            var parentSearchCondition = _isSearchCondition;
+            _isSearchCondition = false;
+
+            var values = new SqlExpression[rowValueExpression.Values.Count];
+            for (var i = 0; i < values.Length; i++)
+            {
+                values[i] = (SqlExpression)Visit(rowValueExpression.Values[i]);
+            }
+
+            _isSearchCondition = parentSearchCondition;
+            return rowValueExpression.Update(values);
+        }
+
+        protected override Expression VisitDelete(DeleteExpression deleteExpression)
+            => deleteExpression.Update((SelectExpression)Visit(deleteExpression.SelectExpression));
+
+        protected override Expression VisitAtTimeZone(AtTimeZoneExpression atTimeZoneExpression)
+        {
+            var parentSearchCondition = _isSearchCondition;
+            _isSearchCondition = false;
+            var operand = (SqlExpression)Visit(atTimeZoneExpression.Operand);
+            var timeZone = (SqlExpression)Visit(atTimeZoneExpression.TimeZone);
+            _isSearchCondition = parentSearchCondition;
+
+            return atTimeZoneExpression.Update(operand, timeZone);
+        }
+
+        protected override Expression VisitCollate([NotNull] CollateExpression collateExpression)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Expression VisitDistinct([NotNull] DistinctExpression distinctExpression)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Expression VisitTableValuedFunction([NotNull] TableValuedFunctionExpression tableValuedFunctionExpression)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Expression VisitScalarSubquery([NotNull] ScalarSubqueryExpression scalarSubqueryExpression)
+        {
+            throw new NotImplementedException();
         }
     }
 }

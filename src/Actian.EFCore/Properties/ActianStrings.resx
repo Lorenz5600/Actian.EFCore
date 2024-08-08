@@ -247,4 +247,8 @@
   <data name="RenameTableToDifferentSchema" xml:space="preserve">
     <value>Table '{schema}.{table}' can not be renamed to '{newschema}.{newtable}' because it has a different schema.</value>
   </data>
+  <data name="LogDuplicateForeignKeyConstraintIgnored" xml:space="preserve">
+    <value>Skipping foreign key '{foreignKeyName}' on table '{tableName}' since it is a duplicate of '{duplicateForeignKeyName}'.</value>
+    <comment>Warning SqlServerEventId.DuplicateForeignKeyConstraintIgnored string string string</comment>
+  </data>
 </root>

@@ -7,19 +7,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Actian.EFCore.TestUtilities
 {
-    public class ActianTestHelpers : TestHelpers
+    public class ActianTestHelpers : RelationalTestHelpers
     {
         protected ActianTestHelpers()
         {
         }
 
-        public static ActianTestHelpers Instance { get; } = new ActianTestHelpers();
+        public static ActianTestHelpers Instance { get; } = new ();
 
         public override IServiceCollection AddProviderServices(IServiceCollection services)
-            => services.AddEntityFrameworkActian();
+                => services.AddEntityFrameworkActian();
 
-        protected override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseActian(new IngresConnection("Database=DummyDatabase"));
+        public override DbContextOptionsBuilder UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
+                => optionsBuilder.UseActian(new IngresConnection("Database=DummyDatabase"));
 
         public override LoggingDefinitions LoggingDefinitions { get; } = new ActianLoggingDefinitions();
     }

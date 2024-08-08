@@ -20,15 +20,14 @@ namespace Actian.EFCore.ValueGeneration.Internal
             _sqlGenerator = sqlGenerator;
         }
 
-        public virtual ValueGenerator Create(
+        public virtual ValueGenerator TryCreate(
             IProperty property,
+            Type type,
             ActianSequenceValueGeneratorState generatorState,
             IActianConnection connection,
             IRawSqlCommandBuilder rawSqlCommandBuilder,
-            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            IRelationalCommandDiagnosticsLogger commandLogger)
         {
-            var type = property.ClrType.UnwrapNullableType().UnwrapEnumType();
-
             if (type == typeof(long))
             {
                 return new ActianSequenceHiLoValueGenerator<long>(
@@ -91,7 +90,7 @@ namespace Actian.EFCore.ValueGeneration.Internal
 
             throw new ArgumentException(
                 CoreStrings.InvalidValueGeneratorFactoryProperty(
-                    nameof(ActianSequenceValueGeneratorFactory), property.Name, property.DeclaringEntityType.DisplayName()));
+                    nameof(ActianSequenceValueGeneratorFactory), property.Name, type.FullName));
         }
     }
 }

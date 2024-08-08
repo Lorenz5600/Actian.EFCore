@@ -26,11 +26,11 @@ namespace Actian.EFCore
         public void AssertSql(params string[] expected) => Helpers.AssertSql(expected);
         public void LogSql() => Helpers.LogSql();
 
-        [ActianTodo]
         public override async Task<string> Intercept_query_passively(bool async, bool inject)
         {
             AssertSql(
-                @"SELECT ""s"".""Id"", ""s"".""Type"" FROM ""Singularity"" AS ""s""",
+                @"SELECT ""s"".""Id"", ""s"".""Type""
+FROM ""Singularity"" AS ""s""",
                 await base.Intercept_query_passively(async, inject)
             );
             return null;
@@ -67,11 +67,11 @@ namespace Actian.EFCore
             return base.Intercept_non_query_to_suppress_execution(async, inject);
         }
 
-        [ActianTodo]
         public override async Task<string> Intercept_query_to_mutate_command(bool async, bool inject)
         {
             AssertSql(
-                @"SELECT ""s"".""Id"", ""s"".""Type"" FROM ""Brane"" AS ""s""",
+                @"SELECT ""s"".""Id"", ""s"".""Type""
+FROM ""Brane"" AS ""s""",
                 await base.Intercept_query_to_mutate_command(async, inject)
             );
             return null;
@@ -88,11 +88,11 @@ namespace Actian.EFCore
             return base.Intercept_non_query_to_mutate_command(async, inject);
         }
 
-        [ActianTodo]
         public override async Task<string> Intercept_query_to_replace_execution(bool async, bool inject)
         {
             AssertSql(
-                @"SELECT ""s"".""Id"", ""s"".""Type"" FROM ""Singularity"" AS ""s""",
+                @"SELECT ""s"".""Id"", ""s"".""Type""
+FROM ""Singularity"" AS ""s""",
                 await base.Intercept_query_to_replace_execution(async, inject)
             );
             return null;

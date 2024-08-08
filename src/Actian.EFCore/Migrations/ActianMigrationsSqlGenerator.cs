@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,58 +11,62 @@ using Actian.EFCore.Migrations.Internal;
 using Actian.EFCore.Utilities;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Update;
 
 namespace Actian.EFCore.Migrations
 {
+#nullable enable
     public class ActianMigrationsSqlGenerator : MigrationsSqlGenerator
     {
-        private readonly IMigrationsAnnotationProvider _migrationsAnnotations;
-        private IReadOnlyList<MigrationOperation> _operations;
-        private string _currentUserName = null;
+        private IReadOnlyList<MigrationOperation> _operations = null!;
+
+        private readonly ICommandBatchPreparer _commandBatchPreparer;
+
+        private string? _currentUserName = null;
         private string StatementTerminator => Dependencies.SqlGenerationHelper.StatementTerminator;
 
         public ActianMigrationsSqlGenerator(
-            [NotNull] MigrationsSqlGeneratorDependencies dependencies,
-            [NotNull] IMigrationsAnnotationProvider migrationsAnnotations)
-            : base(dependencies)
+        MigrationsSqlGeneratorDependencies dependencies,
+        ICommandBatchPreparer commandBatchPreparer)
+        : base(dependencies)
         {
-            _migrationsAnnotations = migrationsAnnotations;
+            _commandBatchPreparer = commandBatchPreparer;
         }
 
+        /// <summary>
+        ///     Generates commands from a list of operations.
+        /// </summary>
+        /// <param name="operations">The operations.</param>
+        /// <param name="model">The target model which may be <see langword="null" /> if the operations exist without a model.</param>
+        /// <param name="options">The options to use when generating commands.</param>
+        /// <returns>The list of commands to be executed or scripted.</returns>
         public override IReadOnlyList<MigrationCommand> Generate(
             IReadOnlyList<MigrationOperation> operations,
-            IModel model = null)
+            IModel? model = null,
+            MigrationsSqlGenerationOptions options = MigrationsSqlGenerationOptions.Default)
         {
-            Check.NotNull(operations, nameof(operations));
-
             _operations = operations;
             try
             {
-                var builder = new MigrationCommandListBuilder(Dependencies);
-                ResetCurrentUser(builder);
-                foreach (var operation in operations)
-                {
-                    Generate(operation, model, builder);
-                }
-                ResetCurrentUser(builder);
-                return builder.GetCommandList();
+                return base.Generate(RewriteOperations(operations, model, options), model, options);
             }
             finally
             {
-                _operations = null;
+                _operations = null!;
             }
         }
 
         #region Databases
 
         protected override void Generate(
-            [NotNull] AlterDatabaseOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AlterDatabaseOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(model, nameof(model));
@@ -75,19 +80,19 @@ namespace Actian.EFCore.Migrations
         #region Schemas
 
         protected override void Generate(
-            [NotNull] EnsureSchemaOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            EnsureSchemaOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            }
+        }
 
         protected override void Generate(
-            [NotNull] DropSchemaOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            DropSchemaOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -108,9 +113,9 @@ namespace Actian.EFCore.Migrations
         #region Tables
 
         protected override void Generate(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
@@ -118,7 +123,7 @@ namespace Actian.EFCore.Migrations
 
             builder
                 .Append("CREATE TABLE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!))
                 .AppendLine(" (");
 
             using (builder.Indent())
@@ -140,7 +145,7 @@ namespace Actian.EFCore.Migrations
 
             if (!string.IsNullOrEmpty(operation.Comment))
             {
-                CommentOnTable(builder, operation.Schema, operation.Name, operation.Comment);
+                CommentOnTable(builder, operation.Schema!, operation.Name, operation.Comment);
             }
 
             if (terminate)
@@ -150,9 +155,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] RenameTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            RenameTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -163,48 +168,48 @@ namespace Actian.EFCore.Migrations
             }
 
             if (operation.NewSchema != operation.Schema)
-                throw new InvalidOperationException(ActianStrings.RenameTableToDifferentSchema(operation.Schema, operation.Name, operation.NewSchema, operation.NewName));
+                throw new InvalidOperationException(ActianStrings.RenameTableToDifferentSchema(operation.Schema!, operation.Name, operation.NewSchema!, operation.NewName!));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!))
                 .Append(" RENAME TO ")
-                .Append(DelimitIdentifier(operation.NewName));
+                .Append(DelimitIdentifier(operation.NewName!));
 
             builder.AppendLine(StatementTerminator);
             EndStatement(builder);
 
-            ModifyToReconstruct(builder, operation.Schema, operation.NewName);
+            ModifyToReconstruct(builder, operation.Schema!, operation.NewName!);
         }
 
         protected override void Generate(
-            [NotNull] AlterTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AlterTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
-                CommentOnTable(builder, operation.Schema, operation.Name, operation.Comment);
+            SetCurrentUser(operation.Schema!, builder);
+                CommentOnTable(builder, operation.Schema!, operation.Name, operation.Comment!);
             EndStatement(builder);
         }
 
         protected override void Generate(
-            [NotNull] DropTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            DropTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                         .Append("DROP ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema));
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!));
 
             if (terminate)
             {
@@ -214,9 +219,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void CreateTableConstraints(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -232,9 +237,9 @@ namespace Actian.EFCore.Migrations
         #region Columns
 
         protected override void Generate(
-            [NotNull] AddColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            AddColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
@@ -242,36 +247,36 @@ namespace Actian.EFCore.Migrations
 
             ClearDefaultValueIfIdentity(operation);
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" ADD ");
 
-            ColumnDefinition(operation, model, builder);
+            ColumnDefinition(operation, model!, builder);
 
             if (terminate)
             {
                 builder.AppendLine(StatementTerminator);
                 EndStatement(builder);
 
-                ModifyToReconstruct(builder, operation.Schema, operation.Table);
+                ModifyToReconstruct(builder, operation.Schema!, operation.Table);
             }
         }
 
         protected override void Generate(
-            [NotNull] RenameColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            RenameColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" RENAME COLUMN ")
                 .Append(DelimitIdentifier(operation.Name))
                 .Append(" TO ")
@@ -284,15 +289,15 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] AlterColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AlterColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var indexesToRebuild = null as IEnumerable<IIndex>;
-            var property = FindProperty(model, operation.Schema, operation.Table, operation.Name);
+            IEnumerable<ITableIndex>? indexesToRebuild = null;
+            var property = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)?.FindColumn(operation.Name);
 
             if (operation.ComputedColumnSql != null)
             {
@@ -360,11 +365,11 @@ namespace Actian.EFCore.Migrations
             ClearDefaultValueIfIdentity(definitionOperation);
 
             ColumnDefinition(
-                operation.Schema,
+                operation.Schema!,
                 operation.Table,
                 operation.Name,
                 definitionOperation,
-                model,
+                model!,
                 builder
             );
 
@@ -374,37 +379,37 @@ namespace Actian.EFCore.Migrations
             {
                 CommentOnColumn(
                     builder,
-                    operation.Schema,
+                    operation.Schema!,
                     operation.Table,
                     operation.Name,
-                    operation.Comment
+                    operation.Comment!
                 );
             }
 
             if (narrowed)
             {
-                CreateIndexes(indexesToRebuild, builder);
+                CreateIndexes(indexesToRebuild!, builder);
             }
 
             EndStatement(builder);
 
-            ModifyToReconstruct(builder, operation.Schema, operation.Table);
+            ModifyToReconstruct(builder, operation.Schema!, operation.Table);
         }
 
         protected override void Generate(
-            [NotNull] DropColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            DropColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" DROP COLUMN ")
                 .Append(DelimitIdentifier(operation.Name))
                 .Append(" RESTRICT");
@@ -414,14 +419,14 @@ namespace Actian.EFCore.Migrations
                 builder.AppendLine(StatementTerminator);
                 EndStatement(builder);
 
-                ModifyToReconstruct(builder, operation.Schema, operation.Table);
+                ModifyToReconstruct(builder, operation.Schema!, operation.Table);
             }
         }
 
         protected override void CreateTableColumns(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -429,7 +434,7 @@ namespace Actian.EFCore.Migrations
             for (var i = 0; i < operation.Columns.Count; i++)
             {
                 var column = operation.Columns[i];
-                ColumnDefinition(column, model, builder);
+                ColumnDefinition(column, model!, builder);
 
                 if (i != operation.Columns.Count - 1)
                 {
@@ -439,24 +444,24 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void ColumnDefinition(
-            [NotNull] AddColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
             => ColumnDefinition(
-                operation.Schema,
+                operation.Schema!,
                 operation.Table,
                 operation.Name,
                 operation,
-                model,
+                model!,
                 builder);
 
         protected override void ColumnDefinition(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [NotNull] ColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            string? schema,
+            string table,
+            string name,
+            ColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(operation, nameof(operation));
@@ -464,7 +469,7 @@ namespace Actian.EFCore.Migrations
 
             if (operation.ComputedColumnSql != null)
             {
-                ComputedColumnDefinition(schema, table, name, operation, model, builder);
+                ComputedColumnDefinition(schema!, table, name, operation, model!, builder);
                 return;
             }
 
@@ -472,7 +477,7 @@ namespace Actian.EFCore.Migrations
             builder
                 .Append(DelimitIdentifier(name))
                 .Append(" ")
-                .Append(columnType);
+                .Append(columnType!);
 
             builder.Append(operation.IsNullable ? " WITH NULL" : " NOT NULL");
 
@@ -481,28 +486,34 @@ namespace Actian.EFCore.Migrations
 
             if (!operation.IsNullable && operation.DefaultValue is null && operation.DefaultValueSql is null)
             {
-                var property = FindProperty(model, schema, table, name);
-                if (property != null && !property.IsKey() && !property.IsForeignKey())
-                {
-                    operation.DefaultValueSql = GetDefaultValueSql(columnType);
-                }
+                operation.DefaultValueSql = GetDefaultValueSql(columnType!);
             }
 
-            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
+            DefaultValue(operation.DefaultValue!, operation.DefaultValueSql!, columnType!, builder);
         }
 
         protected virtual bool IdentityDefinition(ColumnOperation operation, MigrationCommandListBuilder builder)
         {
+            var identity = operation[ActianAnnotationNames.Identity] as string;
             var valueGenerationStrategy = operation[ActianAnnotationNames.ValueGenerationStrategy] as ActianValueGenerationStrategy?;
-            if (!valueGenerationStrategy.IsIdentity())
-                return false;
 
-            builder.Append(valueGenerationStrategy switch
+            if (identity != null)
             {
-                ActianValueGenerationStrategy.IdentityAlwaysColumn => " GENERATED ALWAYS AS IDENTITY",
-                ActianValueGenerationStrategy.IdentityByDefaultColumn => " GENERATED BY DEFAULT AS IDENTITY",
-                _ => ""
-            });
+                builder.Append(" GENERATED BY DEFAULT AS IDENTITY");
+            }
+            else if (valueGenerationStrategy.IsIdentity())
+            {
+                builder.Append(valueGenerationStrategy switch
+                {
+                    ActianValueGenerationStrategy.IdentityAlwaysColumn => " GENERATED ALWAYS AS IDENTITY",
+                    ActianValueGenerationStrategy.IdentityByDefaultColumn => " GENERATED BY DEFAULT AS IDENTITY",
+                    _ => ""
+                });
+            }
+            else
+            {
+                return false;
+            }
 
             if (operation[ActianAnnotationNames.IdentityOptions] is string identitySequenceOptions)
             {
@@ -538,13 +549,13 @@ namespace Actian.EFCore.Migrations
                     AppendWithPrefix("CACHE ", options.NumbersToCache);
 
                 if (prefix != " (")
-                    builder.Append(')');
+                    builder.Append(")");
 
                 void AppendWithPrefix(params object[] values)
                 {
                     builder.Append(prefix);
                     prefix = " ";
-                    foreach (var value in values)
+                    foreach (string value in values)
                     {
                         builder.Append(value);
                     }
@@ -555,9 +566,10 @@ namespace Actian.EFCore.Migrations
         }
 
 
-        private string GetDefaultValueSql(string columnType) => columnType.ToLowerInvariant() switch
+        private string? GetDefaultValueSql(string columnType) => columnType!.ToLowerInvariant() switch
         {
             "money" => "0",
+            _ when columnType.Contains("interval") => "'0 00:00:00.000'",
             _ when columnType.Contains("int") => "0",
             _ when columnType.Contains("float") => "0",
             _ when columnType.Contains("decimal") => "0",
@@ -566,97 +578,71 @@ namespace Actian.EFCore.Migrations
         };
 
         protected override void ComputedColumnDefinition(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [NotNull] ColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            string? schema,
+            string table,
+            string name,
+            ColumnOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
                 throw new NotSupportedException("Actian databases do not support computed columns");
         }
 
-        protected override string GetColumnType(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [NotNull] ColumnOperation operation,
-            [CanBeNull] IModel model)
+        /// <summary>
+        ///     Gets the store/database type of a column given the provided metadata.
+        /// </summary>
+        /// <param name="schema">The schema that contains the table, or <see langword="null" /> to use the default schema.</param>
+        /// <param name="tableName">The table that contains the column.</param>
+        /// <param name="name">The column name.</param>
+        /// <param name="operation">The column metadata.</param>
+        /// <param name="model">The target model which may be <see langword="null" /> if the operations exist without a model.</param>
+        /// <returns>The database/store type for the column.</returns>
+        protected override string? GetColumnType(
+            string? schema,
+            string tableName,
+            string name,
+            ColumnOperation operation,
+            IModel? model)
         {
-            Check.NotEmpty(table, nameof(table));
-            Check.NotEmpty(name, nameof(name));
-            Check.NotNull(operation, nameof(operation));
+            var keyOrIndex = false;
 
-            var keyOrIndex = GetIsKeyOrIndex(schema, table, name, model);
-
-            var property = FindProperty(model, schema, table, name);
-            if (property != null)
+            var table = model?.GetRelationalModel().FindTable(tableName, schema);
+            var column = table?.FindColumn(name);
+            if (column != null)
             {
-                var isUnicode = property.IsUnicode();
-                var maxLength = property.GetMaxLength();
-                var isFixedLength = property.IsFixedLength();
-                var isRowVersion = property.IsConcurrencyToken && property.ValueGenerated == ValueGenerated.OnAddOrUpdate;
-
-                if (!keyOrIndex
-                    && operation.IsUnicode == isUnicode
-                    && operation.MaxLength == maxLength
-                    && (operation.IsFixedLength ?? false) == isFixedLength
-                    && operation.IsRowVersion == isRowVersion)
+                if (operation.IsUnicode == column.IsUnicode
+                    && operation.MaxLength == column.MaxLength
+                    && operation.Precision == column.Precision
+                    && operation.Scale == column.Scale
+                    && operation.IsFixedLength == column.IsFixedLength
+                    && operation.IsRowVersion == column.IsRowVersion)
                 {
-                    return Dependencies.TypeMappingSource.FindMapping(property).StoreType;
+                    return column.StoreType;
                 }
+
+                keyOrIndex = table!.UniqueConstraints.Any(u => u.Columns.Contains(column))
+                    || table.ForeignKeyConstraints.Any(u => u.Columns.Contains(column))
+                    || table.Indexes.Any(u => u.Columns.Contains(column));
             }
 
             return Dependencies.TypeMappingSource.FindMapping(
-                operation.ClrType,
-                null,
-                keyOrIndex,
-                operation.IsUnicode,
-                operation.MaxLength,
-                operation.IsRowVersion,
-                operation.IsFixedLength
-            ).StoreType;
-        }
-
-        private bool GetIsKeyOrIndex(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [CanBeNull] IModel model
-            )
-        {
-            Check.NotEmpty(table, nameof(table));
-            Check.NotEmpty(name, nameof(name));
-
-            if (model is null)
-                return false;
-
-            foreach (var entity in FindEntityTypes(model, schema, table))
-            {
-                var entityProperty = entity.GetDeclaredProperties()
-                    .FirstOrDefault(p => p.GetColumnName() == name);
-
-                if (entityProperty is null)
-                    continue;
-
-                if (entityProperty.IsKey() || entityProperty.IsForeignKey())
-                    return true;
-
-                foreach (var index in entity.GetDeclaredIndexes())
-                {
-                    if (index.Properties.Any(p => p.Name == entityProperty.Name))
-                        return true;
-                }
-            }
-
-            return false;
+                    operation.ClrType,
+                    null,
+                    keyOrIndex,
+                    operation.IsUnicode,
+                    operation.MaxLength,
+                    operation.IsRowVersion,
+                    operation.IsFixedLength,
+                    operation.Precision,
+                    operation.Scale)
+                ?.StoreType;
         }
 
         protected override void DefaultValue(
-            [CanBeNull] object defaultValue,
-            [CanBeNull] string defaultValueSql,
-            [CanBeNull] string columnType,
-            [NotNull] MigrationCommandListBuilder builder)
+            object? defaultValue,
+            string? defaultValueSql,
+            string? columnType,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(builder, nameof(builder));
 
@@ -684,19 +670,19 @@ namespace Actian.EFCore.Migrations
         }
 
         private void ModifyToReconstruct(
-            [NotNull] MigrationCommandListBuilder builder,
-            [CanBeNull] string schema,
+            MigrationCommandListBuilder builder,
+            string? schema,
             [NotNull] string tableName
             )
         {
             Check.NotNull(builder, nameof(builder));
             Check.NotEmpty(tableName, nameof(tableName));
 
-            SetCurrentUser(schema, builder);
+            SetCurrentUser(schema!, builder);
 
             builder
                 .Append("MODIFY ")
-                .Append(DelimitIdentifier(tableName, schema))
+                .Append(DelimitIdentifier(tableName, schema!))
                 .Append(" TO RECONSTRUCT")
                 .AppendLine(StatementTerminator);
 
@@ -704,7 +690,11 @@ namespace Actian.EFCore.Migrations
         }
 
         private static bool IsIdentity(ColumnOperation operation)
-            => operation[ActianAnnotationNames.ValueGenerationStrategy] is ActianValueGenerationStrategy strategy && strategy.IsIdentity();
+            => operation[ActianAnnotationNames.Identity] != null
+                || operation[ActianAnnotationNames.ValueGenerationStrategy] as ActianValueGenerationStrategy?
+                == ActianValueGenerationStrategy.IdentityColumn
+                || operation[ActianAnnotationNames.ValueGenerationStrategy] as ActianValueGenerationStrategy?
+                == ActianValueGenerationStrategy.IdentityByDefaultColumn;
 
         private TColumnOperation ClearDefaultValueIfIdentity<TColumnOperation>(TColumnOperation operation)
             where TColumnOperation : ColumnOperation
@@ -727,20 +717,20 @@ namespace Actian.EFCore.Migrations
         #region Primary Keys
 
         protected override void Generate(
-            [NotNull] AddPrimaryKeyOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            AddPrimaryKeyOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" ADD ");
-            PrimaryKeyConstraint(operation, model, builder);
+            PrimaryKeyConstraint(operation, model!, builder);
 
             if (terminate)
             {
@@ -750,21 +740,22 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] DropPrimaryKeyOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            DropPrimaryKeyOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                         .Append(" DROP CONSTRAINT ")
-                .Append(DelimitIdentifier(operation.Name));
+                .Append(DelimitIdentifier(operation.Name))
+                .Append(" RESTRICT");
 
             if (terminate)
             {
@@ -774,9 +765,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void CreateTablePrimaryKeyConstraint(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -789,9 +780,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void PrimaryKeyConstraint(
-            [NotNull] AddPrimaryKeyOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddPrimaryKeyOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -807,7 +798,7 @@ namespace Actian.EFCore.Migrations
             builder
                 .Append("PRIMARY KEY ");
 
-            IndexTraits(operation, model, builder);
+            IndexTraits(operation, model!, builder);
 
             builder.Append("(")
                 .Append(ColumnList(operation.Columns))
@@ -819,21 +810,21 @@ namespace Actian.EFCore.Migrations
         #region Foreign Keys
 
         protected override void Generate(
-            [NotNull] AddForeignKeyOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            AddForeignKeyOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" ADD ");
 
-            ForeignKeyConstraint(operation, model, builder);
+            ForeignKeyConstraint(operation, model!, builder);
 
             if (terminate)
             {
@@ -843,19 +834,19 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] DropForeignKeyOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            DropForeignKeyOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" DROP CONSTRAINT ")
                 .Append(DelimitIdentifier(operation.Name))
                 .Append(" RESTRICT");
@@ -868,9 +859,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void CreateTableForeignKeys(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -883,9 +874,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void ForeignKeyConstraint(
-            [NotNull] AddForeignKeyOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddForeignKeyOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -902,7 +893,7 @@ namespace Actian.EFCore.Migrations
                 .Append("FOREIGN KEY (")
                 .Append(ColumnList(operation.Columns))
                 .Append(") REFERENCES ")
-                .Append(DelimitIdentifier(operation.PrincipalTable, operation.PrincipalSchema));
+                .Append(DelimitIdentifier(operation.PrincipalTable, operation.PrincipalSchema!));
 
             if (operation.PrincipalColumns != null)
             {
@@ -927,7 +918,7 @@ namespace Actian.EFCore.Migrations
 
         protected override void ForeignKeyAction(
             ReferentialAction referentialAction,
-            [NotNull] MigrationCommandListBuilder builder)
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(builder, nameof(builder));
 
@@ -958,47 +949,48 @@ namespace Actian.EFCore.Migrations
         #region Unique Constraints
 
         protected override void Generate(
-            [NotNull] AddUniqueConstraintOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddUniqueConstraintOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" ADD ");
-            UniqueConstraint(operation, model, builder);
+            UniqueConstraint(operation, model!, builder);
             builder.AppendLine(StatementTerminator);
             EndStatement(builder);
         }
 
         protected override void Generate(
-            [NotNull] DropUniqueConstraintOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            DropUniqueConstraintOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" DROP CONSTRAINT ")
                 .Append(DelimitIdentifier(operation.Name))
+                .Append(" RESTRICT")
                 .AppendLine(StatementTerminator);
 
             EndStatement(builder);
         }
 
         protected override void CreateTableUniqueConstraints(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1011,9 +1003,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void UniqueConstraint(
-            [NotNull] AddUniqueConstraintOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddUniqueConstraintOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1041,17 +1033,17 @@ namespace Actian.EFCore.Migrations
         #region Check Constraints
 
         protected override void Generate(
-            [NotNull] CreateCheckConstraintOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddCheckConstraintOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" ADD ");
             CheckConstraint(operation, model, builder);
             builder.AppendLine(StatementTerminator);
@@ -1059,18 +1051,18 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] DropCheckConstraintOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            DropCheckConstraintOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER TABLE ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" DROP CONSTRAINT ")
                 .Append(DelimitIdentifier(operation.Name))
                 .AppendLine(StatementTerminator);
@@ -1079,9 +1071,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void CreateTableCheckConstraints(
-            [NotNull] CreateTableOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateTableOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1094,9 +1086,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void CheckConstraint(
-            [NotNull] CreateCheckConstraintOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AddCheckConstraintOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1122,21 +1114,21 @@ namespace Actian.EFCore.Migrations
         #region Indexes
 
         protected override void Generate(
-            [NotNull] CreateIndexOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            CreateIndexOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             var nullableColumns = operation.Columns
                 .Where(column =>
                 {
-                    var property = FindProperty(model, operation.Schema, operation.Table, column);
-                    return property?.IsColumnNullable() != false;
+                    var property = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema!)!.FindColumn(column);
+                    return property?.IsNullable != false;
                 })
                 .ToList();
 
@@ -1153,7 +1145,7 @@ namespace Actian.EFCore.Migrations
                 .Append("INDEX ")
                 .Append(DelimitIdentifier(operation.Name))
                 .Append(" ON ")
-                .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema!))
                 .Append(" (")
                 .Append(ColumnList(operation.Columns))
                 .Append(")");
@@ -1168,19 +1160,19 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] DropIndexOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            DropIndexOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                         .Append("DROP INDEX ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema));
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!));
 
             if (terminate)
             {
@@ -1190,24 +1182,24 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] RenameIndexOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            RenameIndexOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
                 throw new NotImplementedException();
         }
 
         protected override void IndexTraits(
-            [NotNull] MigrationOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            MigrationOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
         }
 
         protected override void IndexOptions(
-            [NotNull] CreateIndexOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateIndexOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             if (!string.IsNullOrEmpty(operation.Filter))
             {
@@ -1219,41 +1211,39 @@ namespace Actian.EFCore.Migrations
                 .Build();
         }
 
-        private IEnumerable<IIndex> GetIndexesToRebuild(
-            [CanBeNull] IProperty property,
-            [NotNull] MigrationOperation currentOperation)
+        /// <summary>
+        ///     Gets the list of indexes that need to be rebuilt when the given column is changing.
+        /// </summary>
+        /// <param name="column">The column.</param>
+        /// <param name="currentOperation">The operation which may require a rebuild.</param>
+        /// <returns>The list of indexes affected.</returns>
+        protected virtual IEnumerable<ITableIndex> GetIndexesToRebuild(
+            IColumn? column,
+            MigrationOperation currentOperation)
         {
-            Check.NotNull(currentOperation, nameof(currentOperation));
-
-            if (property == null)
             {
-                yield break;
-            }
-
-            var createIndexOperations = _operations
-                .SkipWhile(o => o != currentOperation)
-                .Skip(1)
-                .OfType<CreateIndexOperation>()
-                .ToList();
-
-            var declaredIndexes = property.DeclaringEntityType.GetDerivedTypes().SelectMany(et => et.GetDeclaredIndexes());
-            var indexes = property.DeclaringEntityType.GetIndexes().Concat(declaredIndexes);
-
-            foreach (var index in indexes)
-            {
-                var indexName = index.GetName();
-                if (createIndexOperations.Any(o => o.Name == indexName))
+                if (column == null)
                 {
-                    continue;
+                    yield break;
                 }
 
-                if (index.Properties.Any(p => p == property))
+                var table = column.Table;
+                var createIndexOperations = _operations.SkipWhile(o => o != currentOperation).Skip(1)
+                    .OfType<CreateIndexOperation>().Where(o => o.Table == table.Name && o.Schema == table.Schema).ToList();
+                foreach (var index in table.Indexes)
                 {
-                    yield return index;
-                }
-                else if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
-                {
-                    if (includeProperties.Contains(property.Name))
+                    var indexName = index.Name;
+                    if (createIndexOperations.Any(o => o.Name == indexName))
+                    {
+                        continue;
+                    }
+
+                    if (index.Columns.Any(c => c == column))
+                    {
+                        yield return index;
+                    }
+                    else if (index[ActianAnnotationNames.Include] is IReadOnlyList<string> includeColumns
+                             && includeColumns.Contains(column.Name))
                     {
                         yield return index;
                     }
@@ -1261,49 +1251,43 @@ namespace Actian.EFCore.Migrations
             }
         }
 
-        private void DropIndexes(
-            [NotNull] IEnumerable<IIndex> indexes,
-            [NotNull] MigrationCommandListBuilder builder)
+        /// <summary>
+        ///     Generates SQL to drop the given indexes.
+        /// </summary>
+        /// <param name="indexes">The indexes to drop.</param>
+        /// <param name="builder">The command builder to use to build the commands.</param>
+        protected virtual void DropIndexes(
+            IEnumerable<ITableIndex> indexes,
+            MigrationCommandListBuilder builder)
         {
-            Check.NotNull(indexes, nameof(indexes));
-            Check.NotNull(builder, nameof(builder));
-
             foreach (var index in indexes)
             {
+                var table = index.Table;
                 var operation = new DropIndexOperation
                 {
-                    Schema = index.DeclaringEntityType.GetSchema(),
-                    Table = index.DeclaringEntityType.GetTableName(),
-                    Name = index.GetName()
+                    Schema = table.Schema,
+                    Table = table.Name,
+                    Name = index.Name
                 };
-                operation.AddAnnotations(_migrationsAnnotations.ForRemove(index));
+                operation.AddAnnotations(index.GetAnnotations());
 
-                Generate(operation, index.DeclaringEntityType.Model, builder, terminate: false);
+                Generate(operation, table.Model.Model, builder, terminate: false);
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
         }
 
-        private void CreateIndexes(
-            [NotNull] IEnumerable<IIndex> indexes,
-            [NotNull] MigrationCommandListBuilder builder)
+        /// <summary>
+        ///     Generates SQL to create the given indexes.
+        /// </summary>
+        /// <param name="indexes">The indexes to create.</param>
+        /// <param name="builder">The command builder to use to build the commands.</param>
+        protected virtual void CreateIndexes(
+            IEnumerable<ITableIndex> indexes,
+            MigrationCommandListBuilder builder)
         {
-            Check.NotNull(indexes, nameof(indexes));
-            Check.NotNull(builder, nameof(builder));
-
             foreach (var index in indexes)
             {
-                var operation = new CreateIndexOperation
-                {
-                    IsUnique = index.IsUnique,
-                    Name = index.GetName(),
-                    Schema = index.DeclaringEntityType.GetSchema(),
-                    Table = index.DeclaringEntityType.GetTableName(),
-                    Columns = index.Properties.Select(p => p.GetColumnName()).ToArray(),
-                    Filter = index.GetFilter()
-                };
-                operation.AddAnnotations(_migrationsAnnotations.For(index));
-
-                Generate(operation, index.DeclaringEntityType.Model, builder, terminate: false);
+                Generate(CreateIndexOperation.CreateFrom(index), index.Table.Model.Model, builder, terminate: false);
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
         }
@@ -1313,18 +1297,18 @@ namespace Actian.EFCore.Migrations
         #region Sequences
 
         protected override void Generate(
-            [NotNull] CreateSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("CREATE SEQUENCE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema));
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!));
 
             var typeMapping = Dependencies.TypeMappingSource.GetMapping(operation.ClrType);
 
@@ -1349,25 +1333,25 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] RenameSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            RenameSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
                 throw new NotImplementedException();
         }
 
         protected override void Generate(
-            [NotNull] AlterSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AlterSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
             builder
                 .Append("ALTER SEQUENCE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema));
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!));
 
             SequenceOptions(operation, model, builder);
 
@@ -1377,36 +1361,36 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] DropSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            DropSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("DROP SEQUENCE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!))
                 .AppendLine(StatementTerminator);
 
             EndStatement(builder);
         }
 
         protected override void Generate(
-            [NotNull] RestartSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            RestartSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            SetCurrentUser(operation.Schema, builder);
+            SetCurrentUser(operation.Schema!, builder);
 
             builder
                 .Append("ALTER SEQUENCE ")
-                .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(DelimitIdentifier(operation.Name, operation.Schema!))
                 .Append(" RESTART WITH ")
                 .Append(SqlLiteral(operation.StartValue))
                 .AppendLine(StatementTerminator);
@@ -1415,9 +1399,9 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void SequenceOptions(
-            [NotNull] AlterSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AlterSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
             => SequenceOptions(
                 operation.Schema,
                 operation.Name,
@@ -1427,9 +1411,9 @@ namespace Actian.EFCore.Migrations
 
 
         protected override void SequenceOptions(
-            [NotNull] CreateSequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateSequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
             => SequenceOptions(
                 operation.Schema,
                 operation.Name,
@@ -1439,11 +1423,11 @@ namespace Actian.EFCore.Migrations
 
 
         protected override void SequenceOptions(
-            [CanBeNull] string schema,
-            [NotNull] string name,
-            [NotNull] SequenceOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            string? schema,
+            string name,
+            SequenceOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(operation, nameof(operation));
@@ -1483,16 +1467,16 @@ namespace Actian.EFCore.Migrations
         #region Data
 
         protected override void Generate(
-            [NotNull] InsertDataOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder,
+            InsertDataOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder,
             bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
             var sqlBuilder = new StringBuilder();
-            foreach (var modificationCommand in operation.GenerateModificationCommands(model))
+            foreach (var modificationCommand in GenerateModificationCommands(operation, model))
             {
                 SqlGenerator.AppendInsertOperation(
                     sqlBuilder,
@@ -1509,15 +1493,15 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] UpdateDataOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            UpdateDataOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
             var sqlBuilder = new StringBuilder();
-            foreach (var modificationCommand in operation.GenerateModificationCommands(model))
+            foreach (var modificationCommand in GenerateModificationCommands(operation, model))
             {
                 SqlGenerator.AppendUpdateOperation(
                     sqlBuilder,
@@ -1530,15 +1514,15 @@ namespace Actian.EFCore.Migrations
         }
 
         protected override void Generate(
-            [NotNull] DeleteDataOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            DeleteDataOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
             var sqlBuilder = new StringBuilder();
-            foreach (var modificationCommand in operation.GenerateModificationCommands(model))
+            foreach (var modificationCommand in GenerateModificationCommands(operation, model))
             {
                 SqlGenerator.AppendDeleteOperation(
                     sqlBuilder,
@@ -1624,7 +1608,7 @@ namespace Actian.EFCore.Migrations
             => Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
 
         private void SetCurrentUser(
-            [CanBeNull] string userName,
+            [CanBeNull] string? userName,
             [NotNull] MigrationCommandListBuilder builder
             )
         {
@@ -1646,7 +1630,7 @@ namespace Actian.EFCore.Migrations
 
             EndStatement(builder, true);
 
-            _currentUserName = userName;
+            _currentUserName = userName!;
         }
 
         private void ResetCurrentUser(
@@ -1657,5 +1641,546 @@ namespace Actian.EFCore.Migrations
         }
 
         #endregion Helpers
+
+        private IReadOnlyList<MigrationOperation> RewriteOperations(
+            IReadOnlyList<MigrationOperation> migrationOperations,
+            IModel? model,
+            MigrationsSqlGenerationOptions options)
+        {
+            var operations = new List<MigrationOperation>();
+
+            var versioningMap = new Dictionary<(string?, string?), (string, string?, bool)>();
+            var periodMap = new Dictionary<(string?, string?), (string, string, bool)>();
+            var availableSchemas = new List<string>();
+
+            foreach (var operation in migrationOperations)
+            {
+                if (operation is EnsureSchemaOperation ensureSchemaOperation)
+                {
+                    availableSchemas.Add(ensureSchemaOperation.Name);
+                }
+
+                var isTemporal = operation[ActianAnnotationNames.IsTemporal] as bool? == true;
+                if (isTemporal)
+                {
+                    string? table = null;
+                    string? schema = null;
+
+                    if (operation is ITableMigrationOperation tableMigrationOperation)
+                    {
+                        table = tableMigrationOperation.Table;
+                        schema = tableMigrationOperation.Schema;
+                    }
+
+                    var suppressTransaction = table is not null && IsMemoryOptimized(operation, model, schema, table);
+
+                    schema ??= model?.GetDefaultSchema();
+                    var historyTableName = operation[ActianAnnotationNames.TemporalHistoryTableName] as string;
+                    var historyTableSchema = operation[ActianAnnotationNames.TemporalHistoryTableSchema] as string
+                        ?? schema;
+                    var periodStartColumnName = operation[ActianAnnotationNames.TemporalPeriodStartColumnName] as string;
+                    var periodEndColumnName = operation[ActianAnnotationNames.TemporalPeriodEndColumnName] as string;
+
+                    switch (operation)
+                    {
+                        case CreateTableOperation createTableOperation:
+                            if (historyTableSchema != createTableOperation.Schema
+                                && historyTableSchema != null
+                                && !availableSchemas.Contains(historyTableSchema))
+                            {
+                                operations.Add(new EnsureSchemaOperation { Name = historyTableSchema });
+                                availableSchemas.Add(historyTableSchema);
+                            }
+
+                            operations.Add(operation);
+                            break;
+
+                        case DropTableOperation:
+                            DisableVersioning(table!, schema, historyTableName!, historyTableSchema, suppressTransaction);
+                            operations.Add(operation);
+
+                            versioningMap.Remove((table, schema));
+                            periodMap.Remove((table, schema));
+                            break;
+
+                        case RenameTableOperation renameTableOperation:
+                            DisableVersioning(table!, schema, historyTableName!, historyTableSchema, suppressTransaction);
+                            operations.Add(operation);
+
+                            // since table was renamed, remove old entry and add new entry
+                            // marked as versioning disabled, so we enable it in the end for the new table
+                            versioningMap.Remove((table, schema));
+                            versioningMap[(renameTableOperation.NewName, renameTableOperation.NewSchema)] =
+                                (historyTableName!, historyTableSchema, suppressTransaction);
+
+                            // same thing for disabled system period - remove one associated with old table and add one for the new table
+                            if (periodMap.TryGetValue((table, schema), out var result))
+                            {
+                                periodMap.Remove((table, schema));
+                                periodMap[(renameTableOperation.NewName, renameTableOperation.NewSchema)] = result;
+                            }
+
+                            break;
+
+                        case AlterTableOperation alterTableOperation:
+                            var oldIsTemporal = alterTableOperation.OldTable[ActianAnnotationNames.IsTemporal] as bool? == true;
+                            if (!oldIsTemporal)
+                            {
+                                periodMap[(alterTableOperation.Name, alterTableOperation.Schema)] =
+                                    (periodStartColumnName!, periodEndColumnName!, suppressTransaction);
+                                versioningMap[(alterTableOperation.Name, alterTableOperation.Schema)] =
+                                    (historyTableName!, historyTableSchema, suppressTransaction);
+                            }
+                            else
+                            {
+                                var oldHistoryTableName =
+                                    alterTableOperation.OldTable[ActianAnnotationNames.TemporalHistoryTableName] as string;
+                                var oldHistoryTableSchema =
+                                    alterTableOperation.OldTable[ActianAnnotationNames.TemporalHistoryTableSchema] as string
+                                    ?? alterTableOperation.OldTable.Schema
+                                    ?? model?[RelationalAnnotationNames.DefaultSchema] as string;
+
+                                if (oldHistoryTableName != historyTableName
+                                    || oldHistoryTableSchema != historyTableSchema)
+                                {
+                                    if (historyTableSchema != null
+                                        && !availableSchemas.Contains(historyTableSchema))
+                                    {
+                                        operations.Add(new EnsureSchemaOperation { Name = historyTableSchema });
+                                        availableSchemas.Add(historyTableSchema);
+                                    }
+
+                                    operations.Add(
+                                        new RenameTableOperation
+                                        {
+                                            Name = oldHistoryTableName!,
+                                            Schema = oldHistoryTableSchema,
+                                            NewName = historyTableName,
+                                            NewSchema = historyTableSchema
+                                        });
+
+                                    if (versioningMap.ContainsKey((alterTableOperation.Name, alterTableOperation.Schema)))
+                                    {
+                                        versioningMap[(alterTableOperation.Name, alterTableOperation.Schema)] =
+                                            (historyTableName!, historyTableSchema, suppressTransaction);
+                                    }
+                                }
+                            }
+
+                            operations.Add(operation);
+                            break;
+
+                        case AlterColumnOperation alterColumnOperation:
+                            // if only difference is in temporal annotations being removed or history table changed etc - we can ignore this operation
+                            if (!CanSkipAlterColumnOperation(alterColumnOperation.OldColumn, alterColumnOperation))
+                            {
+                                operations.Add(operation);
+
+                                // when modifying a period column, we need to perform the operations as a normal column first, and only later enable period
+                                // removing the period information now, so that when we generate SQL that modifies the column we won't be making them auto generated as period
+                                // (making column auto generated is not allowed in ALTER COLUMN statement)
+                                // in later operation we enable the period and the period columns get set to auto generated automatically
+                                //
+                                // if the column is not period we just remove temporal information - it's no longer needed and could affect the generated sql
+                                // we will generate all the necessary operations involved with temporal tables here
+                                alterColumnOperation.RemoveAnnotation(ActianAnnotationNames.IsTemporal);
+                                alterColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalPeriodStartColumnName);
+                                alterColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalPeriodEndColumnName);
+                                alterColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalHistoryTableName);
+                                alterColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalHistoryTableSchema);
+
+                                // this is the case where we are not converting from normal table to temporal
+                                // just a normal modification to a column on a temporal table
+                                // in that case we need to double check if we need have disabled versioning earlier in this migration
+                                // if so, we need to mirror the operation to the history table
+                                if (alterColumnOperation.OldColumn[ActianAnnotationNames.IsTemporal] as bool? == true)
+                                {
+                                    alterColumnOperation.OldColumn.RemoveAnnotation(ActianAnnotationNames.IsTemporal);
+                                    alterColumnOperation.OldColumn.RemoveAnnotation(ActianAnnotationNames.TemporalPeriodStartColumnName);
+                                    alterColumnOperation.OldColumn.RemoveAnnotation(ActianAnnotationNames.TemporalPeriodEndColumnName);
+                                    alterColumnOperation.OldColumn.RemoveAnnotation(ActianAnnotationNames.TemporalHistoryTableName);
+                                    alterColumnOperation.OldColumn.RemoveAnnotation(ActianAnnotationNames.TemporalHistoryTableSchema);
+
+                                    if (versioningMap.ContainsKey((table, schema)))
+                                    {
+                                        var alterHistoryTableColumn = CopyColumnOperation<AlterColumnOperation>(alterColumnOperation);
+                                        alterHistoryTableColumn.Table = historyTableName!;
+                                        alterHistoryTableColumn.Schema = historyTableSchema;
+                                        alterHistoryTableColumn.OldColumn =
+                                            CopyColumnOperation<AddColumnOperation>(alterColumnOperation.OldColumn);
+                                        alterHistoryTableColumn.OldColumn.Table = historyTableName!;
+                                        alterHistoryTableColumn.OldColumn.Schema = historyTableSchema;
+
+                                        operations.Add(alterHistoryTableColumn);
+                                    }
+
+                                    // TODO: test what happens if default value just changes (from temporal to temporal)
+                                }
+                            }
+
+                            break;
+
+                        case DropPrimaryKeyOperation:
+                        case AddPrimaryKeyOperation:
+                            DisableVersioning(table!, schema, historyTableName!, historyTableSchema, suppressTransaction);
+                            operations.Add(operation);
+                            break;
+
+                        case DropColumnOperation dropColumnOperation:
+                            DisableVersioning(table!, schema, historyTableName!, historyTableSchema, suppressTransaction);
+                            if (dropColumnOperation.Name == periodStartColumnName
+                                || dropColumnOperation.Name == periodEndColumnName)
+                            {
+                                // period columns can be null here - it doesn't really matter since we are never enabling the period back
+                                // if we remove the period columns, it means we will be dropping the table also or at least convert it back to
+                                // regular which will clear the entry in the periodMap for this table
+                                DisablePeriod(table!, schema, periodStartColumnName!, periodEndColumnName!, suppressTransaction);
+                            }
+
+                            operations.Add(operation);
+
+                            break;
+
+                        case AddColumnOperation addColumnOperation:
+                            operations.Add(addColumnOperation);
+
+                            // when adding a period column, we need to add it as a normal column first, and only later enable period
+                            // removing the period information now, so that when we generate SQL that adds the column we won't be making them
+                            // auto generated as period it won't work, unless period is enabled but we can't enable period without adding the
+                            // columns first - chicken and egg
+                            if (addColumnOperation[ActianAnnotationNames.IsTemporal] as bool? == true)
+                            {
+                                addColumnOperation.RemoveAnnotation(ActianAnnotationNames.IsTemporal);
+                                addColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalHistoryTableName);
+                                addColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalHistoryTableSchema);
+                                addColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalPeriodStartColumnName);
+                                addColumnOperation.RemoveAnnotation(ActianAnnotationNames.TemporalPeriodEndColumnName);
+
+                                // model differ adds default value, but for period end we need to replace it with the correct one -
+                                // DateTime.MaxValue
+                                if (addColumnOperation.Name == periodEndColumnName)
+                                {
+                                    addColumnOperation.DefaultValue = DateTime.MaxValue;
+                                }
+
+                                // when adding (non-period) column to an exisiting temporal table we need to check if we have disabled the period
+                                // due to some other operations in the same migration (e.g. delete column)
+                                // if so, we need to also add the same column to history table
+                                if (addColumnOperation.Name != periodStartColumnName
+                                    && addColumnOperation.Name != periodEndColumnName)
+                                {
+                                    if (versioningMap.ContainsKey((table, schema)))
+                                    {
+                                        var addHistoryTableColumnOperation = CopyColumnOperation<AddColumnOperation>(addColumnOperation);
+                                        addHistoryTableColumnOperation.Table = historyTableName!;
+                                        addHistoryTableColumnOperation.Schema = historyTableSchema;
+
+                                        operations.Add(addHistoryTableColumnOperation);
+                                    }
+                                }
+                            }
+
+                            break;
+
+                        case RenameColumnOperation renameColumnOperation:
+                            operations.Add(renameColumnOperation);
+
+                            // if we disabled period for the temporal table and now we are renaming the column,
+                            // we need to also rename this same column in history table
+                            if (versioningMap.ContainsKey((table, schema)))
+                            {
+                                var renameHistoryTableColumnOperation = new RenameColumnOperation
+                                {
+                                    IsDestructiveChange = renameColumnOperation.IsDestructiveChange,
+                                    Name = renameColumnOperation.Name,
+                                    NewName = renameColumnOperation.NewName,
+                                    Table = historyTableName!,
+                                    Schema = historyTableSchema
+                                };
+
+                                operations.Add(renameHistoryTableColumnOperation);
+                            }
+
+                            break;
+
+                        default:
+                            operations.Add(operation);
+                            break;
+                    }
+                }
+                else
+                {
+                    if (operation is AlterTableOperation alterTableOperation
+                        && alterTableOperation.OldTable[ActianAnnotationNames.IsTemporal] as bool? == true)
+                    {
+                        var historyTableName = alterTableOperation.OldTable[ActianAnnotationNames.TemporalHistoryTableName] as string;
+                        var historyTableSchema = alterTableOperation.OldTable[ActianAnnotationNames.TemporalHistoryTableSchema] as string
+                            ?? alterTableOperation.OldTable.Schema
+                            ?? model?[RelationalAnnotationNames.DefaultSchema] as string;
+
+                        var periodStartColumnName =
+                            alterTableOperation.OldTable[ActianAnnotationNames.TemporalPeriodStartColumnName] as string;
+                        var periodEndColumnName =
+                            alterTableOperation.OldTable[ActianAnnotationNames.TemporalPeriodEndColumnName] as string;
+                        var suppressTransaction = IsMemoryOptimized(operation, model, alterTableOperation.Schema, alterTableOperation.Name);
+
+                        DisableVersioning(
+                            alterTableOperation.Name, alterTableOperation.Schema, historyTableName!, historyTableSchema, suppressTransaction);
+                        DisablePeriod(
+                            alterTableOperation.Name, alterTableOperation.Schema, periodStartColumnName!, periodEndColumnName!,
+                            suppressTransaction);
+
+                        if (historyTableName != null)
+                        {
+                            operations.Add(
+                                new DropTableOperation { Name = historyTableName, Schema = historyTableSchema });
+                        }
+
+                        operations.Add(operation);
+
+                        // when we disable versioning and period earlier, we marked it to be re-enabled
+                        // since table is no longer temporal we don't need to do that anymore
+                        versioningMap.Remove((alterTableOperation.Name, alterTableOperation.Schema));
+                        periodMap.Remove((alterTableOperation.Name, alterTableOperation.Schema));
+                    }
+                    else if (operation is AlterColumnOperation alterColumnOperation)
+                    {
+                        // if only difference is in temporal annotations being removed or history table changed etc - we can ignore this operation
+                        if (alterColumnOperation.OldColumn?[ActianAnnotationNames.IsTemporal] as bool? != true
+                            || !CanSkipAlterColumnOperation(alterColumnOperation.OldColumn, alterColumnOperation))
+                        {
+                            operations.Add(operation);
+                        }
+                    }
+                    else
+                    {
+                        operations.Add(operation);
+                    }
+                }
+            }
+
+            foreach (var ((table, schema), (periodStartColumnName, periodEndColumnName, suppressTransaction)) in periodMap)
+            {
+                EnablePeriod(table!, schema, periodStartColumnName, periodEndColumnName, suppressTransaction);
+            }
+
+            foreach (var ((table, schema), (historyTableName, historyTableSchema, suppressTransaction)) in versioningMap)
+            {
+                EnableVersioning(table!, schema, historyTableName, historyTableSchema, suppressTransaction);
+            }
+
+            return operations;
+
+            void DisableVersioning(string table, string? schema, string historyTableName, string? historyTableSchema, bool suppressTransaction)
+            {
+                if (!versioningMap.TryGetValue((table, schema), out _))
+                {
+                    versioningMap[(table, schema)] = (historyTableName, historyTableSchema, suppressTransaction);
+
+                    operations.Add(
+                        new SqlOperation
+                        {
+                            Sql = new StringBuilder()
+                                .Append("ALTER TABLE ")
+                                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(table, schema))
+                                .AppendLine(" SET (SYSTEM_VERSIONING = OFF)")
+                                .ToString(),
+                            SuppressTransaction = suppressTransaction
+                        });
+                }
+            }
+
+            void EnableVersioning(string table, string? schema, string historyTableName, string? historyTableSchema, bool suppressTransaction)
+            {
+                var stringBuilder = new StringBuilder();
+
+                if (historyTableSchema == null)
+                {
+                    // need to run command using EXEC to inject default schema
+                    stringBuilder.AppendLine("DECLARE @historyTableSchema sysname = SCHEMA_NAME()");
+                    stringBuilder.Append("EXEC(N'");
+                }
+
+                var historyTable = historyTableSchema != null
+                    ? Dependencies.SqlGenerationHelper.DelimitIdentifier(historyTableName, historyTableSchema)
+                    : Dependencies.SqlGenerationHelper.DelimitIdentifier(historyTableName);
+
+                stringBuilder
+                    .Append("ALTER TABLE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(table, schema));
+
+                if (historyTableSchema != null)
+                {
+                    stringBuilder.AppendLine($" SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = {historyTable}))");
+                }
+                else
+                {
+                    stringBuilder.AppendLine(
+                        $" SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [' + @historyTableSchema + '].{historyTable}))')");
+                }
+
+                operations.Add(
+                    new SqlOperation { Sql = stringBuilder.ToString(), SuppressTransaction = suppressTransaction });
+            }
+
+            void DisablePeriod(string table, string? schema, string periodStartColumnName, string periodEndColumnName, bool suppressTransaction)
+            {
+                if (!periodMap.TryGetValue((table, schema), out _))
+                {
+                    periodMap[(table, schema)] = (periodStartColumnName, periodEndColumnName, suppressTransaction);
+
+                    operations.Add(
+                        new SqlOperation
+                        {
+                            Sql = new StringBuilder()
+                                .Append("ALTER TABLE ")
+                                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(table, schema))
+                                .AppendLine(" DROP PERIOD FOR SYSTEM_TIME")
+                                .ToString(),
+                            SuppressTransaction = suppressTransaction
+                        });
+                }
+            }
+
+            void EnablePeriod(string table, string? schema, string periodStartColumnName, string periodEndColumnName, bool suppressTransaction)
+            {
+                var addPeriodSql = new StringBuilder()
+                    .Append("ALTER TABLE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(table, schema))
+                    .Append(" ADD PERIOD FOR SYSTEM_TIME (")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(periodStartColumnName))
+                    .Append(", ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(periodEndColumnName))
+                    .Append(')')
+                    .ToString();
+
+                if (options.HasFlag(MigrationsSqlGenerationOptions.Idempotent))
+                {
+                    addPeriodSql = new StringBuilder()
+                        .Append("EXEC(N'")
+                        .Append(addPeriodSql.Replace("'", "''"))
+                        .Append("')")
+                        .ToString();
+                }
+
+                operations.Add(
+                    new SqlOperation { Sql = addPeriodSql, SuppressTransaction = suppressTransaction });
+
+                operations.Add(
+                    new SqlOperation
+                    {
+                        Sql = new StringBuilder()
+                            .Append("ALTER TABLE ")
+                            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(table, schema))
+                            .Append(" ALTER COLUMN ")
+                            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(periodStartColumnName))
+                            .Append(" ADD HIDDEN")
+                            .ToString(),
+                        SuppressTransaction = suppressTransaction
+                    });
+
+                operations.Add(
+                    new SqlOperation
+                    {
+                        Sql = new StringBuilder()
+                            .Append("ALTER TABLE ")
+                            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(table, schema))
+                            .Append(" ALTER COLUMN ")
+                            .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(periodEndColumnName))
+                            .Append(" ADD HIDDEN")
+                            .ToString(),
+                        SuppressTransaction = suppressTransaction
+                    });
+            }
+
+            static bool CanSkipAlterColumnOperation(ColumnOperation first, ColumnOperation second)
+                => ColumnPropertiesAreTheSame(first, second)
+                    && ColumnOperationsOnlyDifferByTemporalTableAnnotation(first, second)
+                    && ColumnOperationsOnlyDifferByTemporalTableAnnotation(second, first);
+
+            // don't compare name, table or schema - they are not being set in the model differ (since they should always be the same)
+            static bool ColumnPropertiesAreTheSame(ColumnOperation first, ColumnOperation second)
+                => first.ClrType == second.ClrType
+                    && first.Collation == second.Collation
+                    && first.ColumnType == second.ColumnType
+                    && first.Comment == second.Comment
+                    && first.ComputedColumnSql == second.ComputedColumnSql
+                    && Equals(first.DefaultValue, second.DefaultValue)
+                    && first.DefaultValueSql == second.DefaultValueSql
+                    && first.IsDestructiveChange == second.IsDestructiveChange
+                    && first.IsFixedLength == second.IsFixedLength
+                    && first.IsNullable == second.IsNullable
+                    && first.IsReadOnly == second.IsReadOnly
+                    && first.IsRowVersion == second.IsRowVersion
+                    && first.IsStored == second.IsStored
+                    && first.IsUnicode == second.IsUnicode
+                    && first.MaxLength == second.MaxLength
+                    && first.Precision == second.Precision
+                    && first.Scale == second.Scale;
+
+            static bool ColumnOperationsOnlyDifferByTemporalTableAnnotation(ColumnOperation first, ColumnOperation second)
+            {
+                var unmatched = first.GetAnnotations().ToList();
+                foreach (var annotation in second.GetAnnotations())
+                {
+                    var index = unmatched.FindIndex(
+                        a => a.Name == annotation.Name
+                            && StructuralComparisons.StructuralEqualityComparer.Equals(a.Value, annotation.Value));
+                    if (index == -1)
+                    {
+                        continue;
+                    }
+
+                    unmatched.RemoveAt(index);
+                }
+
+                return unmatched.All(
+                    a => a.Name is ActianAnnotationNames.IsTemporal
+                        or ActianAnnotationNames.TemporalHistoryTableName
+                        or ActianAnnotationNames.TemporalHistoryTableSchema
+                        or ActianAnnotationNames.TemporalPeriodStartPropertyName
+                        or ActianAnnotationNames.TemporalPeriodEndPropertyName
+                        or ActianAnnotationNames.TemporalPeriodStartColumnName
+                        or ActianAnnotationNames.TemporalPeriodEndColumnName);
+            }
+
+            static TOperation CopyColumnOperation<TOperation>(ColumnOperation source)
+                where TOperation : ColumnOperation, new()
+            {
+                var result = new TOperation
+                {
+                    ClrType = source.ClrType,
+                    Collation = source.Collation,
+                    ColumnType = source.ColumnType,
+                    Comment = source.Comment,
+                    ComputedColumnSql = source.ComputedColumnSql,
+                    DefaultValue = source.DefaultValue,
+                    DefaultValueSql = source.DefaultValueSql,
+                    IsDestructiveChange = source.IsDestructiveChange,
+                    IsFixedLength = source.IsFixedLength,
+                    IsNullable = source.IsNullable,
+                    IsRowVersion = source.IsRowVersion,
+                    IsStored = source.IsStored,
+                    IsUnicode = source.IsUnicode,
+                    MaxLength = source.MaxLength,
+                    Name = source.Name,
+                    Precision = source.Precision,
+                    Scale = source.Scale,
+                    Table = source.Table,
+                    Schema = source.Schema
+                };
+
+                foreach (var annotation in source.GetAnnotations())
+                {
+                    result.AddAnnotation(annotation.Name, annotation.Value);
+                }
+
+                return result;
+            }
+        }
+
+        private static bool IsMemoryOptimized(Annotatable annotatable, IModel? model, string? schema, string tableName)
+            => annotatable[ActianAnnotationNames.MemoryOptimized] as bool?
+            ?? model?.GetRelationalModel().FindTable(tableName, schema)?[ActianAnnotationNames.MemoryOptimized] as bool? == true;
     }
 }

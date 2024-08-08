@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Reflection;
+using Actian.EFCore.Diagnostics.Internal;
 using Actian.EFCore.Infrastructure;
 using Actian.EFCore.Infrastructure.Internal;
 using Actian.EFCore.TestUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
+using TestEnvironment = Actian.EFCore.TestUtilities.TestEnvironment;
 
 namespace Actian.EFCore
 {
@@ -24,5 +28,30 @@ namespace Actian.EFCore
                 .UseActian(TestEnvironment.GetConnectionString("LoggingTest"), relationalAction);
 
         protected override string ProviderName => "Actian.EFCore";
+
+        protected override TestLogger CreateTestLogger()
+            => new TestLogger<ActianLoggingDefinitions>();
+
+        protected override string ProviderVersion
+            => typeof(ActianOptionsExtension).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+        [ActianTodo]
+        public override void ForeignKeyPropertiesMappedToUnrelatedTables_throws_by_default()
+        {
+            base.ForeignKeyPropertiesMappedToUnrelatedTables_throws_by_default();
+        }
+
+        [ActianTodo]
+        public override void IndexPropertiesBothMappedAndNotMappedToTable_throws_by_default()
+        {
+            base.IndexPropertiesBothMappedAndNotMappedToTable_throws_by_default();
+        }
+
+        [ActianTodo]
+        public override void UnnamedIndexPropertiesMappedToNonOverlappingTables_throws_by_default()
+        {
+            base.UnnamedIndexPropertiesMappedToNonOverlappingTables_throws_by_default();
+        }
     }
 }

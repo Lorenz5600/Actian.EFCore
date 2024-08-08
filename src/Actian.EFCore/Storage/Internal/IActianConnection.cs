@@ -10,5 +10,7 @@ namespace Actian.EFCore.Storage.Internal
         /// </summary>
         /// <returns>A new connection to the iidbdb database for the current connection</returns>
         IActianConnection CreateIIDbDbConnection();
+
+        bool IsMultipleActiveResultSetsEnabled { get; }
     }
 }

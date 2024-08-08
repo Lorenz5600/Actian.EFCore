@@ -13,6 +13,6 @@ namespace Actian.EFCore.TestUtilities
         }
 
         public override TestStore GetOrCreate(string storeName)
-            => ActianTestStore.GetOrCreate(Name, @"Northwind\Northwind.sql");
+            => ActianTestStore.GetOrCreate(Name, "Northwind.sql");
     }
 }

@@ -8,10 +8,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Actian.EFCore.Parsing.Internal;
-using Actian.EFCore.Storage.Internal;
 using Ingres.Client;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,12 +22,12 @@ namespace Actian.EFCore.TestUtilities
 {
     public class ActianTestStore : RelationalTestStore
     {
-        private static readonly ActianSqlGenerationHelper SqlGenerationHelper = new ActianSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
-
+ 
         public const int CommandTimeout = 300;
 
         public static ActianTestStore GetIIDbDb()
-            => new ActianTestStore("iidbdb", TestEnvironment.LoginUser);
+            => (ActianTestStore)ActianIIDbDbTestStoreFactory.Instance
+                .GetOrCreate(ActianIIDbDbTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null);
 
         public static ActianTestStore GetNorthwindStore()
             => (ActianTestStore)ActianNorthwindTestStoreFactory.Instance
@@ -39,6 +38,9 @@ namespace Actian.EFCore.TestUtilities
 
         public static ActianTestStore GetOrCreateInitialized(string name)
             => new ActianTestStore(name).InitializeActian(null, (Func<DbContext>)null, null);
+
+        public static ActianTestStore GetOrCreateWithUser(string name, string initUser)
+            => new ActianTestStore (name, initUser);
 
         public static ActianTestStore GetOrCreate(string name, string scriptPath)
             => new ActianTestStore(name, scriptPath: scriptPath);
@@ -134,7 +136,9 @@ namespace Actian.EFCore.TestUtilities
         }
 
         public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
-            => builder.UseActian(Connection, b => b.ApplyConfiguration());
+            => builder
+                .UseActian(Connection, b => b.ApplyConfiguration())
+                .ConfigureWarnings(b => b.Ignore(ActianEventId.SavepointsDisabledBecauseOfMARS));
 
         private bool CreateDatabase(Action<DbContext> clean)
         {
@@ -165,23 +169,23 @@ namespace Actian.EFCore.TestUtilities
             return ExecuteScalar<int>(iiDbDbConnection, @$"
                 select count(*)
                   from $ingres.iidatabase_info
-                 where database_name = '{Connection.Database}'
+                 where database_name = '{Connection.Database.ToLower()}'
             ") == 1;
         }
 
-        //private void Clean(string name)
-        //{
-        //    var options = new DbContextOptionsBuilder()
-        //        .UseActian(CreateConnectionString(name), b => b.ApplyConfiguration())
-        //        .UseInternalServiceProvider(
-        //            new ServiceCollection()
-        //                .AddEntityFrameworkActian()
-        //                .BuildServiceProvider())
-        //        .Options;
+        private void Clean(string name)
+        {
+            var options = new DbContextOptionsBuilder()
+                .UseActian(TestEnvironment.GetConnectionString(name), b => b.ApplyConfiguration())
+                .UseInternalServiceProvider(
+                    new ServiceCollection()
+                        .AddEntityFrameworkActian()
+                        .BuildServiceProvider())
+                .Options;
 
-        //    using var context = new DbContext(options);
-        //    context.Database.EnsureClean();
-        //}
+            using var context = new DbContext(options);
+            context.Database.EnsureClean();
+        }
 
         public void Clean()
         {
@@ -709,6 +713,11 @@ namespace Actian.EFCore.TestUtilities
             Connection?.Dispose();
             Connection = null;
             base.Dispose();
+        }
+
+        public static string CreateConnectionString(string name, string fileName = null, bool? multipleActiveResultSets = null)
+        {
+            return new IngresConnectionStringBuilder(TestEnvironment.DefaultConnection).ToString();
         }
     }
 }

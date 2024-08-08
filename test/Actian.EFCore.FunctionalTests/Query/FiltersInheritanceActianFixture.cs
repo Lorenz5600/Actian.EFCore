@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Actian.EFCore.Query
 {
-    public class FiltersInheritanceActianFixture : InheritanceActianFixture
+    public class FiltersInheritanceActianFixture : TPHInheritanceQueryActianFixture
     {
-        protected override bool EnableFilters => true;
+        //protected override bool EnableFilters => true;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {

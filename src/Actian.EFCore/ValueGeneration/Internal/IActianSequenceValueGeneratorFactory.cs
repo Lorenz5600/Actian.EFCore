@@ -1,20 +1,22 @@
-﻿using Actian.EFCore.Storage.Internal;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Actian.EFCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 
+#nullable enable
+
 namespace Actian.EFCore.ValueGeneration.Internal
 {
     public interface IActianSequenceValueGeneratorFactory
     {
-        ValueGenerator Create(
-            [NotNull] IProperty property,
-            [NotNull] ActianSequenceValueGeneratorState generatorState,
-            [NotNull] IActianConnection connection,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger);
+        ValueGenerator? TryCreate(
+            IProperty property,
+            Type clrType,
+            ActianSequenceValueGeneratorState generatorState,
+            IActianConnection connection,
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IRelationalCommandDiagnosticsLogger commandLogger);
     }
 }

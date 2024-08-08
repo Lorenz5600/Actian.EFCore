@@ -4,8 +4,9 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Actian.EFCore.Query
 {
-    public class NullSemanticsQueryActianFixture : NullSemanticsQueryRelationalFixture, IActianSqlFixture
+    public class NullSemanticsQueryActianFixture : NullSemanticsQueryFixtureBase
     {
-        protected override ITestStoreFactory TestStoreFactory => ActianTestStoreFactory.Instance;
+        protected override ITestStoreFactory TestStoreFactory
+            => ActianTestStoreFactory.Instance;
     }
 }

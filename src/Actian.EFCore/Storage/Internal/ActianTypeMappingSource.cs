@@ -14,8 +14,7 @@ namespace Actian.EFCore.Storage.Internal
         private readonly ActianBooleanTypeMapping _boolean = new ActianBooleanTypeMapping("boolean", DbType.Boolean);
 
         // Uuid
-        // TODO: Implement uuid
-        //private readonly GuidTypeMapping _uuid = new GuidTypeMapping("uuid", DbType.Guid);
+        private readonly GuidTypeMapping _uuid = new GuidTypeMapping("uuid", DbType.Guid);
 
         // Numeric types
         private readonly ByteTypeMapping _byte = new ByteTypeMapping("smallint", DbType.Byte);
@@ -27,7 +26,7 @@ namespace Actian.EFCore.Storage.Internal
         private readonly FloatTypeMapping _float4 = new FloatTypeMapping("float4", DbType.Single);
         private readonly DoubleTypeMapping _float8 = new DoubleTypeMapping("float", DbType.Double);
         private readonly DecimalTypeMapping _decimal = new ActianDecimalTypeMapping("decimal(18, 2)", DbType.Decimal, precision: 18, scale: 2, storeTypePostfix: StoreTypePostfix.PrecisionAndScale);
-        private readonly DecimalTypeMapping _money = new ActianDecimalTypeMapping("money", DbType.Decimal, precision: 14, scale: 2, storeTypePostfix: StoreTypePostfix.PrecisionAndScale);
+        private readonly DecimalTypeMapping _money = new ActianDecimalTypeMapping("decimal(14, 2)", DbType.Decimal, precision: 14, scale: 2, storeTypePostfix: StoreTypePostfix.PrecisionAndScale);
 
         // String types
         private readonly ActianStringTypeMapping _char = new ActianStringTypeMapping("char", unicode: false, fixedLength: true, unbounded: false);
@@ -67,17 +66,13 @@ namespace Actian.EFCore.Storage.Internal
             "byte",
             "byte varying",
             "varbyte",
-            "char",
             "character",
             "char varying",
             "character varying",
-            "varchar",
             "national char",
             "national character",
-            "nchar",
             "national char varying",
             "national character varying",
-            "nvarchar"
         };
 
         private readonly IReadOnlyDictionary<string, Func<Type, RelationalTypeMapping>> _namedClrMappings = new Dictionary<string, Func<Type, RelationalTypeMapping>>(StringComparer.Ordinal)
@@ -94,8 +89,7 @@ namespace Actian.EFCore.Storage.Internal
                 = new Dictionary<Type, RelationalTypeMapping>
                 {
                     { typeof(bool), _boolean },
-                    // TODO: Implement uuid
-                    //(typeof(Guid), _uuid),
+                    { typeof(Guid), _uuid },
                     { typeof(byte), _byte },
                     { typeof(short), _smallint },
                     { typeof(int), _integer },
@@ -111,8 +105,7 @@ namespace Actian.EFCore.Storage.Internal
             _storeTypeMappings = new Dictionary<string, RelationalTypeMapping>(StringComparer.OrdinalIgnoreCase)
             {
                 { "boolean", _boolean },
-                // TODO: Implement uuid
-                //("uuid", _uuid),
+                { "uuid", _uuid },
                 { "tinyint", _tinyint },
                 { "smallint", _smallint },
                 { "integer", _integer },

@@ -1,5 +1,5 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -25,9 +25,9 @@ namespace Actian.EFCore.Metadata.Conventions
         private readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         public ActianConventionSetBuilder(
-            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
-            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            ProviderConventionSetBuilderDependencies dependencies,
+            RelationalConventionSetBuilderDependencies relationalDependencies,
+            ISqlGenerationHelper sqlGenerationHelper)
             : base(dependencies, relationalDependencies)
         {
             _sqlGenerationHelper = sqlGenerationHelper;
@@ -39,6 +39,7 @@ namespace Actian.EFCore.Metadata.Conventions
 
             var valueGenerationStrategyConvention = new ActianValueGenerationStrategyConvention(Dependencies, RelationalDependencies);
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
+            conventionSet.ModelFinalizingConventions.Add(valueGenerationStrategyConvention);
             conventionSet.ModelInitializedConventions.Add(
                 new RelationalMaxIdentifierLengthConvention(128, Dependencies, RelationalDependencies));
 
@@ -62,29 +63,38 @@ namespace Actian.EFCore.Metadata.Conventions
                 conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
 
             ConventionSet.AddBefore(
-                conventionSet.ModelFinalizedConventions,
+                conventionSet.ModelFinalizingConventions,
                 valueGenerationStrategyConvention,
-                typeof(ValidatingConvention));
-            ReplaceConvention(conventionSet.ModelFinalizedConventions, storeGenerationConvention);
+                typeof(ActianValueGenerationConvention));
 
             return conventionSet;
         }
 
         public static ConventionSet Build()
         {
+            using var serviceScope = CreateServiceScope();
+            using var context = serviceScope.ServiceProvider.GetRequiredService<DbContext>();
+            return ConventionSet.CreateConventionSet(context);
+        }
+
+        public static ModelBuilder CreateModelBuilder()
+        {
+            using var serviceScope = CreateServiceScope();
+            using var context = serviceScope.ServiceProvider.GetRequiredService<DbContext>();
+            return new ModelBuilder(ConventionSet.CreateConventionSet(context), context.GetService<ModelDependencies>());
+        }
+
+        private static IServiceScope CreateServiceScope()
+        {
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkActian()
                 .AddDbContext<DbContext>(
-                    (p, o) => o.UseActian("Server=Dummy").UseInternalServiceProvider(p))
+                    (p, o) =>
+                        o.UseActian("Server=.")
+                            .UseInternalServiceProvider(p))
                 .BuildServiceProvider();
 
-            using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
-            {
-                using (var context = serviceScope.ServiceProvider.GetService<DbContext>())
-                {
-                    return ConventionSet.CreateConventionSet(context);
-                }
-            }
+            return serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
         }
     }
 }

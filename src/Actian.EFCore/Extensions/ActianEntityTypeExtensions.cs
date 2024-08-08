@@ -4,6 +4,8 @@ using Actian.EFCore.Metadata.Internal;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 
+
+#nullable enable
 namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
@@ -51,7 +53,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="entityType"> The entity type. </param>
         /// <param name="locations"> The value to set. </param>
         public static void SetLocations([NotNull] this IMutableEntityType entityType, params string[] locations)
-            => entityType.SetLocations(locations?.AsEnumerable());
+            => entityType.SetLocations(locations?.AsEnumerable()!);
 
         /// <summary>
         /// Gets the configuration source for the locations setting.
