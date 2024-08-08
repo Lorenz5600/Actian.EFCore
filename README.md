@@ -2,7 +2,15 @@
 
 [Entity Framework Core](https://github.com/dotnet/efcore) provider for Actian X, Ingres, and Vector.
 
-Also see previous https://github.com/ActianCorp/EntityFramework6.Ingres/
+   * [Installing Actian.EFCore](#installing-actianefcore)
+      + [Before installing](#before-installing)
+      + [Install using the .NET Core CLI](#install-using-the-net-core-cli)
+      + [Install using the NuGet Package Manager Console in Visual Studio](#install-using-the-nuget-package-manager-console-in-visual-studio)
+   * [Testing](#testing)
+      + [Configuration for tests](#configuration-for-tests)
+      + [Preparing to test](#preparing-to-test)
+      + [Running tests](#running-tests)
+   * [History](#history)
 
 ## Installing Actian.EFCore
 
@@ -121,6 +129,11 @@ The tests are run in each of the following environments:
 - Latest test results for main branch:   
   <https://github.com/2PS-Consulting/Actian.EFCore/blob/TestResults/Branch-main/localhost-CA7/Index.md>
 
+## History
+
+ * EFCore 8 - for Ingres and Vector - Authored by https://github.com/mianculovici
+ * EFCore 3 - for Actian X, Ingres and Vector. Based on https://github.com/2PS-Consulting/Actian.EFCore Authored by https://github.com/MortenHoustonLudvigsen and https://github.com/mianculovici
+ * https://github.com/ActianCorp/EntityFramework6.Ingres/ Authored by https://github.com/thoda04
 
 [Customer Downloads]: https://esd.actian.com/
 [Setting up Local NuGet Feeds | Microsoft Docs]: https://docs.microsoft.com/en-us/nuget/hosting-packages/local-feeds
