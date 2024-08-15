@@ -16,6 +16,12 @@
 
 ## Overview
 
+Actian.EFCore is a database provider for Entity Framework Core that allows access to Actian Ingres and Vector from EFCore. Further references:
+
+  * https://en.wikipedia.org/wiki/Entity_Framework
+  * https://learn.microsoft.com/en-us/ef/core/
+  * https://github.com/dotnet/efcore
+
 ## Obtaining Actian.EFCore
 
 Source code and issue tracker is located at https://github.com/ActianCorp/Actian.EFCore/
