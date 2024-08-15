@@ -2,6 +2,7 @@
 
 [Entity Framework Core](https://github.com/dotnet/efcore) provider for Actian X, Ingres, and Vector.
 
+   * [[Overview](#overview)
    * [Installing Actian.EFCore](#installing-actianefcore)
       + [Before installing](#before-installing)
       + [Install using the .NET Core CLI](#install-using-the-net-core-cli)
@@ -12,17 +13,24 @@
       + [Running tests](#running-tests)
    * [History](#history)
 
+
+## Overview
+
+## Obtaining Actian.EFCore
+
+Source code and issue tracker is located at https://github.com/ActianCorp/Actian.EFCore/
+
+Pre-built binaries are available from https://esd.actian.com/
+
 ## Installing Actian.EFCore
 
 ### Before installing
 
 Actian.EFCore 8.0 relies on Actian.Client (Actian .NET Data Provider) version 8.0.0 and above to work. Actian.Client has not been published to [NuGet.org], so it will have to be added to a local or private NuGet feed, which the project has access to.
 
-Actian.Client (Actian .NET Data Provider) can be downloaded from [Customer Downloads].
+Actian.Client (Actian .NET Data Provider) can be downloaded from [Customer Downloads Provider].
 
 For help setting up a local NuGet feed see: [Setting up Local NuGet Feeds | Microsoft Docs].
-
-Beta versions of Actian.EFCore can be installed from [Actian.EFCore Packages].
 
 ### Install using the .NET Core CLI
 
@@ -100,9 +108,6 @@ The environment variable `ACTIAN_TEST_CONNECTION_STRING` must be have a valid va
  * EFCore 3 - for Actian X, Ingres and Vector. Based on https://github.com/2PS-Consulting/Actian.EFCore Authored by https://github.com/MortenHoustonLudvigsen and https://github.com/mianculovici
  * https://github.com/ActianCorp/EntityFramework6.Ingres/ Authored by https://github.com/thoda04
 
-[Customer Downloads]: https://esd.actian.com/product/drivers/.Net_Data_Provider/Windows_64-Bit/.Net_Data_Provider_GA
+[Customer Downloads Provider]: https://esd.actian.com/product/drivers/.Net_Data_Provider/Windows_64-Bit/.Net_Data_Provider_GA
 [Setting up Local NuGet Feeds | Microsoft Docs]: https://docs.microsoft.com/en-us/nuget/hosting-packages/local-feeds
 [NuGet.org]: https://www.nuget.org/
-[Actian.EFCore Packages]: https://github.com/2PS-Consulting/Actian.EFCore/pkgs/nuget/Actian.EFCore
-[TestResults]: https://github.com/2PS-Consulting/Actian.EFCore/tree/TestResults
-[Actian.EFCore repository]: https://github.com/2PS-Consulting/Actian.EFCore
