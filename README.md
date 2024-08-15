@@ -2,7 +2,7 @@
 
 [Entity Framework Core](https://github.com/dotnet/efcore) provider for Actian X, Ingres, and Vector.
 
-   * [[Overview](#overview)
+   * [Overview](#overview)
    * [Installing Actian.EFCore](#installing-actianefcore)
       + [Before installing](#before-installing)
       + [Install using the .NET Core CLI](#install-using-the-net-core-cli)
@@ -27,6 +27,11 @@ Actian.EFCore is a database provider for Entity Framework Core that allows acces
 Source code and issue tracker is located at https://github.com/ActianCorp/Actian.EFCore/
 
 Pre-built binaries are available from https://esd.actian.com/
+
+## Support
+
+Issues may be opened at [ActianCorp GitHub Project Page for EFCore](https://github.com/ActianCorp/Actian.EFCore/issues).
+Alternatively contact support.
 
 ## Installing Actian.EFCore
 
