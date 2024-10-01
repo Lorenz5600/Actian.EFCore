@@ -181,6 +181,13 @@ namespace Actian.EFCore
             base.Detaching_dependent_entity_will_not_remove_references_to_it();
         }
 
+        //public override async Task Discriminator_values_are_not_marked_as_unknown(bool async)
+        //{
+        //    if (!async)
+        //        await base.Discriminator_values_are_not_marked_as_unknown(async);
+        //    else
+        //        Assert.True(async);
+        //}
 
         public override void Save_removed_required_many_to_one_dependents(
             ChangeMechanism changeMechanism,
