@@ -7,6 +7,7 @@ using Xunit.Abstractions;
 
 namespace Actian.EFCore
 {
+    [Collection("Test Collection")]
     public abstract class FindActianTest : FindTestBase<FindActianTest.FindActianFixture>
     {
         protected FindActianTest(FindActianFixture fixture)
@@ -25,6 +26,7 @@ namespace Actian.EFCore
             protected override TestFinder Finder { get; } = new FindViaSetFinder();
         }
 
+        [Collection("Test Collection")]
         public class FindActianTestContext : FindActianTest
         {
             public FindActianTestContext(FindActianFixture fixture)
@@ -35,6 +37,7 @@ namespace Actian.EFCore
             protected override TestFinder Finder { get; } = new FindViaContextFinder();
         }
 
+        [Collection("Test Collection")]
         public class FindActianTestNonGeneric : FindActianTest
         {
             public FindActianTestNonGeneric(FindActianFixture fixture)
@@ -546,6 +549,7 @@ WHERE ""s"".""Id"" = @__p_0");
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
+        [Collection("Test Collection")]
         public class FindActianFixture : FindFixtureBase
         {
             public TestSqlLoggerFactory TestSqlLoggerFactory

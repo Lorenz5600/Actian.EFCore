@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Actian.Client" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="8.0.5" />
+    <PackageReference Include="Actian.Client" Version="8.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="8.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="DiffPlex" Version="1.7.2" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />

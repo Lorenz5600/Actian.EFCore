@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Actian.EFCore.Diagnostics.Internal;
 using Actian.EFCore.Internal;
@@ -22,6 +24,7 @@ namespace Actian.EFCore.Scaffolding
 {
 #nullable enable
 
+    [Collection("Test Collection")]
     public class ActianDatabaseModelFactoryTest : IClassFixture<ActianDatabaseModelFactoryTest.ActianDatabaseModelFixture>
     {
         protected ActianDatabaseModelFixture Fixture { get; }
@@ -38,6 +41,7 @@ namespace Actian.EFCore.Scaffolding
         public void Create_sequences_with_facets_maxvalue()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE SEQUENCE DefaultFacetsSequence;
 
 CREATE SEQUENCE CustomFacetsSequence
@@ -79,6 +83,7 @@ DROP SEQUENCE CustomFacetsSequence");
         public void Create_sequences_with_facets_minvalue()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE SEQUENCE DefaultFacetsSequence;
 
 CREATE SEQUENCE CustomFacetsSequence
@@ -262,6 +267,7 @@ DROP SEQUENCE TypeFacetSequence;");
         public void Filter_sequences_based_on_schema()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE SEQUENCE Sequence;
 
 SET SESSION AUTHORIZATION db2;
@@ -279,7 +285,7 @@ CREATE SEQUENCE db2.Sequence",
                     Assert.Equal(1, sequence.IncrementBy);
                 },
                 @"
-SET SESSION AUTHORIZATION INITIAL_USER;
+SET SESSION AUTHORIZATION dbo;
 DROP SEQUENCE Sequence;
 
 SET SESSION AUTHORIZATION db2;
@@ -306,6 +312,7 @@ DROP SEQUENCE db2.Sequence;");
         public void Create_tables()
             => Test(
                 @"
+SET SESSION AUTHORIZATION db2;
 CREATE TABLE Everest ( id int );
 
 CREATE TABLE Denali ( id int );",
@@ -317,12 +324,12 @@ CREATE TABLE Denali ( id int );",
                         dbModel.Tables.OrderBy(t => t.Name),
                         d =>
                         {
-                            Assert.Equal("dbo", d.Schema);
+                            Assert.Equal("db2", d.Schema);
                             Assert.Equal("denali", d.Name);
                         },
                         e =>
                         {
-                            Assert.Equal("dbo", e.Schema);
+                            Assert.Equal("db2", e.Schema);
                             Assert.Equal("everest", e.Name);
                         });
                 },
@@ -506,7 +513,7 @@ CREATE TABLE Kilimanjaro ( Id int, B varchar not null, UNIQUE (B));",
                 new[] { "db2" },
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var table = Assert.Single(dbModel.Tables);
+                    var table = dbModel.Tables[0];
                     // ReSharper disable once PossibleNullReferenceException
                     Assert.Equal("k2", table.Name);
                     Assert.Equal(2, table.Columns.Count);
@@ -579,7 +586,7 @@ CREATE TABLE Kilimanjaro ( Id int, B varchar not null, UNIQUE (B) );",
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var table = Assert.Single(dbModel.Tables);
+                    var table = dbModel.Tables[0];
                     // ReSharper disable once PossibleNullReferenceException
                     Assert.Equal("k.2", table.Name);
                     Assert.Equal(2, table.Columns.Count);
@@ -655,12 +662,13 @@ DROP TABLE ""db.2"".""K.2"";");
         public void Filter_tables_with_schema_qualified_name3()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE ""K.2"" ( Id int, A varchar not null, UNIQUE (A ) );
 
 SET SESSION AUTHORIZATION db2;
 CREATE TABLE db2.""K.2"" ( Id int, A varchar not null, UNIQUE (A ) );
 
-SET SESSION AUTHORIZATION INITIAL_USER;
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE Kilimanjaro ( Id int, B varchar not null, UNIQUE (B) );",
                 new[] { "dbo.\"K.2\"" },
                 Enumerable.Empty<string>(),
@@ -715,9 +723,10 @@ DROP TABLE ""db.2"".K2;");
         public void Complex_filtering_validation()
             =>Test(
                 @"
-CREATE SEQUENCE Sequence;
+SET SESSION AUTHORIZATION dbo;
+CREATE SEQUENCE dbo.sequence;
 SET SESSION AUTHORIZATION db2;
-CREATE SEQUENCE db2.Sequence;
+CREATE SEQUENCE db2.sequence;
 
 SET SESSION AUTHORIZATION ""db.2"";
 CREATE TABLE ""db.2"".QuotedTableName ( Id int PRIMARY KEY );
@@ -788,10 +797,10 @@ CREATE TABLE db2.DependentTable (
                     Assert.Single(dependentTable.ForeignKeys);
                 },
                 @"
-SET SESSION AUTHORIZATION INITIAL_USER;
-DROP SEQUENCE Sequence;
+SET SESSION AUTHORIZATION dbo;
+DROP SEQUENCE dbo.sequence;
 SET SESSION AUTHORIZATION db2;
-DROP SEQUENCE db2.Sequence;
+DROP SEQUENCE db2.sequence;
 
 SET SESSION AUTHORIZATION ""db.2"";
 DROP TABLE ""db.2"".QuotedTableName;
@@ -874,6 +883,7 @@ CREATE TABLE Blogs (
         public void Create_columns()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE Blogs (
     Id int,
     Name nvarchar(100) NOT NULL
@@ -882,7 +892,7 @@ CREATE TABLE Blogs (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var table = dbModel.Tables.Single();
+                    var table = dbModel.Tables[0];
 
                     Assert.Equal(2, table.Columns.Count);
                     Assert.All(
@@ -901,6 +911,7 @@ CREATE TABLE Blogs (
         public void Create_view_columns()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE VIEW BlogsView
  AS
 SELECT
@@ -910,7 +921,7 @@ SELECT
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var table = Assert.IsType<DatabaseView>(dbModel.Tables.Single());
+                    var table = Assert.IsType<DatabaseView>(dbModel.Tables[0]);
 
                     Assert.Equal(2, table.Columns.Count);
                     Assert.Null(table.PrimaryKey);
@@ -930,6 +941,7 @@ SELECT
         public void Create_primary_key()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE PrimaryKeyTable (
     Id int PRIMARY KEY
 );",
@@ -937,7 +949,7 @@ CREATE TABLE PrimaryKeyTable (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var pk = dbModel.Tables.Single().PrimaryKey;
+                    var pk = dbModel.Tables[0].PrimaryKey;
 
                     Assert.Equal("dbo", pk!.Table!.Schema);
                     Assert.Equal("primarykeytable", pk.Table.Name);
@@ -963,7 +975,7 @@ CREATE INDEX IX_INDEX on UniqueConstraint ( IndexProperty );",
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var uniqueConstraint = Assert.Single(dbModel.Tables.Single().UniqueConstraints);
+                    var uniqueConstraint = Assert.Single(dbModel.Tables[0].UniqueConstraints);
 
                     // ReSharper disable once PossibleNullReferenceException
                     Assert.Equal("dbo", uniqueConstraint.Table.Schema);
@@ -979,6 +991,7 @@ CREATE INDEX IX_INDEX on UniqueConstraint ( IndexProperty );",
         public void Create_indexes()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE IndexTable (
     Id int,
     Name int,
@@ -991,7 +1004,7 @@ CREATE INDEX IX_INDEX on IndexTable ( IndexProperty );",
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var table = dbModel.Tables.Single();
+                    var table = dbModel.Tables[0];
 
                     Assert.Equal(2, table.Indexes.Count);
                     Assert.All(
@@ -1010,6 +1023,7 @@ CREATE INDEX IX_INDEX on IndexTable ( IndexProperty );",
         public void Create_multiple_indexes_on_same_column()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE IndexTable (
     Id int,
     IndexProperty int
@@ -1021,7 +1035,7 @@ CREATE INDEX IX_Two on IndexTable ( IndexProperty );",
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var table = dbModel.Tables.Single();
+                    var table = dbModel.Tables[0];
 
                     Assert.Equal(2, table.Indexes.Count);
                     Assert.All(
@@ -1208,7 +1222,7 @@ CREATE TABLE NumericColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
+                    var columns = dbModel.Tables[0].Columns;
 
                     Assert.Equal("decimal", columns.Single(c => c.Name == "decimalcolumn").StoreType);
                     Assert.Equal("decimal(10,5)", columns.Single(c => c.Name == "decimal105column").StoreType);
@@ -1291,7 +1305,7 @@ CREATE TABLE DefaultRequiredLengthBinaryColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
+                    var columns = dbModel.Tables[0].Columns;
 
                     Assert.Equal("byte(8000)", columns.Single(c => c.Name == "binarycolumn").StoreType);
                     Assert.Equal("byte varying(8000)", columns.Single(c => c.Name == "varbinarycolumn").StoreType);
@@ -1310,7 +1324,7 @@ CREATE TABLE DefaultRequiredLengthCharColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
+                    var columns = dbModel.Tables[0].Columns;
 
                     Assert.Equal("char(8000)", columns.Single(c => c.Name == "charcolumn").StoreType);
                 },
@@ -1328,7 +1342,7 @@ CREATE TABLE DefaultRequiredLengthCharColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
+                    var columns = dbModel.Tables[0].Columns;
 
                     Assert.Equal("char(8000)", columns.Single(c => c.Name == "charactercolumn").StoreType);
                 },
@@ -1401,7 +1415,7 @@ CREATE TABLE DefaultRequiredLengthNcharColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
+                    var columns = dbModel.Tables[0].Columns;
 
                     Assert.Equal("nchar(4000)", columns.Single(c => c.Name == "ncharcolumn").StoreType);
                 },
@@ -1441,7 +1455,7 @@ CREATE TABLE LengthColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
+                    var columns = dbModel.Tables[0].Columns;
 
                     Assert.Equal("time(4) without time zone", columns.Single(c => c.Name == "time4column").StoreType);
                     Assert.Equal("timestamp(4) without time zone", columns.Single(c => c.Name == "timestamp4column").StoreType);
@@ -2108,7 +2122,8 @@ CREATE TABLE RowVersionTable (
 
         [ConditionalFact]
         public void Column_nullability_is_set()
-            => Test(
+        {
+            Test(
                 @"
 CREATE TABLE NullableColumns (
     Id int,
@@ -2119,12 +2134,12 @@ CREATE TABLE NullableColumns (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var columns = dbModel.Tables.Single().Columns;
-
+                    var columns = dbModel.Tables[0].Columns;
                     Assert.True(columns.Single(c => c.Name == "nullableint").IsNullable);
                     Assert.False(columns.Single(c => c.Name == "nonnullstring").IsNullable);
                 },
                 "DROP TABLE NullableColumns;");
+        }
 
         //ToDo
         // iicolumns Catalog
@@ -2263,6 +2278,7 @@ DROP TABLE dbo.HiddenColumnsTable;
         public void Create_composite_primary_key()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE CompositePrimaryKeyTable (
     Id1 int NOT NULL,
     Id2 int NOT NULL,
@@ -2383,6 +2399,7 @@ CREATE TABLE PrimaryKeyName (
         public void Create_composite_unique_constraint()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE CompositeUniqueConstraintTable (
     Id1 int NOT NULL,
     Id2 int NOT NULL,
@@ -2392,7 +2409,7 @@ CREATE TABLE CompositeUniqueConstraintTable (
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var uniqueConstraint = Assert.Single(dbModel.Tables.Single().UniqueConstraints);
+                    var uniqueConstraint = Assert.Single(dbModel.Tables[0].UniqueConstraints);
 
                     // ReSharper disable once PossibleNullReferenceException
                     Assert.Equal("dbo", uniqueConstraint.Table.Schema);
@@ -2430,6 +2447,7 @@ CREATE TABLE ClusteredUniqueConstraintTable (
         public void Set_unique_constraint_name_from_index()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE UniqueConstraintName (
     Id1 int,
     Id2 int not null,
@@ -2458,6 +2476,7 @@ CREATE TABLE UniqueConstraintName (
         public void Create_composite_index()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE CompositeIndexTable (
     Id1 int,
     Id2 int
@@ -2468,7 +2487,7 @@ CREATE INDEX IX_COMPOSITE ON CompositeIndexTable ( Id2, Id1 );",
                 Enumerable.Empty<string>(),
                 (dbModel, scaffoldingFactory) =>
                 {
-                    var index = Assert.Single(dbModel.Tables.Single().Indexes);
+                    var index = Assert.Single(dbModel.Tables[0].Indexes);
 
                     // ReSharper disable once PossibleNullReferenceException
                     Assert.Equal("dbo", index.Table!.Schema);
@@ -2508,6 +2527,7 @@ CREATE CLUSTERED INDEX IX_CLUSTERED ON ClusteredIndexTable ( Id2 );",
         public void Set_unique_true_for_unique_index()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE UniqueIndexTable (
     Id1 int,
     Id2 int not null
@@ -2644,6 +2664,7 @@ WITH (FILLFACTOR = 80) ON [PRIMARY]",
         public void Create_composite_foreign_key()
             => Test(
                 @"
+SET SESSION AUTHORIZATION dbo;
 CREATE TABLE PrincipalTable (
     Id1 int NOT NULL,
     Id2 int NOT NULL,
@@ -2940,8 +2961,10 @@ DROP TABLE PrincipalTable;");
 
         [ConditionalFact]
         public void Skip_duplicate_foreign_key()
-            => Test(
-                @"CREATE TABLE PrincipalTable (
+        => Test(
+                @"
+SET SESSION AUTHORIZATION dbo;
+CREATE TABLE PrincipalTable (
     Id int PRIMARY KEY,
     Value1 uuid not null,
     Value2 uuid not null,
@@ -3011,13 +3034,14 @@ DROP TABLE TestViewDefinition;");
             IEnumerable<string> schemas,
             Action<DatabaseModel, IScaffoldingModelFactory> asserter,
             string? cleanupSql)
-            => Test(
+        {
+            Test(
                 string.IsNullOrEmpty(createSql) ? Array.Empty<string>() : new[] { createSql },
                 tables,
                 schemas,
                 asserter,
                 cleanupSql);
-
+        }
         private void Test(
             string[] createSqls,
             IEnumerable<string> tables,
@@ -3034,15 +3058,11 @@ DROP TABLE TestViewDefinition;");
             {
                 var serviceProvider = ActianTestHelpers.Instance.CreateDesignServiceProvider(reporter: Fixture.OperationReporter)
                     .CreateScope().ServiceProvider;
-
                 var databaseModelFactory = serviceProvider.GetRequiredService<IDatabaseModelFactory>();
-
                 var databaseModel = databaseModelFactory.Create(
                     Fixture.TestStore.ConnectionString,
                     new DatabaseModelFactoryOptions(tables, schemas));
-
                 Assert.NotNull(databaseModel);
-
                 asserter(databaseModel, serviceProvider.GetRequiredService<IScaffoldingModelFactory>());
             }
             finally
@@ -3054,6 +3074,7 @@ DROP TABLE TestViewDefinition;");
             }
         }
 
+        [Collection("Test Collection")]
         public class ActianDatabaseModelFixture : SharedStoreFixtureBase<PoolableDbContext>
         {
             protected override string StoreName //=> ActianTestStore.GetIIDbDb().Name;

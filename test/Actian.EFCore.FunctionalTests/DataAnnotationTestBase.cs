@@ -23,6 +23,7 @@ using Xunit;
 // ReSharper disable InconsistentNaming
 namespace Actian.EFCore;
 
+[Collection("Test Collection")]
 public abstract class DataAnnotationTestBase<TFixture> : IClassFixture<TFixture>
     where TFixture : DataAnnotationTestBase<TFixture>.DataAnnotationFixtureBase, new()
 {
