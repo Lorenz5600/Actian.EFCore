@@ -19,7 +19,7 @@
     <MinClientVersion>4.3</MinClientVersion>
 
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/2PS-Consulting/Actian.EFCore.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Lorenz5600/Actian.EFCore.git</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
     <PackageProjectUrl>https://github.com/2PS-Consulting/Actian.EFCore</PackageProjectUrl>
