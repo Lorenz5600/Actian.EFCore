@@ -11,8 +11,11 @@
     <Product>Actian Entity Framework Core Provider</Product>
     <Description>Actian Entity Framework Core Provider</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-
-    <VersionPrefix>8.0.0</VersionPrefix>
+    <PackageTags>Lolo;EFCore;Database;Medico;Ingres</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageVersion>8.0.1</PackageVersion>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <VersionPrefix>8.0.1</VersionPrefix>
     <MinClientVersion>4.3</MinClientVersion>
 
     <RepositoryType>git</RepositoryType>
@@ -61,7 +64,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageReference Include="Sprache" Version="2.3.1" />
   </ItemGroup>
-
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
@@ -94,5 +102,14 @@
   </ItemGroup>
 
   <Import Project="..\Actian.EFCore.Parsing\Actian.EFCore.Parsing.projitems" Label="Shared" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <Target Name="PostPackNugetDeploy" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+    <Exec Command="dotnet nuget push $(OutputPath)$(PackageId).$(PackageVersion).nupkg -s https://srv-bkw-adm.bkw.intern.agaplesion.de:5000/v3/index.json" />
+  </Target>
 </Project>

@@ -117,6 +117,34 @@ namespace Actian.EFCore.Query.Internal
                 Sql.Append(")");
         }
 
+        /// <summary>
+        /// @by Lorenz: Handling DateOnly values
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <param name="operatorType"></param>
+        void GenerateDateOperatorExpression(SqlExpression left, SqlExpression right, ExpressionType operatorType)
+        {
+            var op = "=";
+            switch (operatorType)
+            {
+                case ExpressionType.LessThan:op = "<";break;
+                case ExpressionType.LessThanOrEqual: op = "<="; break;
+                case ExpressionType.GreaterThan: op = ">"; break;
+                case ExpressionType.GreaterThanOrEqual: op = ">="; break;
+            }
+
+            Visit(left);
+
+            Sql.Append($" {op} ");
+            
+            Sql.Append(@"Date(");
+            
+            Visit(right);
+            Sql.Append(@")");
+            
+        }
+
         protected override Expression VisitSqlBinary(SqlBinaryExpression sqlBinaryExpression)
         {
             switch (sqlBinaryExpression.OperatorType)
@@ -134,7 +162,13 @@ namespace Actian.EFCore.Query.Internal
                     GenerateBitwiseExclusiveOr(sqlBinaryExpression.Left, sqlBinaryExpression.Right, sqlBinaryExpression.Type);
                     return sqlBinaryExpression;
                 default:
-                    return base.VisitSqlBinary(sqlBinaryExpression);
+                    if (sqlBinaryExpression.Right.Type == typeof(DateOnly))
+                    {
+                        GenerateDateOperatorExpression(sqlBinaryExpression.Left, sqlBinaryExpression.Right, sqlBinaryExpression.OperatorType);
+                        return sqlBinaryExpression;
+                    }
+                    else
+                        return base.VisitSqlBinary(sqlBinaryExpression);
             }
         }
 

@@ -74,6 +74,11 @@ namespace Actian.EFCore.Storage.Internal
                 throw new InvalidOperationException($"Actian-specific type mapping {GetType().Name} being used with non-Actian parameter type {parameter.GetType().Name}");
         }
 
+        public override string GenerateSqlLiteral(object value)
+        {
+            return base.GenerateSqlLiteral(value);
+        }
+
         /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
             => FormattableString.Invariant(GenerateNonNullSqlLiteralAsFormattableString(value));
