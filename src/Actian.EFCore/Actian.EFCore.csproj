@@ -22,7 +22,7 @@
     <RepositoryUrl>https://github.com/Lorenz5600/Actian.EFCore.git</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
-    <PackageProjectUrl>https://github.com/2PS-Consulting/Actian.EFCore</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Lorenz5600/Actian.EFCore</PackageProjectUrl>
 
     <PackageTags>Actian;ActianX;Ingres;Entity Framework Core;entity-framework-core;EF;Data;O/RM;ORM;EntityFramework;EntityFrameworkCore;EFCore</PackageTags>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
